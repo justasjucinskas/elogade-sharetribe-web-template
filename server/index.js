@@ -43,6 +43,7 @@ const sitemapResourceRoute = require('./resources/sitemap');
 const { getExtractors } = require('./importer');
 const renderer = require('./renderer');
 const dataLoader = require('./dataLoader');
+const { localeMiddleware } = require('./localeMiddleware');
 const { generateCSPNonce, csp } = require('./csp');
 const sdkUtils = require('./api-util/sdk');
 const { getSDKProxy } = require('./api-util/sdkCacheProxy');
@@ -231,6 +232,10 @@ const noCacheHeaders = {
   'Cache-control': 'no-cache, no-store, must-revalidate',
 };
 
+// Locale handling: redirects bare paths to `/<locale>...` and strips the
+// `/en` / `/lt` prefix from req.url for the catch-all route below.
+app.use(localeMiddleware);
+
 app.get('/{*splat}', async (req, res) => {
   if (req.url.startsWith('/static/')) {
     // The express.static middleware only handles static resources
@@ -267,7 +272,7 @@ app.get('/{*splat}', async (req, res) => {
   res.locals.beforeLoadDataTimestamp = Date.now();
 
   dataLoader
-    .loadData(req.url, sdk, appInfo)
+    .loadData(req.url, sdk, appInfo, { locale: req.locale })
     .then(data => {
       res.locals.timestampAfterLoadData = Date.now();
       const cspNonce = cspEnabled ? res.locals.cspNonce : null;

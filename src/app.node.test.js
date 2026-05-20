@@ -37,8 +37,10 @@ describe('Application - node environment', () => {
   });
 
   it('server renders redirects for pages that require authentication', () => {
-    const loginPath = '/login';
-    const signupPath = '/signup';
+    // ServerApp wraps StaticRouter with basename=`/${locale}` (default locale 'en'),
+    // so React Router prefixes generated redirect URLs with `/en`.
+    const loginPath = '/en/login';
+    const signupPath = '/en/signup';
     const urlRedirects = {
       '/l/new': signupPath,
       '/l/listing-title-slug/1234/new/description': signupPath,
@@ -64,7 +66,8 @@ describe('Application - node environment', () => {
   });
 
   it('redirects to correct URLs', () => {
-    const urlRedirects = { '/l': '/', '/u': '/' };
+    // Same basename-prefix reason as the previous test.
+    const urlRedirects = { '/l': '/en/', '/u': '/en/' };
     Object.entries(urlRedirects).forEach(([url, redirectPath]) => {
       const context = {};
       render(url, context);

@@ -33,6 +33,8 @@ import { mergeConfig } from './util/configHelpers';
 import { matchPathname } from './util/routes';
 import * as apiUtils from './util/api';
 import * as log from './util/log';
+import { negotiateLocale, parseLocaleFromPath, prependLocale, readCookie } from './util/locale';
+import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME } from './config/configLocale';
 
 // Import relevant global duck files
 import { authInfo } from './ducks/auth.duck';
@@ -75,19 +77,39 @@ const render = (store, shouldHydrate) => {
         return { ...collectedData, [name]: content.data || {} };
       }, {});
 
+      // Locale used by IntlProvider/MomentLocaleLoader. We prefer the SSR-injected
+      // value (window.__LOCALE__) when present so client hydration matches the
+      // server render exactly. Falls back to parsing the URL — needed in `yarn dev`
+      // mode where the Express locale middleware doesn't run.
+      const ssrLocale = window.__LOCALE__;
+      const locale =
+        (typeof ssrLocale === 'string' && ssrLocale) ||
+        parseLocaleFromPath(window.location.pathname) ||
+        DEFAULT_LOCALE;
+
       if (shouldHydrate) {
         const container = document.getElementById('root');
 
         ReactDOMClient.hydrateRoot(
           container,
-          <ClientApp store={store} hostedTranslations={translations} hostedConfig={hostedConfig} />,
+          <ClientApp
+            store={store}
+            hostedTranslations={translations}
+            hostedConfig={hostedConfig}
+            locale={locale}
+          />,
           { onRecoverableError: log.onRecoverableError }
         );
       } else {
         const container = document.getElementById('root');
         const root = ReactDOMClient.createRoot(container);
         root.render(
-          <ClientApp store={store} hostedTranslations={translations} hostedConfig={hostedConfig} />
+          <ClientApp
+            store={store}
+            hostedTranslations={translations}
+            hostedConfig={hostedConfig}
+            locale={locale}
+          />
         );
       }
     })
@@ -118,8 +140,25 @@ const setupAnalyticsHandlers = googleAnalyticsId => {
   return handlers;
 };
 
+// In `yarn dev` mode the Express locale middleware does not run (the CRA dev
+// server serves the React app directly), so the redirect from `/` to
+// `/<locale>` has to happen client-side. In `yarn dev-server` and production
+// this is a no-op because the server has already redirected.
+const redirectToLocaleUrlIfNeeded = () => {
+  if (parseLocaleFromPath(window.location.pathname)) return false;
+  const cookieLocale = readCookie(document.cookie, LOCALE_COOKIE_NAME);
+  const acceptLanguage = navigator.language || '';
+  const locale = negotiateLocale(acceptLanguage, cookieLocale);
+  const target = prependLocale(
+    `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    locale
+  );
+  window.location.replace(target);
+  return true;
+};
+
 // If we're in a browser already, render the client application.
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && !redirectToLocaleUrlIfNeeded()) {
   // set up logger with Sentry DSN client key and environment
   log.setup();
 

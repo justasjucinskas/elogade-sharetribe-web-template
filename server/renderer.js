@@ -92,7 +92,7 @@ const replacer = (key = null, value) => {
 };
 
 exports.render = function(requestUrl, context, data, renderApp, webExtractor, nonce) {
-  const { preloadedState, translations, hostedConfig } = data;
+  const { preloadedState, translations, hostedConfig, locale } = data;
 
   // Bind webExtractor as "this" for collectChunks call.
   const collectWebChunks = webExtractor.collectChunks.bind(webExtractor);
@@ -109,7 +109,8 @@ exports.render = function(requestUrl, context, data, renderApp, webExtractor, no
           preloadedState,
           translations,
           hostedConfig,
-          collectWebChunks
+          collectWebChunks,
+          locale
         );
   // Render the app with given route, preloaded state, hosted translations.
   return getHeadAndBody().then(({ head, body }) => {
@@ -129,6 +130,10 @@ exports.render = function(requestUrl, context, data, renderApp, webExtractor, no
       : `<script ${nonceMaybe}>window.__PRELOADED_STATE__ = ${JSON.stringify(
           serializedState
         )};</script>`;
+    // Serialize the active locale so the client picks the same value as SSR
+    // and avoids hydration mismatches when the URL parse races state hydration.
+    const serializedLocale = JSON.stringify(locale || '');
+    const localeScript = `<script ${nonceMaybe}>window.__LOCALE__ = ${serializedLocale};</script>`;
     // Add nonce to server-side rendered script tags
     const nonceParamMaybe = nonce ? { nonce } : {};
 
@@ -138,7 +143,7 @@ exports.render = function(requestUrl, context, data, renderApp, webExtractor, no
       link: head.link.toString(),
       meta: head.meta.toString(),
       script: head.script.toString(),
-      preloadedStateScript,
+      preloadedStateScript: `${localeScript}${preloadedStateScript}`,
       ssrStyles: webExtractor.getStyleTags(),
       ssrLinks: webExtractor.getLinkTags(),
       ssrScripts: webExtractor.getScriptTags(nonceParamMaybe),

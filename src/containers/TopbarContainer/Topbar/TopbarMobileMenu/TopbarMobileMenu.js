@@ -13,6 +13,7 @@ import {
   AvatarLarge,
   ExternalLink,
   InlineTextButton,
+  LanguageSwitcher,
   NamedLink,
   NotificationBadge,
 } from '../../../../components';
@@ -134,6 +135,8 @@ const TopbarMobileMenu = props => {
 
           <ul className={css.customLinksWrapper}>{extraLinks}</ul>
 
+          <LanguageSwitcher variant="mobile" />
+
           <div className={css.spacer} />
         </div>
         <div className={css.footer}>{createListingsLinkMaybe}</div>
@@ -193,6 +196,9 @@ const TopbarMobileMenu = props => {
           </li>
         </ul>
         <ul className={css.customLinksWrapper}>{extraLinks}</ul>
+
+        <LanguageSwitcher variant="mobile" />
+
         <div className={css.spacer} />
       </div>
       <div className={css.footer}>{createListingsLinkMaybe}</div>

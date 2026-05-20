@@ -31,51 +31,27 @@ import { MaintenanceMode } from './components';
 import routeConfiguration from './routing/routeConfiguration';
 import Routes from './routing/Routes';
 
-// Sharetribe Web Template uses English translations as default translations.
+// Sharetribe Web Template uses English translations as default (fallback) translations.
+// Lithuanian translations are loaded on demand for `/lt` routes.
+//
+// The priority order at runtime is:
+//   1. hosted translations.json from Console (English-only — Console hosts a single language)
+//      — applied only when the URL locale is `en`, since Console's strings are English.
+//   2. messagesInLocale (e.g. lt.json)
+//   3. defaultMessages (en.json) as the catch-all fallback
 import defaultMessages from './translations/en.json';
+import lithuanianMessages from './translations/lt.json';
 
-// If you want to change the language of default (fallback) translations,
-// change the imports to match the wanted locale:
-//
-//   1) Change the language in the config.js file!
-//   2) Import correct locale rules for Moment library
-//   3) Use the `messagesInLocale` import to add the correct translation file.
-//   4) (optionally) To support older browsers you need add the intl-relativetimeformat npm packages
-//      and take it into use in `util/polyfills.js`
+import { DEFAULT_LOCALE, toIntlLocale } from './config/configLocale';
 
-// Note that there is also translations in './translations/countryCodes.js' file
-// This file contains ISO 3166-1 alpha-2 country codes, country names and their translations in our default languages
-// This used to collect billing address in StripePaymentAddress on CheckoutPage
+const messagesByLocale = {
+  en: {},
+  lt: lithuanianMessages,
+};
 
-// Step 2:
-// If you are using a non-english locale with moment library,
-// you should also import time specific formatting rules for that locale
-// There are 2 ways to do it:
-// - you can add your preferred locale to MomentLocaleLoader or
-// - stop using MomentLocaleLoader component and directly import the locale here.
-// E.g. for French:
-// import 'moment/locale/fr';
-// const hardCodedLocale = process.env.NODE_ENV === 'test' ? 'en' : 'fr';
-
-// Step 3:
-// The "./translations/en.json" has generic English translations
-// that should work as a default translation if some translation keys are missing
-// from the hosted translation.json (which can be edited in Console). The other files
-// (e.g. en.json) in that directory has Biketribe themed translations.
-//
-// If you are using a non-english locale, point `messagesInLocale` to correct <lang>.json file.
-// That way the priority order would be:
-//   1. hosted translation.json
-//   2. <lang>.json
-//   3. en.json
-//
-// I.e. remove "const messagesInLocale" and add import for the correct locale:
-// import messagesInLocale from './translations/fr.json';
-const messagesInLocale = {};
-
-// If translation key is missing from `messagesInLocale` (e.g. fr.json),
-// corresponding key will be added to messages from `defaultMessages` (en.json)
-// to prevent missing translation key errors.
+// If translation key is missing from `messagesInLocale` (e.g. lt.json),
+// fall back to the key from `defaultMessages` (en.json) so users never see
+// a raw FormattedMessage id in the UI.
 const addMissingTranslations = (sourceLangTranslations, targetLangTranslations) => {
   const sourceKeys = Object.keys(sourceLangTranslations);
   const targetKeys = Object.keys(targetLangTranslations);
@@ -94,15 +70,24 @@ const addMissingTranslations = (sourceLangTranslations, targetLangTranslations) 
   return missingKeys.reduce(addMissingTranslation, targetLangTranslations);
 };
 
-// Get default messages for a given locale.
+const isTestEnv = process.env.NODE_ENV === 'test';
+
+// Build the messages object for a given URL locale.
 //
 // Note: Locale should not affect the tests. We ensure this by providing
 //       messages with the key as the value of each message and discard the value.
 //       { 'My.translationKey1': 'My.translationKey1', 'My.translationKey2': 'My.translationKey2' }
-const isTestEnv = process.env.NODE_ENV === 'test';
-const localeMessages = isTestEnv
-  ? Object.fromEntries(Object.entries(defaultMessages).map(([key]) => [key, key]))
-  : addMissingTranslations(defaultMessages, messagesInLocale);
+const buildMessages = (locale, hostedTranslations) => {
+  if (isTestEnv) {
+    return Object.fromEntries(Object.entries(defaultMessages).map(([key]) => [key, key]));
+  }
+  const messagesInLocale = messagesByLocale[locale] || {};
+  const merged = addMissingTranslations(defaultMessages, messagesInLocale);
+  // Console-hosted translations are always English. Overlay them only when the
+  // URL locale is English; otherwise they would replace Lithuanian strings
+  // with English ones.
+  return locale === 'en' ? { ...merged, ...hostedTranslations } : merged;
+};
 
 // For customized apps, this dynamic loading of locale files is not necessary.
 // It helps locale change from configDefault.js file or hosted configs, but customizers should probably
@@ -120,6 +105,8 @@ const MomentLocaleLoader = props => {
   const MomentLocale =
     ['en', 'en-US'].includes(locale) || isAlreadyImportedLocale
       ? NoLoader
+      : ['lt', 'lt-LT'].includes(locale)
+      ? loadable.lib(() => import(/* webpackChunkName: "lt" */ 'moment/locale/lt'))
       : ['fr', 'fr-FR'].includes(locale)
       ? loadable.lib(() => import(/* webpackChunkName: "fr" */ 'moment/locale/fr'))
       : ['de', 'de-DE'].includes(locale)
@@ -145,9 +132,9 @@ const MomentLocaleLoader = props => {
 };
 
 const Configurations = props => {
-  const { appConfig, children } = props;
+  const { appConfig, intlLocale, children } = props;
   const routeConfig = routeConfiguration(appConfig.layout, appConfig?.accessControl);
-  const locale = isTestEnv ? 'en' : appConfig.localization.locale;
+  const locale = isTestEnv ? 'en' : intlLocale || appConfig.localization.locale;
 
   return (
     <ConfigurationProvider value={appConfig}>
@@ -212,11 +199,14 @@ const EnvironmentVariableWarning = props => {
  * @param {Object} props.store
  * @param {Object} props.hostedTranslations
  * @param {Object} props.hostedConfig
+ * @param {string} props.locale URL locale segment ('en' | 'lt')
  * @returns {JSX.Element}
  */
 export const ClientApp = props => {
-  const { store, hostedTranslations = {}, hostedConfig = {} } = props;
+  const { store, hostedTranslations = {}, hostedConfig = {}, locale = DEFAULT_LOCALE } = props;
   const appConfig = mergeConfig(hostedConfig, defaultConfig);
+  const intlLocale = toIntlLocale(locale);
+  const messages = buildMessages(locale, hostedTranslations);
 
   useEffect(() => {
     // Clear referral data from session storage the expiration time has passed
@@ -252,12 +242,7 @@ export const ClientApp = props => {
 
   // Show MaintenanceMode if the mandatory configurations are not available
   if (!appConfig.hasMandatoryConfigurations) {
-    return (
-      <MaintenanceModeError
-        locale={appConfig.localization.locale}
-        messages={{ ...localeMessages, ...hostedTranslations }}
-      />
-    );
+    return <MaintenanceModeError locale={intlLocale} messages={messages} />;
   }
 
   // Marketplace color and the color for <PrimaryButton> come from configs
@@ -271,16 +256,12 @@ export const ClientApp = props => {
   const logLoadDataCalls = appSettings?.env !== 'test';
 
   return (
-    <Configurations appConfig={appConfig}>
-      <IntlProvider
-        locale={appConfig.localization.locale}
-        messages={{ ...localeMessages, ...hostedTranslations }}
-        textComponent="span"
-      >
+    <Configurations appConfig={appConfig} intlLocale={intlLocale}>
+      <IntlProvider locale={intlLocale} messages={messages} textComponent="span">
         <Provider store={store}>
           <HelmetProvider>
             <IncludeScripts config={appConfig} initialPathname={window.location.pathname} />
-            <BrowserRouter>
+            <BrowserRouter basename={`/${locale}`}>
               <Routes logLoadDataCalls={logLoadDataCalls} />
             </BrowserRouter>
           </HelmetProvider>
@@ -299,35 +280,38 @@ export const ClientApp = props => {
  * @param {Object} props.store
  * @param {Object} props.hostedTranslations
  * @param {Object} props.hostedConfig
+ * @param {string} props.locale URL locale segment ('en' | 'lt')
  * @returns {JSX.Element}
  */
 export const ServerApp = props => {
-  const { url, context, helmetContext, store, hostedTranslations = {}, hostedConfig = {} } = props;
+  const {
+    url,
+    context,
+    helmetContext,
+    store,
+    hostedTranslations = {},
+    hostedConfig = {},
+    locale = DEFAULT_LOCALE,
+  } = props;
   const appConfig = mergeConfig(hostedConfig, defaultConfig);
+  const intlLocale = toIntlLocale(locale);
+  const messages = buildMessages(locale, hostedTranslations);
   HelmetProvider.canUseDOM = false;
 
   // Show MaintenanceMode if the mandatory configurations are not available
   if (!appConfig.hasMandatoryConfigurations) {
     return (
-      <MaintenanceModeError
-        locale={appConfig.localization.locale}
-        messages={{ ...localeMessages, ...hostedTranslations }}
-        helmetContext={helmetContext}
-      />
+      <MaintenanceModeError locale={intlLocale} messages={messages} helmetContext={helmetContext} />
     );
   }
 
   return (
-    <Configurations appConfig={appConfig}>
-      <IntlProvider
-        locale={appConfig.localization.locale}
-        messages={{ ...localeMessages, ...hostedTranslations }}
-        textComponent="span"
-      >
+    <Configurations appConfig={appConfig} intlLocale={intlLocale}>
+      <IntlProvider locale={intlLocale} messages={messages} textComponent="span">
         <Provider store={store}>
           <HelmetProvider context={helmetContext}>
             <IncludeScripts config={appConfig} initialPathname={url} />
-            <StaticRouter location={url} context={context}>
+            <StaticRouter location={url} context={context} basename={`/${locale}`}>
               <Routes />
             </StaticRouter>
           </HelmetProvider>
@@ -353,7 +337,8 @@ export const renderApp = (
   preloadedState,
   hostedTranslations,
   hostedConfig,
-  collectChunks
+  collectChunks,
+  locale
 ) => {
   // Don't pass an SDK instance since we're only rendering the
   // component tree with the preloaded store state and components
@@ -373,6 +358,7 @@ export const renderApp = (
       store={store}
       hostedTranslations={hostedTranslations}
       hostedConfig={hostedConfig}
+      locale={locale}
     />
   );
 

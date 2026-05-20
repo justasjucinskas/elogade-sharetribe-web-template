@@ -1,0 +1,70 @@
+@import '../../styles/customMediaQueries.css';
+
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  font-weight: var(--fontWeightMedium);
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0;
+  color: var(--colorGrey700);
+
+  padding: 0 12px;
+  height: 100%;
+
+  @media (--viewportMedium) {
+    line-height: 16px;
+  }
+}
+
+.option {
+  /* reset button defaults */
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 4px 2px;
+  margin: 0;
+  cursor: pointer;
+
+  composes: textSmall from global;
+  color: var(--colorGrey700);
+  transition: var(--transitionStyleButton);
+
+  &:hover {
+    color: var(--colorBlack);
+    text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--marketplaceColor);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.optionActive {
+  color: var(--colorBlack);
+  cursor: default;
+}
+
+.separator {
+  color: var(--colorGrey300);
+  user-select: none;
+}
+
+/* Mobile menu variant: stack vertically with the same look as nearby menu links. */
+.mobile {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+}
+
+.mobile .option {
+  font-size: 16px;
+  line-height: 24px;
+  padding: 8px 4px;
+}

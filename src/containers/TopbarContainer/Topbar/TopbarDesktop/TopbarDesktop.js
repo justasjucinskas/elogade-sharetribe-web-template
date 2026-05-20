@@ -6,6 +6,7 @@ import { ACCOUNT_SETTINGS_PAGES } from '../../../../routing/routeConfiguration';
 import {
   Avatar,
   InlineTextButton,
+  LanguageSwitcher,
   LinkedLogo,
   Menu,
   MenuLabel,
@@ -225,6 +226,7 @@ const TopbarDesktop = props => {
       {profileMenuMaybe}
       {signupLinkMaybe}
       {loginLinkMaybe}
+      <LanguageSwitcher />
     </nav>
   );
 };
