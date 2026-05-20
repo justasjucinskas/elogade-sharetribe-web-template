@@ -41,7 +41,8 @@ const CustomListingFields = props => {
       { publicData, metadata },
       displayableFieldConfigs,
       'listingType',
-      isFieldForSelectedCategories
+      isFieldForSelectedCategories,
+      intl
     ) || [];
 
   const sectionDetailsProps = {

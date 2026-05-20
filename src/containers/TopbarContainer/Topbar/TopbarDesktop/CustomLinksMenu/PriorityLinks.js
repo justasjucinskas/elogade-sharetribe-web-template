@@ -2,7 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import classNames from 'classnames';
 
-import { FormattedMessage } from '../../../../../util/reactIntl';
+import { FormattedMessage, useIntl } from '../../../../../util/reactIntl';
+import { formatTopbarLinkText } from '../../../../../util/hostedLabels';
 
 import { ExternalLink, NamedLink } from '../../../../../components';
 
@@ -33,7 +34,9 @@ export const CreateListingMenuLink = props => {
  * @returns NamedLink or ExternalLink component based on config.
  */
 const PriorityLink = ({ linkConfig }) => {
+  const intl = useIntl();
   const { text, type, href, route, highlight } = linkConfig;
+  const translatedText = formatTopbarLinkText(intl, href, text);
   const classes = classNames(css.priorityLink, { [css.highlight]: highlight });
   const id = `priority-link-${text.toLowerCase().replace(/ /g, '-')}`;
 
@@ -44,13 +47,13 @@ const PriorityLink = ({ linkConfig }) => {
     const { name, params, to } = route || {};
     return (
       <NamedLink name={name} params={params} to={to} className={classes} id={id}>
-        <span className={css.priorityLinkLabel}>{text}</span>
+        <span className={css.priorityLinkLabel}>{translatedText}</span>
       </NamedLink>
     );
   }
   return (
     <ExternalLink href={href} className={classes}>
-      <span className={css.priorityLinkLabel}>{text}</span>
+      <span className={css.priorityLinkLabel}>{translatedText}</span>
     </ExternalLink>
   );
 };

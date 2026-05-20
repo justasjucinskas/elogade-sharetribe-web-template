@@ -13,6 +13,7 @@ import {
   isFieldForListingType,
   isValidCurrencyForTransactionProcess,
 } from '../../../../util/fieldHelpers';
+import { formatListingTypeLabel, formatCategoryName } from '../../../../util/hostedLabels';
 import { maxLength, required, composeValidators } from '../../../../util/validators';
 
 // Import shared components
@@ -85,7 +86,8 @@ const FieldSelectListingType = props => {
   };
   const getListingTypeLabel = listingType => {
     const listingTypeConfig = listingTypes.find(config => config.listingType === listingType);
-    return listingTypeConfig ? listingTypeConfig.label : listingType;
+    const fallback = listingTypeConfig ? listingTypeConfig.label : listingType;
+    return formatListingTypeLabel(intl, listingType, fallback);
   };
 
   return hasMultipleListingTypes && !hasPredefinedListingType ? (
@@ -107,7 +109,7 @@ const FieldSelectListingType = props => {
           const type = config.listingType;
           return (
             <option key={type} value={type}>
-              {config.label}
+              {formatListingTypeLabel(intl, type, config.label)}
             </option>
           );
         })}
@@ -180,7 +182,7 @@ const CategoryField = props => {
 
           {currentCategoryOptions.map(option => (
             <option key={option.id} value={option.id}>
-              {option.name}
+              {formatCategoryName(intl, option.id, option.name)}
             </option>
           ))}
         </FieldSelect>

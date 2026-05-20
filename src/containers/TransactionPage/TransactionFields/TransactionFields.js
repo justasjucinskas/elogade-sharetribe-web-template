@@ -2,7 +2,7 @@ import React from 'react';
 // Utils
 import {
   getDetailCustomFieldValue,
-  pickCustomFieldProps,
+  pickTransactionCustomFieldProps,
   getPrefixedKey,
 } from '../../../util/fieldHelpers.js';
 
@@ -85,12 +85,13 @@ const getSanitizedTransactionFieldsProps = (
   providerRoleConfigs,
   bannedUserMessage,
   isCustomerBanned,
-  isProviderBanned
+  isProviderBanned,
+  intl
 ) => {
   let propsForCustomerCustomFields =
-    pickCustomFieldProps({ protectedData }, customerRoleConfigs) || [];
+    pickTransactionCustomFieldProps({ protectedData }, customerRoleConfigs, intl) || [];
   let propsForProviderCustomFields =
-    pickCustomFieldProps({ protectedData }, providerRoleConfigs) || [];
+    pickTransactionCustomFieldProps({ protectedData }, providerRoleConfigs, intl) || [];
 
   const mapBannedMessages = fieldProps => {
     const { schemaType } = fieldProps;
@@ -146,7 +147,8 @@ const CustomTransactionFields = props => {
     providerRoleConfigs,
     bannedUserMessage,
     isCustomerBanned,
-    isProviderBanned
+    isProviderBanned,
+    intl
   );
 
   // Props for details fields (enum, number, boolean)

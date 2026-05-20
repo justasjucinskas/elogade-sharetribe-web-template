@@ -6,8 +6,9 @@ import React from 'react';
 import classNames from 'classnames';
 
 import { ACCOUNT_SETTINGS_PAGES } from '../../../../routing/routeConfiguration';
-import { FormattedMessage } from '../../../../util/reactIntl';
+import { FormattedMessage, useIntl } from '../../../../util/reactIntl';
 import { ensureCurrentUser } from '../../../../util/data';
+import { formatTopbarLinkText } from '../../../../util/hostedLabels';
 
 import {
   AvatarLarge,
@@ -21,7 +22,9 @@ import {
 import css from './TopbarMobileMenu.module.css';
 
 const CustomLinkComponent = ({ linkConfig, currentPage }) => {
+  const intl = useIntl();
   const { group, text, type, href, route } = linkConfig;
+  const translatedText = formatTopbarLinkText(intl, href, text);
   const getCurrentPageClass = page => {
     const hasPageName = name => currentPage?.indexOf(name) === 0;
     const isCMSPage = pageId => hasPageName('CMSPage') && currentPage === `${page}:${pageId}`;
@@ -43,7 +46,7 @@ const CustomLinkComponent = ({ linkConfig, currentPage }) => {
       <li className={className}>
         <NamedLink name={name} params={params} to={to}>
           <span className={css.menuItemBorder} />
-          {text}
+          {translatedText}
         </NamedLink>
       </li>
     );
@@ -52,7 +55,7 @@ const CustomLinkComponent = ({ linkConfig, currentPage }) => {
     <li className={css.navigationLink}>
       <ExternalLink href={href}>
         <span className={css.menuItemBorder} />
-        {text}
+        {translatedText}
       </ExternalLink>
     </li>
   );

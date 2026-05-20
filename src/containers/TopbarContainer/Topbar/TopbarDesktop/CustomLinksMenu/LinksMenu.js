@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import classNames from 'classnames';
 
+import { useIntl } from '../../../../../util/reactIntl';
+import { formatTopbarLinkText } from '../../../../../util/hostedLabels';
+
 import {
   ExternalLink,
   IconArrowHead,
@@ -21,7 +24,9 @@ import css from './LinksMenu.module.css';
  * @returns NamedLink or ExternalLink
  */
 const LinkComponent = ({ linkConfig, currentPage }) => {
+  const intl = useIntl();
   const { text, type, href, route } = linkConfig;
+  const translatedText = formatTopbarLinkText(intl, href, text);
   const getCurrentPageClass = page => {
     const hasPageName = name => currentPage?.indexOf(name) === 0;
     const isCMSPage = pageId => hasPageName('CMSPage') && currentPage === `${page}:${pageId}`;
@@ -41,14 +46,14 @@ const LinkComponent = ({ linkConfig, currentPage }) => {
     return (
       <NamedLink name={name} params={params} to={to} className={className}>
         <span className={css.menuItemBorder} />
-        {text}
+        {translatedText}
       </NamedLink>
     );
   }
   return (
     <ExternalLink href={href} className={css.menuLink}>
       <span className={css.menuItemBorder} />
-      {text}
+      {translatedText}
     </ExternalLink>
   );
 };

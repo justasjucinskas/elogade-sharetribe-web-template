@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import { FormattedMessage, useIntl } from '../../../../../util/reactIntl';
 
 import { OutsideClickHandler } from '../../../../../components';
+import { formatCategoryName } from '../../../../../util/hostedLabels';
 
 import css from './FilterCategories.module.css';
 
@@ -68,7 +69,7 @@ const CategoryDropdown = ({ input, className, rootClassName, categories, alignLe
   const selectedCategory = categories.find(category => category.id === input.value);
 
   const labelText = selectedCategory ? (
-    selectedCategory.name
+    formatCategoryName(intl, selectedCategory.id, selectedCategory.name)
   ) : hasSelected && input.value === '' ? (
     <FormattedMessage id="PageBuilder.SearchCTA.CategoryFilter.selectAll" />
   ) : (
@@ -125,6 +126,8 @@ const CategoryDropdown = ({ input, className, rootClassName, categories, alignLe
               const isSelected =
                 id === input.value || (id === 'all-categories' && input.value === '');
               const isActive = index === activeIndex;
+              const displayName =
+                id === 'all-categories' ? name : formatCategoryName(intl, id, name);
               return (
                 <li
                   key={id}
@@ -139,7 +142,7 @@ const CategoryDropdown = ({ input, className, rootClassName, categories, alignLe
                   <span
                     className={isSelected ? css.dropdownItemBorderSelected : css.dropdownItemBorder}
                   />
-                  {name}
+                  {displayName}
                 </li>
               );
             })}

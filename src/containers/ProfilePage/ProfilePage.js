@@ -194,7 +194,8 @@ export const CustomUserFields = props => {
       { publicData, metadata },
       userFieldConfig,
       'userType',
-      shouldPickUserField
+      shouldPickUserField,
+      intl
     ) || [];
 
   const pickUserFields = (filteredConfigs, config) => {

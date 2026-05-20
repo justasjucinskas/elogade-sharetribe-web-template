@@ -316,7 +316,7 @@ export const fakeIntl = {
     `${start.getUTCFullYear()}-${pad(start.getUTCMonth() + 1)}-${pad(
       start.getUTCDate()
     )} - ${end.getUTCFullYear()}-${pad(end.getUTCMonth() + 1)}-${pad(end.getUTCDate())}`,
-  formatMessage: msg => msg.id,
+  formatMessage: msg => msg.defaultMessage || msg.id,
   formatNumber: d => `${d}`,
   formatPlural: d => d,
   formatRelativeTime: d => d,

@@ -3,6 +3,12 @@ import React from 'react';
 // utils
 import { SCHEMA_TYPE_ENUM, SCHEMA_TYPE_MULTI_ENUM, SCHEMA_TYPE_LONG } from '../../util/types';
 import { convertCategoriesToSelectTreeOptions, constructQueryParamName } from '../../util/search';
+import {
+  formatListingFieldLabel,
+  translateEnumOptions,
+  translateListingTypeOptions,
+  translateCategories,
+} from '../../util/hostedLabels';
 
 // component imports
 import SelectSingleFilter from './SelectSingleFilter/SelectSingleFilter';
@@ -60,7 +66,9 @@ const FilterComponent = props => {
           queryParamNames={queryParamNames}
           initialValues={initialValues(queryParamNames, liveEdit)}
           onSubmit={getHandleChangedValueFn(useHistoryPush)}
-          options={convertCategoriesToSelectTreeOptions(listingCategories)}
+          options={convertCategoriesToSelectTreeOptions(
+            translateCategories(intl, listingCategories)
+          )}
           isNestedEnum={isNestedEnum}
           getAriaLabel={getAriaLabel}
           {...rest}
@@ -79,7 +87,7 @@ const FilterComponent = props => {
           queryParamNames={[paramNames]}
           initialValues={initialValues(paramNames, liveEdit)}
           onSubmit={getHandleChangedValueFn(useHistoryPush)}
-          options={options}
+          options={translateListingTypeOptions(intl, options)}
           getAriaLabel={getAriaLabel}
           {...rest}
         />
@@ -153,28 +161,30 @@ const FilterComponent = props => {
     case SCHEMA_TYPE_ENUM: {
       const { scope, enumOptions, filterConfig = {} } = config;
       const { label, filterType } = filterConfig;
+      const translatedLabel = formatListingFieldLabel(intl, key, label);
+      const translatedOptions = translateEnumOptions(intl, key, enumOptions);
       const queryParamNames = [constructQueryParamName(key, scope)];
       return filterType === 'SelectSingleFilter' ? (
         <SelectSingleFilter
-          label={label}
+          label={translatedLabel}
           getAriaLabel={getAriaLabel}
           name={name}
           queryParamNames={queryParamNames}
           initialValues={initialValues(queryParamNames, liveEdit)}
           onSubmit={getHandleChangedValueFn(useHistoryPush)}
-          options={enumOptions}
+          options={translatedOptions}
           isNestedEnum={false}
           {...rest}
         />
       ) : (
         <SelectMultipleFilter
-          label={label}
+          label={translatedLabel}
           getAriaLabel={getAriaLabel}
           name={name}
           queryParamNames={queryParamNames}
           initialValues={initialValues(queryParamNames, liveEdit)}
           onSubmit={getHandleChangedValueFn(useHistoryPush)}
-          options={enumOptions}
+          options={translatedOptions}
           schemaType={schemaType}
           {...rest}
         />
@@ -183,16 +193,18 @@ const FilterComponent = props => {
     case SCHEMA_TYPE_MULTI_ENUM: {
       const { scope, enumOptions, filterConfig = {} } = config;
       const { label, searchMode } = filterConfig;
+      const translatedLabel = formatListingFieldLabel(intl, key, label);
+      const translatedOptions = translateEnumOptions(intl, key, enumOptions);
       const queryParamNames = [constructQueryParamName(key, scope)];
       return (
         <SelectMultipleFilter
-          label={label}
+          label={translatedLabel}
           getAriaLabel={getAriaLabel}
           name={name}
           queryParamNames={queryParamNames}
           initialValues={initialValues(queryParamNames, liveEdit)}
           onSubmit={getHandleChangedValueFn(useHistoryPush)}
-          options={enumOptions}
+          options={translatedOptions}
           schemaType={schemaType}
           searchMode={searchMode}
           {...rest}
@@ -202,10 +214,11 @@ const FilterComponent = props => {
     case SCHEMA_TYPE_LONG: {
       const { minimum, maximum, scope, step, filterConfig = {} } = config;
       const { label } = filterConfig;
+      const translatedLabel = formatListingFieldLabel(intl, key, label);
       const queryParamNames = [constructQueryParamName(key, scope)];
       return (
         <IntegerRangeFilter
-          label={label}
+          label={translatedLabel}
           name={name}
           queryParamNames={queryParamNames}
           initialValues={initialValues(queryParamNames, liveEdit)}

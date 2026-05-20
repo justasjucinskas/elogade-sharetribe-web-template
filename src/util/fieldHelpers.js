@@ -15,6 +15,11 @@ import {
 } from './types';
 import appSettings from '../config/settings';
 import { addScopePrefix } from './userHelpers';
+import {
+  formatListingFieldLabel,
+  formatListingFieldOption,
+  translateEnumOptionsForForm,
+} from './hostedLabels';
 
 const { stripeSupportedCurrencies, subUnitDivisors } = appSettings;
 
@@ -142,19 +147,23 @@ export const pickCategoryFields = (data, prefix, level, categoryLevelOptions = [
  * - 'options' and 'selectedOptions' for SCHEMA_TYPE_MULTI_ENUM
  * - or 'text' for SCHEMA_TYPE_TEXT
  */
-export const pickCustomFieldProps = (extendedData, fieldConfigs, entityTypeKey, shouldPickFn) => {
+export const pickCustomFieldProps = (
+  extendedData,
+  fieldConfigs,
+  entityTypeKey,
+  shouldPickFn,
+  intl
+) => {
   const { publicData, metadata, protectedData } = extendedData;
   return fieldConfigs?.reduce((pickedElements, config) => {
     const { key, enumOptions, schemaType, scope = 'public', showConfig } = config;
     const { label, unselectedOptions: showUnselectedOptions } = showConfig || {};
+    const heading = formatListingFieldLabel(intl, key, label);
     const isTargetEntityType = isCustomFieldRelevantForEntityType(
       entityTypeKey,
       publicData,
       config
     );
-
-    const createFilterOptions = options =>
-      options.map(o => ({ key: `${o.option}`, label: o.label }));
 
     const shouldPick = shouldPickFn ? shouldPickFn(config) : true;
 
@@ -173,8 +182,8 @@ export const pickCustomFieldProps = (extendedData, fieldConfigs, entityTypeKey, 
           {
             schemaType,
             key,
-            heading: label,
-            options: createFilterOptions(enumOptions),
+            heading,
+            options: translateEnumOptionsForForm(intl, key, enumOptions),
             selectedOptions: value || [],
             showUnselectedOptions: scope !== 'metadata' && showUnselectedOptions !== false,
           },
@@ -185,7 +194,7 @@ export const pickCustomFieldProps = (extendedData, fieldConfigs, entityTypeKey, 
           {
             schemaType,
             key,
-            heading: label,
+            heading,
             text: value,
           },
         ]
@@ -196,12 +205,19 @@ export const pickCustomFieldProps = (extendedData, fieldConfigs, entityTypeKey, 
             schemaType,
             key,
             videoUrl: value,
-            heading: label,
+            heading,
           },
         ]
       : pickedElements;
   }, []);
 };
+
+/**
+ * Thin wrapper for the transaction-fields case where `entityTypeKey` and
+ * `shouldPickFn` are always unused. Keeps the call sites readable.
+ */
+export const pickTransactionCustomFieldProps = (extendedData, fieldConfigs, intl) =>
+  pickCustomFieldProps(extendedData, fieldConfigs, null, null, intl);
 
 /**
  * Validates if the specified currency is compatible with the transaction process
@@ -346,15 +362,19 @@ export const getDetailCustomFieldValue = (
       ? intl.formatMessage({ id: `${page}.detailYes` })
       : intl.formatMessage({ id: `${page}.detailNo` });
   const optionConfig = findSelectedOption(value);
+  const translatedLabel = formatListingFieldLabel(intl, key, label);
+  const translatedOptionLabel = optionConfig
+    ? formatListingFieldOption(intl, key, optionConfig.option, optionConfig.label)
+    : optionConfig?.label;
 
   return schemaType === 'enum'
-    ? { key, value: optionConfig?.label, label }
+    ? { key, value: translatedOptionLabel, label: translatedLabel }
     : schemaType === 'boolean'
-    ? { key, value: getBooleanMessage(value), label }
+    ? { key, value: getBooleanMessage(value), label: translatedLabel }
     : schemaType === 'long'
-    ? { key, value, label }
+    ? { key, value, label: translatedLabel }
     : schemaType === 'shortText'
-    ? { key, value, label }
+    ? { key, value, label: translatedLabel }
     : null;
 };
 
