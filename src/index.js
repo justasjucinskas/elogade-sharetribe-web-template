@@ -39,6 +39,7 @@ import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME } from './config/configLocale';
 // Import relevant global duck files
 import { authInfo } from './ducks/auth.duck';
 import { fetchAppAssets } from './ducks/hostedAssets.duck';
+import { setLocale } from './ducks/locale.duck';
 import { fetchCurrentUser } from './ducks/user.duck';
 
 // Route config
@@ -46,7 +47,7 @@ import routeConfiguration from './routing/routeConfiguration';
 // App it self
 import { ClientApp, renderApp } from './app';
 
-const render = (store, shouldHydrate) => {
+const render = (store, shouldHydrate, locale) => {
   // If the server already loaded the auth information, render the app
   // immediately. Otherwise wait for the flag to be loaded and render
   // when auth information is present.
@@ -76,16 +77,6 @@ const render = (store, shouldHydrate) => {
       const hostedConfig = configEntries.reduce((collectedData, [name, content]) => {
         return { ...collectedData, [name]: content.data || {} };
       }, {});
-
-      // Locale used by IntlProvider/MomentLocaleLoader. We prefer the SSR-injected
-      // value (window.__LOCALE__) when present so client hydration matches the
-      // server render exactly. Falls back to parsing the URL — needed in `yarn dev`
-      // mode where the Express locale middleware doesn't run.
-      const ssrLocale = window.__LOCALE__;
-      const locale =
-        (typeof ssrLocale === 'string' && ssrLocale) ||
-        parseLocaleFromPath(window.location.pathname) ||
-        DEFAULT_LOCALE;
 
       if (shouldHydrate) {
         const container = document.getElementById('root');
@@ -184,8 +175,20 @@ if (typeof window !== 'undefined' && !redirectToLocaleUrlIfNeeded()) {
   const analyticsHandlers = setupAnalyticsHandlers(googleAnalyticsId);
   const store = configureStore({ initialState, sdk, analyticsHandlers });
 
+  // Locale used by IntlProvider/MomentLocaleLoader and by per-page loadData thunks
+  // (via state.locale.current). We prefer the SSR-injected value (window.__LOCALE__)
+  // when present so client hydration matches the server render exactly. Falls back to
+  // parsing the URL — needed in `yarn dev` mode where the Express locale middleware
+  // doesn't run.
+  const ssrLocale = window.__LOCALE__;
+  const locale =
+    (typeof ssrLocale === 'string' && ssrLocale) ||
+    parseLocaleFromPath(window.location.pathname) ||
+    DEFAULT_LOCALE;
+  store.dispatch(setLocale(locale));
+
   require('./util/polyfills');
-  render(store, !!window.__PRELOADED_STATE__);
+  render(store, !!window.__PRELOADED_STATE__, locale);
 
   if (appSettings.dev) {
     // Expose stuff for the browser REPL
@@ -226,4 +229,5 @@ export {
   defaultConfig,
   mergeConfig,
   fetchAppAssets,
+  setLocale,
 };

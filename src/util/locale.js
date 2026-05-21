@@ -72,6 +72,30 @@ const negotiateLocale = (acceptLanguage, cookieValue) => {
 };
 
 /**
+ * Returns a locale-suffixed asset slug used to address Console content pages.
+ * On the default locale (or for any unsupported / falsy locale) the base slug is
+ * returned unchanged, so callers can pass it through without branching.
+ *
+ *   getLocalizedAssetSlug('landing-page', 'lt') → 'landing-page-lt'
+ *   getLocalizedAssetSlug('landing-page', 'en') → 'landing-page'
+ */
+const getLocalizedAssetSlug = (baseSlug, locale) => {
+  if (!baseSlug || typeof baseSlug !== 'string') return baseSlug;
+  if (!isSupportedLocale(locale) || locale === DEFAULT_LOCALE) return baseSlug;
+  return `${baseSlug}-${locale}`;
+};
+
+/**
+ * Returns true if `slug` ends with `-<locale>` for any supported non-default locale.
+ * Used to reject direct URL access to locale-specific asset slugs (e.g. `/p/about-lt`),
+ * so the LT page is only reachable via its canonical base URL on the LT locale.
+ */
+const hasNonDefaultLocaleSuffix = slug => {
+  if (typeof slug !== 'string' || slug.length === 0) return false;
+  return SUPPORTED_LOCALES.some(loc => loc !== DEFAULT_LOCALE && slug.endsWith(`-${loc}`));
+};
+
+/**
  * Read a cookie value by name from a `document.cookie` string.
  * Returns null when the cookie is missing or `cookieString` isn't a string.
  */
@@ -94,4 +118,6 @@ module.exports = {
   prependLocale,
   negotiateLocale,
   readCookie,
+  getLocalizedAssetSlug,
+  hasNonDefaultLocaleSuffix,
 };

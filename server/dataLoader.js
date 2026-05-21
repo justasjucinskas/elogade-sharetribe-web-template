@@ -19,6 +19,7 @@ exports.loadData = function(requestUrl, sdk, appInfo, options = {}) {
     defaultConfig,
     mergeConfig,
     fetchAppAssets,
+    setLocale,
   } = appInfo;
   const { pathname, search } = new URL(`${getRootURL()}${requestUrl}`);
   const locale = options.locale;
@@ -27,6 +28,12 @@ exports.loadData = function(requestUrl, sdk, appInfo, options = {}) {
   let hostedConfig = {};
 
   const store = configureStore({ initialState: {}, sdk });
+
+  // Make locale available to per-page loadData thunks BEFORE they run, so they can
+  // select locale-specific Console content (e.g. landing-page-lt instead of landing-page).
+  if (locale && typeof setLocale === 'function') {
+    store.dispatch(setLocale(locale));
+  }
 
   if (PREVENT_DATA_LOADING_IN_SSR) {
     // This might help certain temporary scenarios, where DDOS attack adds load to server.

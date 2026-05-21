@@ -232,6 +232,12 @@ const hostedAssetsSlice = createSlice({
     setCurrentPageAssets: (state, action) => {
       state.currentPageAssets = action.payload;
     },
+    // Flags the current page asset request as not-found without making a network call.
+    // Used to reject direct URL access to locale-specific slugs (see CMSPage.duck.js).
+    pageAssetNotFound: state => {
+      state.inProgress = false;
+      state.error = { type: 'error', name: 'Error', status: 404, statusText: 'Not Found' };
+    },
   },
   extraReducers: builder => {
     builder
@@ -267,5 +273,5 @@ const hostedAssetsSlice = createSlice({
   },
 });
 
-export const { setCurrentPageAssets } = hostedAssetsSlice.actions;
+export const { setCurrentPageAssets, pageAssetNotFound } = hostedAssetsSlice.actions;
 export default hostedAssetsSlice.reducer;
