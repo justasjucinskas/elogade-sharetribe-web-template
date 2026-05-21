@@ -1,0 +1,103 @@
+# Periodic sync from sharetribe/web-template (the official template) into this fork.
+#
+# How it works
+# ------------
+# - Runs weekly (Monday 09:00 UTC) and on manual dispatch.
+# - Fetches `upstream/main` (sharetribe/web-template).
+# - If upstream has changed since the last sync, force-resets the `upstream-sync`
+#   branch to upstream/main and opens a PR against this repo's `main`.
+# - If an open sync PR already exists, the job exits without touching the branch —
+#   that protects any conflict resolution you've pushed to it.
+#
+# Reviewing a sync PR
+# -------------------
+# 1. Open the PR — it shows every upstream commit since the last merge.
+# 2. If there are no conflicts, merge it (or squash-merge if you prefer one commit
+#    per upstream sync).
+# 3. If there are conflicts (likely on src/app.js, src/index.js, src/translations/
+#    en.json, src/util/fieldHelpers.js, anything in src/containers/TopbarContainer/):
+#       git fetch origin upstream-sync
+#       git checkout upstream-sync
+#       git merge main          # bring your customisations into the sync branch
+#       # resolve conflicts, then:
+#       git push origin upstream-sync
+#    The PR updates; merge once it's clean.
+#
+# Manual trigger
+# --------------
+# From this fork's "Actions" tab → "Sync upstream" → "Run workflow".
+# Or: gh workflow run sync-upstream.yml
+
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: '0 9 * * 1' # Mondays 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add upstream remote and fetch
+        run: |
+          git remote add upstream https://github.com/sharetribe/web-template.git
+          git fetch upstream main
+
+      - name: Check for upstream changes
+        id: check
+        run: |
+          if git merge-base --is-ancestor upstream/main HEAD; then
+            echo "Fork is already up to date with upstream/main."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            UPSTREAM_SHA=$(git rev-parse upstream/main)
+            echo "Upstream is ahead — fork should sync to $UPSTREAM_SHA."
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "upstream_sha=$UPSTREAM_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip if a sync PR is already open
+        if: steps.check.outputs.has_changes == 'true'
+        id: pr_check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OPEN_PR=$(gh pr list --head upstream-sync --base main --state open --json number --jq '.[0].number' || true)
+          if [ -n "$OPEN_PR" ]; then
+            echo "Open sync PR #$OPEN_PR already exists — leaving branch alone."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push upstream-sync branch
+        if: steps.check.outputs.has_changes == 'true' && steps.pr_check.outputs.skip == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B upstream-sync upstream/main
+          git push --force origin upstream-sync
+
+      - name: Open PR
+        if: steps.check.outputs.has_changes == 'true' && steps.pr_check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA_SHORT=$(echo "${{ steps.check.outputs.upstream_sha }}" | cut -c1-8)
+          gh pr create \
+            --base main \
+            --head upstream-sync \
+            --title "Sync upstream from sharetribe/web-template ($SHA_SHORT)" \
+            --body "Automated sync from \`sharetribe/web-template@$SHA_SHORT\`.
+
+          Review the diff, resolve any conflicts (see the workflow file for the recommended local-merge dance), and merge when ready. Likely conflict hotspots: \`src/app.js\`, \`src/index.js\`, \`src/translations/en.json\`, \`src/util/fieldHelpers.js\`, anything under \`src/containers/TopbarContainer/\`."
