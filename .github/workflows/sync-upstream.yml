@@ -39,6 +39,12 @@ permissions:
   contents: write
   pull-requests: write
 
+# Opt the workflow into the Node 24 runtime for JS actions before GitHub forces
+# it on 2026-06-02. Lets us keep using actions/checkout@v4 (still Node 20 in its
+# action.yml) without the deprecation warning.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   sync:
     runs-on: ubuntu-latest
