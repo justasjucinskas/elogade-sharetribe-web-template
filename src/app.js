@@ -34,19 +34,28 @@ import Routes from './routing/Routes';
 // Sharetribe Web Template uses English translations as default (fallback) translations.
 // Lithuanian translations are loaded on demand for `/lt` routes.
 //
+// Lithuanian translations are split across two files so that operator-driven
+// overlay strings (categories, listing types, listing fields, topbar links —
+// authored in Sharetribe Console) stay isolated from the UI strings that
+// developers maintain alongside upstream Sharetribe releases:
+//   • lt.json                 — UI keys (Component.*/Page.*), synced via `yarn translate`
+//   • hosted/lt.json          — overlay keys (listingField.*, listingType.*,
+//                                category.*, TopbarLink.*), synced via `yarn translate-hosted`
+//
 // The priority order at runtime is:
 //   1. hosted translations.json from Console (English-only — Console hosts a single language)
 //      — applied only when the URL locale is `en`, since Console's strings are English.
-//   2. messagesInLocale (e.g. lt.json)
+//   2. messagesInLocale (the merged lt.json + hosted/lt.json)
 //   3. defaultMessages (en.json) as the catch-all fallback
 import defaultMessages from './translations/en.json';
 import lithuanianMessages from './translations/lt.json';
+import lithuanianHostedMessages from './translations/hosted/lt.json';
 
 import { DEFAULT_LOCALE, toIntlLocale } from './config/configLocale';
 
 const messagesByLocale = {
   en: {},
-  lt: lithuanianMessages,
+  lt: { ...lithuanianMessages, ...lithuanianHostedMessages },
 };
 
 // If translation key is missing from `messagesInLocale` (e.g. lt.json),

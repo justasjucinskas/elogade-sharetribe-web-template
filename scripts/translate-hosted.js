@@ -5,8 +5,9 @@
  * Sharetribe Console hosts a single language at a time, so listing field labels,
  * enum option labels, listing type labels and category names appear in whatever
  * language the operator typed in Console. This script audits the gap between the
- * hosted config and the project's translation files (e.g. `lt.json`) using the
- * keying convention defined in `src/util/hostedLabels.js`:
+ * hosted config and the project's overlay translation files (e.g.
+ * `src/translations/hosted/lt.json`) using the keying convention defined in
+ * `src/util/hostedLabels.js`:
  *
  *   listingField.<key>.label
  *   listingField.<key>.option.<option>
@@ -177,6 +178,7 @@ const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 const writeJsonSorted = (file, obj) => {
   const sorted = {};
   for (const k of Object.keys(obj).sort()) sorted[k] = obj[k];
+  fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(sorted, null, 2) + '\n');
 };
 
@@ -198,12 +200,10 @@ const diff = (expected, actual) => {
 };
 
 const auditLocale = (locale, expected, { stub, prune }) => {
-  const file = path.join(TRANSLATIONS_DIR, `${locale}.json`);
-  if (!fs.existsSync(file)) {
-    console.warn(`Skipping ${locale}: ${file} does not exist.`);
-    return { missing: [], stale: [], wrote: false };
-  }
-  const current = readJson(file);
+  // Overlay strings live in a hosted/ subdirectory so they stay isolated from
+  // the upstream-managed UI translation files (see CLAUDE.md → Internationalization).
+  const file = path.join(TRANSLATIONS_DIR, 'hosted', `${locale}.json`);
+  const current = fs.existsSync(file) ? readJson(file) : {};
   const { missing, stale } = diff(expected, current);
 
   let wrote = false;
@@ -221,7 +221,7 @@ const auditLocale = (locale, expected, { stub, prune }) => {
 };
 
 const printReport = (locale, missing, stale, wrote) => {
-  console.log(`\n${locale}.json`);
+  console.log(`\nhosted/${locale}.json`);
   if (missing.length === 0 && stale.length === 0) {
     console.log('  ✓ up to date');
     return;
