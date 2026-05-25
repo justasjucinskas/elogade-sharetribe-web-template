@@ -1,0 +1,15 @@
+# Add this block to your existing Caddyfile on the VM (host-level Caddy).
+# Caddy fetches/renews the Let's Encrypt cert automatically.
+
+yourdomain.com {
+	encode zstd gzip
+	reverse_proxy localhost:3000 {
+		# Forward the real protocol/host so Express (trust proxy = true) sees HTTPS.
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+}
+
+# If Caddy runs as a CONTAINER instead, drop the `ports:` mapping in
+# docker-compose.yml, attach both containers to a shared network, and use:
+#     reverse_proxy web:3000

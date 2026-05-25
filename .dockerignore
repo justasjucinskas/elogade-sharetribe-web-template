@@ -1,0 +1,24 @@
+# Re-created fresh inside the image
+node_modules
+build
+coverage
+
+# VCS / CI / docs — not needed to build or run
+.git
+.github
+.circleci
+docs
+*.md
+
+# Secrets must never enter the image (runtime env is supplied via env_file)
+.env
+.env.*
+!.env-template
+
+# Local cruft
+.DS_Store
+*.log
+npm-debug.log
+yarn-error.log
+.vscode
+.idea

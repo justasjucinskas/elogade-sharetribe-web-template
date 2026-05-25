@@ -1,0 +1,29 @@
+# docker-compose for the Hetzner VM.
+#
+# Copy this file to the VM (e.g. /opt/web-template/docker-compose.yml) together
+# with web-template.env, then: `docker compose up -d`.
+# Watchtower (already running on the VM) will auto-pull new :latest images
+# pushed by the GitHub Actions workflow and recreate the container.
+#
+# Caddy assumed to already run on the VM and terminate TLS. Two layouts:
+#   A) Caddy runs on the HOST (systemd): keep the localhost port binding below
+#      and point Caddy at `localhost:3000` (see deploy/Caddyfile.snippet).
+#   B) Caddy runs as a CONTAINER: remove the `ports:` block, attach both this
+#      service and Caddy to a shared external network, and have Caddy
+#      `reverse_proxy web:3000`.
+
+services:
+  web:
+    image: ghcr.io/justasjucinskas/elogade-sharetribe-web-template:latest
+    container_name: web-template
+    restart: unless-stopped
+    env_file:
+      - ./web-template.env
+    # Bind to loopback only — the public edge is Caddy, not this port.
+    ports:
+      - "127.0.0.1:3000:3000"
+    labels:
+      # Opt this container in to Watchtower (assuming watchtower runs with
+      # --label-enable). Remove if your Watchtower watches all containers.
+      com.centurylinklabs.watchtower.enable: "true"
+    # The image already defines a HEALTHCHECK; nothing to add here.

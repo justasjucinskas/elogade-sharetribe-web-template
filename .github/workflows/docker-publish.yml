@@ -1,0 +1,80 @@
+name: Build and publish Docker image
+
+# Builds the SSR image on every push to main and publishes it to GHCR.
+# Watchtower on the VM watches the :latest tag and redeploys automatically.
+#
+# Required repository configuration (Settings → Secrets and variables → Actions):
+#   Secrets:
+#     REACT_APP_SHARETRIBE_SDK_CLIENT_ID
+#     REACT_APP_STRIPE_PUBLISHABLE_KEY
+#     REACT_APP_MAPBOX_ACCESS_TOKEN
+#   Variables:
+#     REACT_APP_MARKETPLACE_ROOT_URL   (e.g. https://yourdomain.com)
+#     REACT_APP_MARKETPLACE_NAME
+#     REACT_APP_FACEBOOK_APP_ID        (optional)
+#     REACT_APP_GOOGLE_CLIENT_ID       (optional)
+#     REACT_APP_CSP                    (report | block)
+# These are PUBLIC build-time values (they ship in the browser bundle); the
+# secret/* designation here only controls log masking. Server-side secrets
+# (SHARETRIBE_SDK_CLIENT_SECRET etc.) are NOT used at build time.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # GHCR requires lowercase image names; github.repository is case-preserving.
+      - name: Compute lowercase image name
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Derive image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            REACT_APP_SHARETRIBE_SDK_CLIENT_ID=${{ secrets.REACT_APP_SHARETRIBE_SDK_CLIENT_ID }}
+            REACT_APP_STRIPE_PUBLISHABLE_KEY=${{ secrets.REACT_APP_STRIPE_PUBLISHABLE_KEY }}
+            REACT_APP_MAPBOX_ACCESS_TOKEN=${{ secrets.REACT_APP_MAPBOX_ACCESS_TOKEN }}
+            REACT_APP_MARKETPLACE_ROOT_URL=${{ vars.REACT_APP_MARKETPLACE_ROOT_URL }}
+            REACT_APP_MARKETPLACE_NAME=${{ vars.REACT_APP_MARKETPLACE_NAME }}
+            REACT_APP_FACEBOOK_APP_ID=${{ vars.REACT_APP_FACEBOOK_APP_ID }}
+            REACT_APP_GOOGLE_CLIENT_ID=${{ vars.REACT_APP_GOOGLE_CLIENT_ID }}
+            REACT_APP_CSP=${{ vars.REACT_APP_CSP }}
+            REACT_APP_ENV=production
