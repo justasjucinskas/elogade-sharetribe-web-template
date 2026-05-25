@@ -4,6 +4,34 @@ const log = require('../log.js');
 const { createTTLCache } = require('../api-util/cache.js');
 const { getRootURL } = require('../api-util/rootURL.js');
 const sdkUtils = require('../api-util/sdk.js');
+const { SUPPORTED_LOCALES, DEFAULT_LOCALE } = require('../../src/config/configLocale');
+const { hasNonDefaultLocaleSuffix } = require('../../src/util/locale');
+
+// For each user-visible path emit one <url> per supported locale, with
+// <xhtml:link rel="alternate" hreflang="..."> siblings so search engines treat
+// them as language variants of the same page. Paths are relative and must start
+// with `/` (or be exactly `/`); absolute URLs would be silently rewritten under
+// our own hostname by the URL constructor, so we reject them.
+const withLocaleAlternates = path => {
+  if (typeof path !== 'string' || path.length === 0 || !path.startsWith('/')) {
+    throw new Error(
+      `withLocaleAlternates: expected a relative path starting with '/', got ${JSON.stringify(
+        path
+      )}`
+    );
+  }
+  const base = path === '/' ? '' : path;
+  const buildHref = locale => `/${locale}${base}`;
+  const buildLinks = () => [
+    ...SUPPORTED_LOCALES.map(locale => ({ lang: locale, url: buildHref(locale) })),
+    { lang: 'x-default', url: buildHref(DEFAULT_LOCALE) },
+  ];
+  // Each <url> gets its own `links` array so a future library/transform that
+  // mutates `item.links` can't corrupt sibling entries.
+  return SUPPORTED_LOCALES.map(locale => ({ url: buildHref(locale), links: buildLinks() }));
+};
+
+const expandPathsWithLocaleAlternates = paths => paths.flatMap(withLocaleAlternates);
 
 const isSitemapDisabled = process.env.SITEMAP_DISABLED === 'true';
 const dev = process.env.REACT_APP_ENV === 'development';
@@ -36,21 +64,23 @@ const dev = process.env.REACT_APP_ENV === 'development';
 // If you create new pages that are accessible by unauthenticated user,
 // you can add them here.
 //
-// Note 1: The value of these key-value pairs should be:
-//         { url: '/path/to/the/page' }
+// Note 1: The value of these key-value pairs should be the locale-free path string.
+//         Each path is expanded into one <url> entry per supported locale (with
+//         <xhtml:link rel="alternate" hreflang="..."> siblings) by
+//         expandPathsWithLocaleAlternates below.
 //
 // Note 2: landing page (/), /terms-of-service, and /privacy-policy are fixed routes on this client app
 //       even though the content comes from hosted assets
 //
 // Note 3: You can add relevant searches here
-//         E.g. searchHats: { url: '/s?pub_category=hats' },
+//         E.g. searchHats: '/s?pub_category=hats',
 const defaultPublicPaths = {
-  landingPage: { url: '/' },
-  termsOfService: { url: '/terms-of-service' },
-  privacyPolicy: { url: '/privacy-policy' },
-  signup: { url: '/signup' },
-  login: { url: '/login' },
-  search: { url: '/s' },
+  landingPage: '/',
+  termsOfService: '/terms-of-service',
+  privacyPolicy: '/privacy-policy',
+  signup: '/signup',
+  login: '/login',
+  search: '/s',
 };
 
 // Time-to-live (ttl) is set to one day aka 86400 seconds
@@ -147,7 +177,7 @@ const sitemapDefault = (req, res, rootUrl, isPrivateMarketplace) => {
     const { search, ...restOfPaths } = defaultPublicPaths;
     const publicPaths = isPrivateMarketplace ? restOfPaths : defaultPublicPaths;
 
-    const paths = Object.values(publicPaths);
+    const paths = expandPathsWithLocaleAlternates(Object.values(publicPaths));
     Readable.from(paths).pipe(smStream);
 
     // Save to in-memory cache
@@ -191,10 +221,15 @@ const sitemapListings = (req, res, rootUrl, sdk) => {
     .then(response => {
       const listings = response.data.data || [];
       // Use canonical URL: https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
-      const ids = listings.map(l => `l/${l.id?.uuid}`);
+      // Drop listings without a uuid so we don't publish `/l/undefined` (now
+      // multiplied across locales) to crawlers.
+      const listingPaths = listings.reduce((acc, l) => {
+        const uuid = l.id?.uuid;
+        return uuid ? [...acc, `/l/${uuid}`] : acc;
+      }, []);
 
       // If there's no listings, let's just return empty sitemap
-      const hasListingIds = ids.length > 0;
+      const hasListingIds = listingPaths.length > 0;
       if (!hasListingIds) {
         res.send(
           `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"></urlset>`
@@ -203,7 +238,7 @@ const sitemapListings = (req, res, rootUrl, sdk) => {
       }
 
       const smStream = new SitemapStream({ hostname: rootUrl });
-      Readable.from(ids).pipe(smStream);
+      Readable.from(expandPathsWithLocaleAlternates(listingPaths)).pipe(smStream);
 
       // Save to in-memory cache
       streamToPromise(smStream).then(sm => (cache.sitemapRecentListings = sm));
@@ -265,16 +300,24 @@ const sitemapPages = (req, res, rootUrl, sdk) => {
         return;
       }
 
-      // Pick those asset paths that CMSPage component renders
+      // Pick those asset paths that CMSPage component renders. Locale-suffixed
+      // slugs (e.g. `about-lt`) are the operator-authored LT variants of base
+      // pages; they're served from the base URL on the LT locale and rejected
+      // when accessed directly (CMSPage.duck.js uses the same helper), so they
+      // don't get their own sitemap entry.
+      const permanentPaths = ['landing-page', 'terms-of-service', 'privacy-policy'];
       const cmsPagePaths = assets.reduce((picked, asset) => {
         const assetFileName = asset.attributes?.assetPath?.slice(pathPrefix.length);
+        if (!assetFileName) return picked;
         const assetName = assetFileName.split('.')[0];
-        const permanentPaths = ['landing-page', 'terms-of-service', 'privacy-policy'];
-        return permanentPaths.includes(assetName) ? picked : [...picked, `p/${assetName}`];
+        if (!assetName) return picked;
+        if (permanentPaths.includes(assetName)) return picked;
+        if (hasNonDefaultLocaleSuffix(assetName)) return picked;
+        return [...picked, `/p/${assetName}`];
       }, []);
 
       const smStream = new SitemapStream({ hostname: rootUrl });
-      Readable.from(cmsPagePaths).pipe(smStream);
+      Readable.from(expandPathsWithLocaleAlternates(cmsPagePaths)).pipe(smStream);
 
       // Save to in-memory cache
       streamToPromise(smStream).then(sm => (cache.sitemapRecentPages = sm));

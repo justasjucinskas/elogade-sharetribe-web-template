@@ -2,10 +2,12 @@ import React, { Component } from 'react';
 import { any, array, arrayOf, bool, number, object, oneOfType, shape, string } from 'prop-types';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 
 import { useConfiguration } from '../../context/configurationContext';
 import { useRouteConfiguration } from '../../context/routeConfigurationContext';
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '../../config/configLocale';
 import { getCustomCSSPropertiesFromConfig } from '../../util/style';
 import { useIntl, intlShape } from '../../util/reactIntl';
 import { metaTagProps } from '../../util/seo';
@@ -117,6 +119,7 @@ class PageComponent extends Component {
       noIndex,
       config,
       routeConfiguration,
+      currentLocale,
     } = this.props;
 
     const classes = classNames(rootClassName || css.root, className, {
@@ -127,8 +130,33 @@ class PageComponent extends Component {
 
     const marketplaceRootURL = config.marketplaceRootURL;
     const shouldReturnPathOnly = referrer && referrer !== 'unsafe-url';
+    // React Router's basename strips the URL locale prefix from `location.pathname`,
+    // so `canonicalPath` is locale-free. We add the prefix back here so the canonical
+    // URL points at the actually-served page (e.g. `/lt/l/abc-123`, not `/l/abc-123`).
     const canonicalPath = canonicalRoutePath(routeConfiguration, location, shouldReturnPathOnly);
-    const canonicalUrl = `${marketplaceRootURL}${canonicalPath}`;
+    const prefixWithLocale = (locale, path) => {
+      if (!path || path === '/') return `/${locale}`;
+      return `/${locale}${path.startsWith('/') ? '' : '/'}${path}`;
+    };
+    const canonicalUrl = `${marketplaceRootURL}${prefixWithLocale(currentLocale, canonicalPath)}`;
+    // hreflang alternates: one per supported locale plus `x-default` → DEFAULT_LOCALE.
+    // Built from the locale-free pathname only (no query, no hash) so faceted
+    // SearchPage URLs and tracking-param URLs don't publish per-permutation
+    // hreflang clusters. For listings, fall back to the route's canonical path
+    // (so the slug is still stripped). Skipped on noIndex pages.
+    const hreflangPath = canonicalRoutePath(routeConfiguration, location, true);
+    const hreflangAlternates = noIndex
+      ? []
+      : [
+          ...SUPPORTED_LOCALES.map(loc => ({
+            hrefLang: loc,
+            href: `${marketplaceRootURL}${prefixWithLocale(loc, hreflangPath)}`,
+          })),
+          {
+            hrefLang: 'x-default',
+            href: `${marketplaceRootURL}${prefixWithLocale(DEFAULT_LOCALE, hreflangPath)}`,
+          },
+        ];
 
     const marketplaceName = config.marketplaceName;
     const schemaTitle = intl.formatMessage({ id: 'Page.schemaTitle' }, { marketplaceName });
@@ -254,6 +282,14 @@ class PageComponent extends Component {
           <title>{pageTitle}</title>
           {referrer ? <meta name="referrer" content={referrer} /> : null}
           <link rel="canonical" href={canonicalUrl} />
+          {hreflangAlternates.map(alt => (
+            <link
+              key={`alt_${alt.hrefLang}`}
+              rel="alternate"
+              hrefLang={alt.hrefLang}
+              href={alt.href}
+            />
+          ))}
 
           {faviconVariants.map(variant => {
             return (
@@ -337,6 +373,7 @@ const Page = props => {
   const routeConfiguration = useRouteConfiguration();
   const location = useLocation();
   const intl = useIntl();
+  const currentLocale = useSelector(state => state.locale?.current || DEFAULT_LOCALE);
 
   return (
     <PageComponent
@@ -345,6 +382,7 @@ const Page = props => {
       location={location}
       intl={intl}
       {...props}
+      currentLocale={currentLocale}
     />
   );
 };
