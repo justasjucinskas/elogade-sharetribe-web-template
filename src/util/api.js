@@ -15,8 +15,19 @@ export const apiBaseUrl = marketplaceRootURL => {
     return `http://localhost:${port}`;
   }
 
-  // Otherwise, use the given marketplaceRootURL parameter or the same domain and port as the frontend
-  return marketplaceRootURL ? marketplaceRootURL.replace(/\/$/, '') : `${window.location.origin}`;
+  // Otherwise, use the given marketplaceRootURL parameter or the same domain and port as the frontend.
+  // SSR-safe: never dereference window during server-side rendering. Prefer the explicit argument,
+  // then the configured root URL (REACT_APP_MARKETPLACE_ROOT_URL is inlined at build time), and only
+  // fall back to window.location.origin in the browser. Returning '' on the server yields relative
+  // URLs rather than crashing the whole render when the root URL was not configured at build time.
+  if (marketplaceRootURL) {
+    return marketplaceRootURL.replace(/\/$/, '');
+  }
+  const envRootURL = process.env.REACT_APP_MARKETPLACE_ROOT_URL;
+  if (envRootURL) {
+    return envRootURL.replace(/\/$/, '');
+  }
+  return typeof window !== 'undefined' ? window.location.origin : '';
 };
 
 // Application type handlers for JS SDK.
