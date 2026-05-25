@@ -1,6 +1,6 @@
 /**
  * Helpers for translating labels that come from Sharetribe Console hosted config
- * (listing fields, enum options, listing types, categories, topbar links).
+ * (listing fields, enum options, listing types, categories, topbar links, footer).
  *
  * Sharetribe Console hosts a single language at a time — labels typed there are
  * plain strings, not translation keys. To support multiple UI locales we look up
@@ -13,6 +13,9 @@
  *   listingType.<id>.label
  *   category.<id>.label
  *   TopbarLink.<href>.text
+ *   Footer.slogan
+ *   Footer.copyright
+ *   Footer.block.<blockId>.text
  *
  * The Console string is always passed as `defaultMessage`, so `/en` keeps working
  * even without any translation keys, and any locale degrades to the Console string
@@ -101,4 +104,52 @@ export const translateCategories = (intl, categories) => {
     name: formatCategoryName(intl, cat.id, cat.name),
     subcategories: translateCategories(intl, cat.subcategories),
   }));
+};
+
+// Footer slogan and copyright are singletons in the hosted footer asset — there is
+// only one of each, so they get fixed keys rather than identifier-keyed ones.
+export const formatFooterSlogan = (intl, fallback) =>
+  formatHostedLabel(intl, 'Footer.slogan', fallback);
+
+export const formatFooterCopyright = (intl, fallback) =>
+  formatHostedLabel(intl, 'Footer.copyright', fallback);
+
+// Footer blocks are keyed off their stable `blockId` (set in Console — e.g.
+// "general", "terms-and-privacy") so editing the block's markdown text in Console
+// doesn't invalidate the LT translation. If the operator changes a block's id,
+// the old key becomes stale; `yarn run translate-hosted --prune --stub` resets it.
+export const formatFooterBlockText = (intl, blockId, fallback) =>
+  blockId ? formatHostedLabel(intl, `Footer.block.${blockId}.text`, fallback) : fallback;
+
+/**
+ * Returns a shallow copy of a footer text-content field (slogan, copyright, or
+ * block.text) with `content` replaced by the translated value. Pass-through if
+ * the field has no string `content` (Field handles empty/optional fields).
+ */
+const translateContent = (intl, field, lookupId) => {
+  if (!field || typeof field.content !== 'string') return field;
+  const translated = formatHostedLabel(intl, lookupId, field.content);
+  return { ...field, content: translated };
+};
+
+export const translateFooterSlogan = (intl, slogan) =>
+  translateContent(intl, slogan, 'Footer.slogan');
+
+export const translateFooterCopyright = (intl, copyright) =>
+  translateContent(intl, copyright, 'Footer.copyright');
+
+/**
+ * Map footer block configs through `formatFooterBlockText`. Only `footerBlock`s
+ * carry translatable text — other block types (e.g. socialMediaLink) pass through
+ * unchanged. Preserves the original block shape.
+ */
+export const translateFooterBlocks = (intl, blocks) => {
+  if (!Array.isArray(blocks)) return blocks;
+  return blocks.map(block => {
+    if (block?.blockType !== 'footerBlock' || !block.blockId) return block;
+    return {
+      ...block,
+      text: translateContent(intl, block.text, `Footer.block.${block.blockId}.text`),
+    };
+  });
 };

@@ -13,6 +13,10 @@
  *   listingField.<key>.option.<option>
  *   listingType.<id>.label
  *   category.<id>.label
+ *   TopbarLink.<href>.text
+ *   Footer.slogan
+ *   Footer.copyright
+ *   Footer.block.<blockId>.text
  *
  * Usage:
  *   yarn run translate-hosted [--check] [--stub] [--prune] [--locales=lt,de] [--source=<path>]
@@ -25,7 +29,8 @@
  *                     in src/translations except en.
  *   --source=<path>   Read hosted config from a local snapshot JSON instead of the live API.
  *                     The snapshot must look like:
- *                     { listingFields: <listing-fields.json>, listingTypes: <...>, categories: <...> }
+ *                     { listingFields, listingTypes, categories, topbar, footer }
+ *                     where each value is the parsed contents of the matching hosted asset.
  *
  * Authentication: uses REACT_APP_SHARETRIBE_SDK_CLIENT_ID from .env. The Asset
  * Delivery API does not require the client secret, so credentials cannot leak via
@@ -43,12 +48,13 @@ dotenvExpand.expand(dotenv.config());
 
 const TRANSLATIONS_DIR = path.resolve(__dirname, '../src/translations');
 const SOURCE_LOCALE = 'en';
-const HOSTED_NAMESPACES = ['listingField.', 'listingType.', 'category.', 'TopbarLink.'];
+const HOSTED_NAMESPACES = ['listingField.', 'listingType.', 'category.', 'TopbarLink.', 'Footer.'];
 const ASSET_PATHS = {
   listingFields: '/listings/listing-fields.json',
   listingTypes: '/listings/listing-types.json',
   categories: '/listings/listing-categories.json',
   topbar: '/content/top-bar.json',
+  footer: '/content/footer.json',
 };
 
 const parseArgs = argv => {
@@ -101,14 +107,15 @@ const fetchHostedConfigLive = async () => {
     return data || {};
   };
 
-  const [listingFields, listingTypes, categories, topbar] = await Promise.all([
+  const [listingFields, listingTypes, categories, topbar, footer] = await Promise.all([
     get('listingFields', ASSET_PATHS.listingFields),
     get('listingTypes', ASSET_PATHS.listingTypes),
     get('categories', ASSET_PATHS.categories),
     get('topbar', ASSET_PATHS.topbar),
+    get('footer', ASSET_PATHS.footer),
   ]);
 
-  return { listingFields, listingTypes, categories, topbar };
+  return { listingFields, listingTypes, categories, topbar, footer };
 };
 
 const loadHostedConfigFromFile = sourcePath => {
@@ -120,6 +127,7 @@ const loadHostedConfigFromFile = sourcePath => {
     listingTypes: parsed.listingTypes || {},
     categories: parsed.categories || {},
     topbar: parsed.topbar || {},
+    footer: parsed.footer || {},
   };
 };
 
@@ -167,6 +175,24 @@ const computeExpectedKeys = hostedConfig => {
   for (const link of topbarLinks) {
     if (!link?.href || typeof link.text !== 'string') continue;
     expected.set(`TopbarLink.${link.href}.text`, link.text);
+  }
+
+  const footerData = hostedConfig.footer || {};
+  if (typeof footerData.slogan?.content === 'string' && footerData.slogan.content.length > 0) {
+    expected.set('Footer.slogan', footerData.slogan.content);
+  }
+  if (
+    typeof footerData.copyright?.content === 'string' &&
+    footerData.copyright.content.length > 0
+  ) {
+    expected.set('Footer.copyright', footerData.copyright.content);
+  }
+  const footerBlocks = Array.isArray(footerData.blocks) ? footerData.blocks : [];
+  for (const block of footerBlocks) {
+    const blockId = block?.blockId;
+    const text = block?.text?.content;
+    if (!blockId || typeof text !== 'string' || text.length === 0) continue;
+    expected.set(`Footer.block.${blockId}.text`, text);
   }
 
   return expected;
@@ -250,8 +276,9 @@ const main = async () => {
   const topLevelCats = (hostedConfig.categories?.categories || []).length;
   const totalCats = [...expected.keys()].filter(k => k.startsWith('category.')).length;
   const topbarLinks = (hostedConfig.topbar?.customLinks || []).length;
+  const footerBlocks = (hostedConfig.footer?.blocks || []).length;
   console.log(
-    `Hosted config: ${fields} listing fields, ${types} listing types, ${topLevelCats} top-level categories (${totalCats} total incl. subcategories), ${topbarLinks} topbar links`
+    `Hosted config: ${fields} listing fields, ${types} listing types, ${topLevelCats} top-level categories (${totalCats} total incl. subcategories), ${topbarLinks} topbar links, ${footerBlocks} footer blocks`
   );
   console.log(`Expected keys: ${expected.size}`);
   console.log(`Locales: ${locales.join(', ') || '(none)'}`);

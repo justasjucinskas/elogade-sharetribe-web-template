@@ -1,4 +1,8 @@
 {
+  "Footer.block.general.text": "- [Apie mus](/p/about)\n- [Ieškoti skelbimų](/s)\n- [Naujas skelbimas](/l/new)\n- [DUK](/p/faq)\n- [Pirkėjo apsauga ir taisyklės](/p/market-policies)",
+  "Footer.block.terms-and-privacy.text": "- [Naudojimosi sąlygos](/terms-of-service)\n- [Privatumo politika](/privacy-policy)",
+  "Footer.copyright": "© 2026 Elogate. Visos teisės saugomos.",
+  "Footer.slogan": "Saugesnis būdas pirkti ir parduoti technologijas",
   "TopbarLink./s.text": "Produktai",
   "category.audioaccessories.label": "Garso priedai",
   "category.audiodevices.label": "Garso įrenginiai",
