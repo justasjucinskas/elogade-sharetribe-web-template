@@ -1,4 +1,11 @@
 # syntax=docker/dockerfile:1
+# check=skip=SecretsUsedInArgOrEnv
+#
+# The check above is intentionally skipped: the only sensitively-named ARG/ENV
+# here are REACT_APP_* public client config (e.g. the Stripe *publishable* key and
+# Mapbox access token), which are inlined into the browser bundle by design and
+# are not secret. Real secrets (SHARETRIBE_SDK_CLIENT_SECRET etc.) are runtime-only
+# and never appear as build args/ENV.
 #
 # Multi-stage build for the Sharetribe web template (React 18 + Express SSR).
 #
