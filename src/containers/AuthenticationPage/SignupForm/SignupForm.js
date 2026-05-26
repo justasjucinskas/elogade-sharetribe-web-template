@@ -210,7 +210,12 @@ const SignupFormComponent = props => (
           {showCustomUserFields ? (
             <div className={css.customFields}>
               {userFieldProps.map(({ key, ...fieldProps }) => (
-                <CustomExtendedDataField key={key} {...fieldProps} formId={formId} />
+                <CustomExtendedDataField
+                  key={key}
+                  {...fieldProps}
+                  formId={formId}
+                  fieldNamespace="user"
+                />
               ))}
             </div>
           ) : null}

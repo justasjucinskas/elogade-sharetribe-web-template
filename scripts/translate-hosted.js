@@ -12,6 +12,9 @@
  *   listingField.<key>.label
  *   listingField.<key>.option.<option>
  *   listingType.<id>.label
+ *   userField.<key>.label
+ *   userField.<key>.option.<option>
+ *   userType.<id>.label
  *   category.<id>.label
  *   TopbarLink.<href>.text
  *   Footer.slogan
@@ -29,7 +32,7 @@
  *                     in src/translations except en.
  *   --source=<path>   Read hosted config from a local snapshot JSON instead of the live API.
  *                     The snapshot must look like:
- *                     { listingFields, listingTypes, categories, topbar, footer }
+ *                     { listingFields, listingTypes, userFields, userTypes, categories, topbar, footer }
  *                     where each value is the parsed contents of the matching hosted asset.
  *
  * Authentication: uses REACT_APP_SHARETRIBE_SDK_CLIENT_ID from .env. The Asset
@@ -48,10 +51,20 @@ dotenvExpand.expand(dotenv.config());
 
 const TRANSLATIONS_DIR = path.resolve(__dirname, '../src/translations');
 const SOURCE_LOCALE = 'en';
-const HOSTED_NAMESPACES = ['listingField.', 'listingType.', 'category.', 'TopbarLink.', 'Footer.'];
+const HOSTED_NAMESPACES = [
+  'listingField.',
+  'listingType.',
+  'userField.',
+  'userType.',
+  'category.',
+  'TopbarLink.',
+  'Footer.',
+];
 const ASSET_PATHS = {
   listingFields: '/listings/listing-fields.json',
   listingTypes: '/listings/listing-types.json',
+  userFields: '/users/user-fields.json',
+  userTypes: '/users/user-types.json',
   categories: '/listings/listing-categories.json',
   topbar: '/content/top-bar.json',
   footer: '/content/footer.json',
@@ -107,15 +120,25 @@ const fetchHostedConfigLive = async () => {
     return data || {};
   };
 
-  const [listingFields, listingTypes, categories, topbar, footer] = await Promise.all([
+  const [
+    listingFields,
+    listingTypes,
+    userFields,
+    userTypes,
+    categories,
+    topbar,
+    footer,
+  ] = await Promise.all([
     get('listingFields', ASSET_PATHS.listingFields),
     get('listingTypes', ASSET_PATHS.listingTypes),
+    get('userFields', ASSET_PATHS.userFields),
+    get('userTypes', ASSET_PATHS.userTypes),
     get('categories', ASSET_PATHS.categories),
     get('topbar', ASSET_PATHS.topbar),
     get('footer', ASSET_PATHS.footer),
   ]);
 
-  return { listingFields, listingTypes, categories, topbar, footer };
+  return { listingFields, listingTypes, userFields, userTypes, categories, topbar, footer };
 };
 
 const loadHostedConfigFromFile = sourcePath => {
@@ -125,6 +148,8 @@ const loadHostedConfigFromFile = sourcePath => {
   return {
     listingFields: parsed.listingFields || {},
     listingTypes: parsed.listingTypes || {},
+    userFields: parsed.userFields || {},
+    userTypes: parsed.userTypes || {},
     categories: parsed.categories || {},
     topbar: parsed.topbar || {},
     footer: parsed.footer || {},
@@ -139,34 +164,44 @@ const walkCategories = (cats, into) => {
   }
 };
 
+// Listing fields and user fields share the same schema shape (key, label,
+// schemaType, enumOptions). The only thing that differs is the namespace prefix.
+const collectExtendedFieldKeys = (fields, namespace, into) => {
+  for (const field of fields || []) {
+    if (!field?.key) continue;
+    into.set(`${namespace}.${field.key}.label`, field.label || field.key);
+
+    const isEnumLike = ['enum', 'multi-enum'].includes(field.schemaType);
+    if (isEnumLike && Array.isArray(field.enumOptions)) {
+      for (const opt of field.enumOptions) {
+        if (opt?.option == null) continue;
+        into.set(`${namespace}.${field.key}.option.${opt.option}`, opt.label || `${opt.option}`);
+      }
+    }
+  }
+};
+
 /**
  * Returns a Map from translation key → fallback English value (the Console string).
  */
 const computeExpectedKeys = hostedConfig => {
   const expected = new Map();
 
-  const fields = hostedConfig.listingFields?.listingFields || [];
-  for (const field of fields) {
-    if (!field?.key) continue;
-    expected.set(`listingField.${field.key}.label`, field.label || field.key);
-
-    const isEnumLike = ['enum', 'multi-enum'].includes(field.schemaType);
-    if (isEnumLike && Array.isArray(field.enumOptions)) {
-      for (const opt of field.enumOptions) {
-        if (opt?.option == null) continue;
-        expected.set(
-          `listingField.${field.key}.option.${opt.option}`,
-          opt.label || `${opt.option}`
-        );
-      }
-    }
-  }
+  collectExtendedFieldKeys(hostedConfig.listingFields?.listingFields, 'listingField', expected);
+  collectExtendedFieldKeys(hostedConfig.userFields?.userFields, 'userField', expected);
 
   const listingTypes = hostedConfig.listingTypes?.listingTypes || [];
   for (const lt of listingTypes) {
     const id = lt?.id || lt?.listingType;
     if (!id) continue;
     expected.set(`listingType.${id}.label`, lt.label || id);
+  }
+
+  const userTypes = hostedConfig.userTypes?.userTypes || [];
+  for (const ut of userTypes) {
+    const id = ut?.id || ut?.userType;
+    if (!id) continue;
+    expected.set(`userType.${id}.label`, ut.label || id);
   }
 
   walkCategories(hostedConfig.categories?.categories, expected);
@@ -273,12 +308,14 @@ const main = async () => {
 
   const fields = hostedConfig.listingFields?.listingFields?.length || 0;
   const types = hostedConfig.listingTypes?.listingTypes?.length || 0;
+  const userFields = hostedConfig.userFields?.userFields?.length || 0;
+  const userTypes = hostedConfig.userTypes?.userTypes?.length || 0;
   const topLevelCats = (hostedConfig.categories?.categories || []).length;
   const totalCats = [...expected.keys()].filter(k => k.startsWith('category.')).length;
   const topbarLinks = (hostedConfig.topbar?.customLinks || []).length;
   const footerBlocks = (hostedConfig.footer?.blocks || []).length;
   console.log(
-    `Hosted config: ${fields} listing fields, ${types} listing types, ${topLevelCats} top-level categories (${totalCats} total incl. subcategories), ${topbarLinks} topbar links, ${footerBlocks} footer blocks`
+    `Hosted config: ${fields} listing fields, ${types} listing types, ${userFields} user fields, ${userTypes} user types, ${topLevelCats} top-level categories (${totalCats} total incl. subcategories), ${topbarLinks} topbar links, ${footerBlocks} footer blocks`
   );
   console.log(`Expected keys: ${expected.size}`);
   console.log(`Locales: ${locales.join(', ') || '(none)'}`);

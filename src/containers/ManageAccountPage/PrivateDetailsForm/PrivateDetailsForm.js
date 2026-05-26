@@ -85,7 +85,12 @@ const PrivateDetailsForm = props => {
           >
             <div className={classNames(css.sectionContainer)}>
               {userFieldProps.map(({ key, ...fieldProps }) => (
-                <CustomExtendedDataField key={key} {...fieldProps} formId={formId} />
+                <CustomExtendedDataField
+                  key={key}
+                  {...fieldProps}
+                  formId={formId}
+                  fieldNamespace="user"
+                />
               ))}
             </div>
             {submitError}

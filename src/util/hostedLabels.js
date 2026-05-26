@@ -1,6 +1,7 @@
 /**
  * Helpers for translating labels that come from Sharetribe Console hosted config
- * (listing fields, enum options, listing types, categories, topbar links, footer).
+ * (listing fields, listing types, user fields, user types, categories, topbar
+ * links, footer).
  *
  * Sharetribe Console hosts a single language at a time — labels typed there are
  * plain strings, not translation keys. To support multiple UI locales we look up
@@ -11,6 +12,9 @@
  *   listingField.<key>.label
  *   listingField.<key>.option.<option>
  *   listingType.<id>.label
+ *   userField.<key>.label
+ *   userField.<key>.option.<option>
+ *   userType.<id>.label
  *   category.<id>.label
  *   TopbarLink.<href>.text
  *   Footer.slogan
@@ -32,18 +36,36 @@ const formatHostedLabel = (intl, id, defaultMessage) => {
   return intl.formatMessage({ id, defaultMessage });
 };
 
+// Listing fields and user fields share the same shape (key, label, schemaType,
+// enumOptions). The lookup namespace is the only thing that differs, so the
+// public helpers below are thin wrappers around these.
+const formatExtendedFieldLabel = (intl, namespace, fieldKey, fallback) =>
+  fieldKey ? formatHostedLabel(intl, `${namespace}.${fieldKey}.label`, fallback) : fallback;
+
+const formatExtendedFieldOption = (intl, namespace, fieldKey, optionKey, fallback) =>
+  fieldKey && optionKey != null
+    ? formatHostedLabel(intl, `${namespace}.${fieldKey}.option.${optionKey}`, fallback)
+    : fallback;
+
 export const formatListingFieldLabel = (intl, fieldKey, fallback) =>
-  fieldKey ? formatHostedLabel(intl, `listingField.${fieldKey}.label`, fallback) : fallback;
+  formatExtendedFieldLabel(intl, 'listingField', fieldKey, fallback);
 
 export const formatListingFieldOption = (intl, fieldKey, optionKey, fallback) =>
-  fieldKey && optionKey != null
-    ? formatHostedLabel(intl, `listingField.${fieldKey}.option.${optionKey}`, fallback)
-    : fallback;
+  formatExtendedFieldOption(intl, 'listingField', fieldKey, optionKey, fallback);
 
 export const formatListingTypeLabel = (intl, listingTypeId, fallback) =>
   listingTypeId
     ? formatHostedLabel(intl, `listingType.${listingTypeId}.label`, fallback)
     : fallback;
+
+export const formatUserFieldLabel = (intl, fieldKey, fallback) =>
+  formatExtendedFieldLabel(intl, 'userField', fieldKey, fallback);
+
+export const formatUserFieldOption = (intl, fieldKey, optionKey, fallback) =>
+  formatExtendedFieldOption(intl, 'userField', fieldKey, optionKey, fallback);
+
+export const formatUserTypeLabel = (intl, userTypeId, fallback) =>
+  userTypeId ? formatHostedLabel(intl, `userType.${userTypeId}.label`, fallback) : fallback;
 
 export const formatCategoryName = (intl, categoryId, fallback) =>
   categoryId ? formatHostedLabel(intl, `category.${categoryId}.label`, fallback) : fallback;
@@ -56,30 +78,43 @@ export const formatCategoryName = (intl, categoryId, fallback) =>
 export const formatTopbarLinkText = (intl, href, fallback) =>
   href ? formatHostedLabel(intl, `TopbarLink.${href}.text`, fallback) : fallback;
 
+const translateEnumOptionsByNamespace = (intl, namespace, fieldKey, enumOptions) => {
+  if (!Array.isArray(enumOptions)) return enumOptions;
+  return enumOptions.map(o => ({
+    ...o,
+    label: formatExtendedFieldOption(intl, namespace, fieldKey, o.option, o.label),
+  }));
+};
+
+const translateEnumOptionsForFormByNamespace = (intl, namespace, fieldKey, enumOptions) => {
+  if (!Array.isArray(enumOptions)) return [];
+  return enumOptions.map(o => ({
+    key: `${o.option}`,
+    label: formatExtendedFieldOption(intl, namespace, fieldKey, o.option, o.label),
+  }));
+};
+
 /**
  * Map enumOptions through `formatListingFieldOption`. Preserves the original
  * `{ option, label, ...rest }` shape (only `label` is replaced). Used by
  * SearchPage filter children, which key off `option`.
  */
-export const translateEnumOptions = (intl, fieldKey, enumOptions) => {
-  if (!Array.isArray(enumOptions)) return enumOptions;
-  return enumOptions.map(o => ({
-    ...o,
-    label: formatListingFieldOption(intl, fieldKey, o.option, o.label),
-  }));
-};
+export const translateEnumOptions = (intl, fieldKey, enumOptions) =>
+  translateEnumOptionsByNamespace(intl, 'listingField', fieldKey, enumOptions);
 
 /**
  * Same as `translateEnumOptions` but produces the `{ key, label }` shape used by
  * Final-Form Field* components (FieldSelect, FieldCheckboxGroup, PropertyGroup).
  */
-export const translateEnumOptionsForForm = (intl, fieldKey, enumOptions) => {
-  if (!Array.isArray(enumOptions)) return [];
-  return enumOptions.map(o => ({
-    key: `${o.option}`,
-    label: formatListingFieldOption(intl, fieldKey, o.option, o.label),
-  }));
-};
+export const translateEnumOptionsForForm = (intl, fieldKey, enumOptions) =>
+  translateEnumOptionsForFormByNamespace(intl, 'listingField', fieldKey, enumOptions);
+
+/** User-field counterparts of `translateEnumOptions` / `translateEnumOptionsForForm`. */
+export const translateUserFieldEnumOptions = (intl, fieldKey, enumOptions) =>
+  translateEnumOptionsByNamespace(intl, 'userField', fieldKey, enumOptions);
+
+export const translateUserFieldEnumOptionsForForm = (intl, fieldKey, enumOptions) =>
+  translateEnumOptionsForFormByNamespace(intl, 'userField', fieldKey, enumOptions);
 
 /**
  * Map listingType options (shape `{ option, label, ...rest }`, where `option`

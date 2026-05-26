@@ -20,6 +20,7 @@
   "category.handheldconsoles.label": "Nešiojamos konsolės",
   "category.headphones.label": "Ausinės",
   "category.headsets.label": "Ausinės su mikrofonu",
+  "category.karaoke.label": "Karaoke equipment",
   "category.keyboards.label": "Klaviatūros",
   "category.laptops.label": "Nešiojamieji kompiuteriai",
   "category.memorystorage.label": "Atmintis ir saugyklos",
@@ -217,5 +218,15 @@
   "listingField.watchtypesize.label": "Laikrodžio tipas ir dydis",
   "listingField.whatsincluded.label": "Komplektacija",
   "listingType.newproducts.label": "Naujos prekės",
-  "listingType.usedproducts.label": "Naudotos prekės"
+  "listingType.usedproducts.label": "Naudotos prekės",
+  "userField.city.label": "Miestas",
+  "userField.country.label": "Šalis",
+  "userField.country.option.estonia": "Estija",
+  "userField.country.option.finland": "Suomija",
+  "userField.country.option.germany": "Vokietija",
+  "userField.country.option.latvia": "Latvija",
+  "userField.country.option.lithuania": "Lietuva",
+  "userField.country.option.netherlands": "Nyderlandai",
+  "userField.country.option.poland": "Lenkija",
+  "userType.user.label": "Naudotojas"
 }

@@ -18,8 +18,25 @@ import { addScopePrefix } from './userHelpers';
 import {
   formatListingFieldLabel,
   formatListingFieldOption,
+  formatUserFieldLabel,
+  formatUserFieldOption,
   translateEnumOptionsForForm,
+  translateUserFieldEnumOptionsForForm,
 } from './hostedLabels';
+
+// `pickCustomFieldProps` / `getDetailCustomFieldValue` are used for both listing
+// fields and user fields. `fieldNamespace` (default 'listing') selects the
+// hostedLabels lookup namespace; pass 'user' from user-field call sites
+// (ProfilePage, etc.) so the label resolves to `userField.<key>.label` rather
+// than the listing one.
+const labelFormatterFor = namespace =>
+  namespace === 'user' ? formatUserFieldLabel : formatListingFieldLabel;
+
+const optionFormatterFor = namespace =>
+  namespace === 'user' ? formatUserFieldOption : formatListingFieldOption;
+
+const optionsForFormFormatterFor = namespace =>
+  namespace === 'user' ? translateUserFieldEnumOptionsForForm : translateEnumOptionsForForm;
 
 const { stripeSupportedCurrencies, subUnitDivisors } = appSettings;
 
@@ -152,13 +169,16 @@ export const pickCustomFieldProps = (
   fieldConfigs,
   entityTypeKey,
   shouldPickFn,
-  intl
+  intl,
+  fieldNamespace = 'listing'
 ) => {
   const { publicData, metadata, protectedData } = extendedData;
+  const formatLabel = labelFormatterFor(fieldNamespace);
+  const formatOptionsForForm = optionsForFormFormatterFor(fieldNamespace);
   return fieldConfigs?.reduce((pickedElements, config) => {
     const { key, enumOptions, schemaType, scope = 'public', showConfig } = config;
     const { label, unselectedOptions: showUnselectedOptions } = showConfig || {};
-    const heading = formatListingFieldLabel(intl, key, label);
+    const heading = formatLabel(intl, key, label);
     const isTargetEntityType = isCustomFieldRelevantForEntityType(
       entityTypeKey,
       publicData,
@@ -183,7 +203,7 @@ export const pickCustomFieldProps = (
             schemaType,
             key,
             heading,
-            options: translateEnumOptionsForForm(intl, key, enumOptions),
+            options: formatOptionsForForm(intl, key, enumOptions),
             selectedOptions: value || [],
             showUnselectedOptions: scope !== 'metadata' && showUnselectedOptions !== false,
           },
@@ -218,6 +238,14 @@ export const pickCustomFieldProps = (
  */
 export const pickTransactionCustomFieldProps = (extendedData, fieldConfigs, intl) =>
   pickCustomFieldProps(extendedData, fieldConfigs, null, null, intl);
+
+/**
+ * Thin wrapper for the user-fields case (ProfilePage). Mirrors the listing-fields
+ * `pickCustomFieldProps` signature but fixes `entityTypeKey` to `'userType'` and
+ * routes lookups through the `userField.*` namespace.
+ */
+export const pickUserCustomFieldProps = (extendedData, fieldConfigs, shouldPickFn, intl) =>
+  pickCustomFieldProps(extendedData, fieldConfigs, 'userType', shouldPickFn, intl, 'user');
 
 /**
  * Validates if the specified currency is compatible with the transaction process
@@ -354,7 +382,8 @@ export const getDetailCustomFieldValue = (
   key,
   label,
   intl,
-  page
+  page,
+  fieldNamespace = 'listing'
 ) => {
   const findSelectedOption = enumValue => enumOptions?.find(o => enumValue === `${o.option}`);
   const getBooleanMessage = value =>
@@ -362,9 +391,9 @@ export const getDetailCustomFieldValue = (
       ? intl.formatMessage({ id: `${page}.detailYes` })
       : intl.formatMessage({ id: `${page}.detailNo` });
   const optionConfig = findSelectedOption(value);
-  const translatedLabel = formatListingFieldLabel(intl, key, label);
+  const translatedLabel = labelFormatterFor(fieldNamespace)(intl, key, label);
   const translatedOptionLabel = optionConfig
-    ? formatListingFieldOption(intl, key, optionConfig.option, optionConfig.label)
+    ? optionFormatterFor(fieldNamespace)(intl, key, optionConfig.option, optionConfig.label)
     : optionConfig?.label;
 
   return schemaType === 'enum'

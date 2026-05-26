@@ -20,7 +20,7 @@ import {
 import {
   getDetailCustomFieldValue,
   getFieldValue,
-  pickCustomFieldProps,
+  pickUserCustomFieldProps,
 } from '../../util/fieldHelpers';
 import {
   getCurrentUserTypeRoles,
@@ -190,10 +190,9 @@ export const CustomUserFields = props => {
     ['public', 'metadata'].includes(fieldConfig?.scope) &&
     fieldConfig?.showConfig?.displayInProfile !== false;
   const propsForCustomFields =
-    pickCustomFieldProps(
+    pickUserCustomFieldProps(
       { publicData, metadata },
       userFieldConfig,
-      'userType',
       shouldPickUserField,
       intl
     ) || [];
@@ -217,7 +216,8 @@ export const CustomUserFields = props => {
         key,
         label,
         intl,
-        'ProfilePage'
+        'ProfilePage',
+        'user'
       );
 
       return detailValue ? filteredConfigs.concat(detailValue) : filteredConfigs;

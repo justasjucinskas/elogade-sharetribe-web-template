@@ -17,19 +17,34 @@ import {
   validateInteger,
   validateYoutubeURL,
 } from '../../util/validators';
-import { formatListingFieldLabel, translateEnumOptionsForForm } from '../../util/hostedLabels';
+import {
+  formatListingFieldLabel,
+  formatUserFieldLabel,
+  translateEnumOptionsForForm,
+  translateUserFieldEnumOptionsForForm,
+} from '../../util/hostedLabels';
 // Import shared components
 import { FieldCheckboxGroup, FieldSelect, FieldTextInput, FieldBoolean } from '../../components';
 // Import modules from this directory
 import css from './CustomExtendedDataField.module.css';
 
-const getLabel = (intl, fieldConfig) => {
+// CustomExtendedDataField is shared between listing fields and user fields.
+// `fieldNamespace` (default 'listing') selects which `hostedLabels` helpers to
+// use for label + enum-option lookup. Callers that render user fields must pass
+// `fieldNamespace="user"` to avoid silently falling back to the Console string.
+const labelFormatterFor = namespace =>
+  namespace === 'user' ? formatUserFieldLabel : formatListingFieldLabel;
+
+const optionsFormatterFor = namespace =>
+  namespace === 'user' ? translateUserFieldEnumOptionsForForm : translateEnumOptionsForForm;
+
+const getLabel = (intl, fieldConfig, fieldNamespace) => {
   const fallback = fieldConfig?.saveConfig?.label || fieldConfig?.label;
-  return formatListingFieldLabel(intl, fieldConfig?.key, fallback);
+  return labelFormatterFor(fieldNamespace)(intl, fieldConfig?.key, fallback);
 };
 
 const CustomFieldEnum = props => {
-  const { name, fieldConfig, defaultRequiredMessage, formId, intl } = props;
+  const { name, fieldConfig, defaultRequiredMessage, formId, intl, fieldNamespace } = props;
   const { enumOptions = [], saveConfig, key: fieldKey } = fieldConfig || {};
   const { placeholderMessage, isRequired, requiredMessage } = saveConfig || {};
   const validateMaybe = isRequired
@@ -38,9 +53,9 @@ const CustomFieldEnum = props => {
   const placeholder =
     placeholderMessage ||
     intl.formatMessage({ id: 'CustomExtendedDataField.placeholderSingleSelect' });
-  const filterOptions = translateEnumOptionsForForm(intl, fieldKey, enumOptions);
+  const filterOptions = optionsFormatterFor(fieldNamespace)(intl, fieldKey, enumOptions);
 
-  const label = getLabel(intl, fieldConfig);
+  const label = getLabel(intl, fieldConfig, fieldNamespace);
 
   return filterOptions ? (
     <FieldSelect
@@ -67,10 +82,10 @@ const CustomFieldEnum = props => {
 };
 
 const CustomFieldMultiEnum = props => {
-  const { name, fieldConfig, defaultRequiredMessage, formId, intl } = props;
+  const { name, fieldConfig, defaultRequiredMessage, formId, intl, fieldNamespace } = props;
   const { enumOptions = [], saveConfig, key: fieldKey } = fieldConfig || {};
   const { isRequired, requiredMessage } = saveConfig || {};
-  const label = getLabel(intl, fieldConfig);
+  const label = getLabel(intl, fieldConfig, fieldNamespace);
   const validateMaybe = isRequired
     ? { validate: nonEmptyArray(requiredMessage || defaultRequiredMessage) }
     : {};
@@ -82,16 +97,16 @@ const CustomFieldMultiEnum = props => {
       name={name}
       label={label}
       helpText={fieldConfig?.helpText}
-      options={translateEnumOptionsForForm(intl, fieldKey, enumOptions)}
+      options={optionsFormatterFor(fieldNamespace)(intl, fieldKey, enumOptions)}
       {...validateMaybe}
     />
   ) : null;
 };
 
 const CustomFieldShortText = props => {
-  const { name, fieldConfig, defaultRequiredMessage, formId, intl } = props;
+  const { name, fieldConfig, defaultRequiredMessage, formId, intl, fieldNamespace } = props;
   const { placeholderMessage, isRequired, requiredMessage } = fieldConfig?.saveConfig || {};
-  const label = getLabel(intl, fieldConfig);
+  const label = getLabel(intl, fieldConfig, fieldNamespace);
   const validateMaybe = isRequired
     ? { validate: required(requiredMessage || defaultRequiredMessage) }
     : {};
@@ -114,9 +129,9 @@ const CustomFieldShortText = props => {
 };
 
 const CustomFieldText = props => {
-  const { name, fieldConfig, defaultRequiredMessage, formId, intl } = props;
+  const { name, fieldConfig, defaultRequiredMessage, formId, intl, fieldNamespace } = props;
   const { placeholderMessage, isRequired, requiredMessage } = fieldConfig?.saveConfig || {};
-  const label = getLabel(intl, fieldConfig);
+  const label = getLabel(intl, fieldConfig, fieldNamespace);
   const validateMaybe = isRequired
     ? { validate: required(requiredMessage || defaultRequiredMessage) }
     : {};
@@ -138,10 +153,10 @@ const CustomFieldText = props => {
 };
 
 const CustomFieldLong = props => {
-  const { name, fieldConfig, defaultRequiredMessage, formId, intl } = props;
+  const { name, fieldConfig, defaultRequiredMessage, formId, intl, fieldNamespace } = props;
   const { minimum, maximum, saveConfig } = fieldConfig;
   const { placeholderMessage, isRequired, requiredMessage } = saveConfig || {};
-  const label = getLabel(intl, fieldConfig);
+  const label = getLabel(intl, fieldConfig, fieldNamespace);
   const placeholder =
     placeholderMessage || intl.formatMessage({ id: 'CustomExtendedDataField.placeholderLong' });
   const numberTooSmallMessage = intl.formatMessage(
@@ -193,9 +208,9 @@ const CustomFieldLong = props => {
 };
 
 const CustomFieldBoolean = props => {
-  const { name, fieldConfig, defaultRequiredMessage, formId, intl } = props;
+  const { name, fieldConfig, defaultRequiredMessage, formId, intl, fieldNamespace } = props;
   const { placeholderMessage, isRequired, requiredMessage } = fieldConfig?.saveConfig || {};
-  const label = getLabel(intl, fieldConfig);
+  const label = getLabel(intl, fieldConfig, fieldNamespace);
   const validateMaybe = isRequired
     ? { validate: required(requiredMessage || defaultRequiredMessage) }
     : {};
@@ -216,9 +231,9 @@ const CustomFieldBoolean = props => {
 };
 
 const CustomFieldYoutube = props => {
-  const { name, fieldConfig, defaultRequiredMessage, formId, intl } = props;
+  const { name, fieldConfig, defaultRequiredMessage, formId, intl, fieldNamespace } = props;
   const { placeholderMessage, isRequired, requiredMessage } = fieldConfig?.saveConfig || {};
-  const label = getLabel(intl, fieldConfig);
+  const label = getLabel(intl, fieldConfig, fieldNamespace);
   const placeholder =
     placeholderMessage ||
     intl.formatMessage({ id: 'CustomExtendedDataField.placeholderYoutubeVideoURL' });
@@ -260,28 +275,34 @@ const CustomFieldYoutube = props => {
  */
 const CustomExtendedDataField = props => {
   const intl = useIntl();
-  const { enumOptions = [], schemaType } = props?.fieldConfig || {};
+  const { fieldNamespace = 'listing', ...rest } = props;
+  const { enumOptions = [], schemaType } = rest?.fieldConfig || {};
   const defaultRequiredMessage = intl.formatMessage({
     id: 'CustomExtendedDataField.required',
   });
-  const renderFieldComponent = (FieldComponent, props) => (
-    <FieldComponent {...props} defaultRequiredMessage={defaultRequiredMessage} intl={intl} />
+  const renderFieldComponent = FieldComponent => (
+    <FieldComponent
+      {...rest}
+      defaultRequiredMessage={defaultRequiredMessage}
+      intl={intl}
+      fieldNamespace={fieldNamespace}
+    />
   );
 
   return schemaType === SCHEMA_TYPE_ENUM && enumOptions
-    ? renderFieldComponent(CustomFieldEnum, props)
+    ? renderFieldComponent(CustomFieldEnum)
     : schemaType === SCHEMA_TYPE_MULTI_ENUM && enumOptions
-    ? renderFieldComponent(CustomFieldMultiEnum, props)
+    ? renderFieldComponent(CustomFieldMultiEnum)
     : schemaType === SCHEMA_TYPE_SHORT_TEXT
-    ? renderFieldComponent(CustomFieldShortText, props)
+    ? renderFieldComponent(CustomFieldShortText)
     : schemaType === SCHEMA_TYPE_TEXT
-    ? renderFieldComponent(CustomFieldText, props)
+    ? renderFieldComponent(CustomFieldText)
     : schemaType === SCHEMA_TYPE_LONG
-    ? renderFieldComponent(CustomFieldLong, props)
+    ? renderFieldComponent(CustomFieldLong)
     : schemaType === SCHEMA_TYPE_BOOLEAN
-    ? renderFieldComponent(CustomFieldBoolean, props)
+    ? renderFieldComponent(CustomFieldBoolean)
     : schemaType === SCHEMA_TYPE_YOUTUBE
-    ? renderFieldComponent(CustomFieldYoutube, props)
+    ? renderFieldComponent(CustomFieldYoutube)
     : null;
 };
 

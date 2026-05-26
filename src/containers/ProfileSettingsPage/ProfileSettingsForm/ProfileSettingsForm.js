@@ -391,7 +391,12 @@ class ProfileSettingsFormComponent extends Component {
               </div>
               <div className={classNames(css.sectionContainer, css.lastSection)}>
                 {userFieldProps.map(({ key, ...fieldProps }) => (
-                  <CustomExtendedDataField key={key} {...fieldProps} formId={formId} />
+                  <CustomExtendedDataField
+                    key={key}
+                    {...fieldProps}
+                    formId={formId}
+                    fieldNamespace="user"
+                  />
                 ))}
               </div>
               {submitError}

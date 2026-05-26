@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import { intlShape } from '../../util/reactIntl';
 import { propTypes } from '../../util/types';
 import * as validators from '../../util/validators';
+import { formatUserTypeLabel } from '../../util/hostedLabels';
 
 import { FieldSelect } from '../../components';
 
@@ -54,7 +55,7 @@ const FieldSelectUserType = props => {
           const type = config.userType;
           return (
             <option key={type} value={type}>
-              {config.label}
+              {formatUserTypeLabel(intl, type, config.label)}
             </option>
           );
         })}
