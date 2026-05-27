@@ -29,6 +29,7 @@ const INTL_CODE_TO_LOCALE = Object.fromEntries(
 const LABEL_BY_LOCALE = {
   en: 'LanguageSwitcher.english',
   lt: 'LanguageSwitcher.lithuanian',
+  pl: 'LanguageSwitcher.polish',
 };
 
 const COOKIE_MAX_AGE_SECONDS = 365 * 24 * 60 * 60;

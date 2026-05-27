@@ -9,7 +9,7 @@
  *   - the cookie name used to remember the user's last manual choice
  */
 
-const SUPPORTED_LOCALES = ['en', 'lt'];
+const SUPPORTED_LOCALES = ['en', 'lt', 'pl'];
 const DEFAULT_LOCALE = 'en';
 const LOCALE_COOKIE_NAME = 'locale';
 
@@ -17,6 +17,7 @@ const LOCALE_COOKIE_NAME = 'locale';
 const LOCALE_TO_INTL_CODE = {
   en: 'en-US',
   lt: 'lt-LT',
+  pl: 'pl-PL',
 };
 
 const isSupportedLocale = value => SUPPORTED_LOCALES.includes(value);

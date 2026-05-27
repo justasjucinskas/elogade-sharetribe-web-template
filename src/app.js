@@ -50,12 +50,15 @@ import Routes from './routing/Routes';
 import defaultMessages from './translations/en.json';
 import lithuanianMessages from './translations/lt.json';
 import lithuanianHostedMessages from './translations/hosted/lt.json';
+import polishMessages from './translations/pl.json';
+import polishHostedMessages from './translations/hosted/pl.json';
 
 import { DEFAULT_LOCALE, toIntlLocale } from './config/configLocale';
 
 const messagesByLocale = {
   en: {},
   lt: { ...lithuanianMessages, ...lithuanianHostedMessages },
+  pl: { ...polishMessages, ...polishHostedMessages },
 };
 
 // If translation key is missing from `messagesInLocale` (e.g. lt.json),
@@ -116,6 +119,8 @@ const MomentLocaleLoader = props => {
       ? NoLoader
       : ['lt', 'lt-LT'].includes(locale)
       ? loadable.lib(() => import(/* webpackChunkName: "lt" */ 'moment/locale/lt'))
+      : ['pl', 'pl-PL'].includes(locale)
+      ? loadable.lib(() => import(/* webpackChunkName: "pl" */ 'moment/locale/pl'))
       : ['fr', 'fr-FR'].includes(locale)
       ? loadable.lib(() => import(/* webpackChunkName: "fr" */ 'moment/locale/fr'))
       : ['de', 'de-DE'].includes(locale)
@@ -208,7 +213,7 @@ const EnvironmentVariableWarning = props => {
  * @param {Object} props.store
  * @param {Object} props.hostedTranslations
  * @param {Object} props.hostedConfig
- * @param {string} props.locale URL locale segment ('en' | 'lt')
+ * @param {string} props.locale URL locale segment ('en' | 'lt' | 'pl')
  * @returns {JSX.Element}
  */
 export const ClientApp = props => {
@@ -289,7 +294,7 @@ export const ClientApp = props => {
  * @param {Object} props.store
  * @param {Object} props.hostedTranslations
  * @param {Object} props.hostedConfig
- * @param {string} props.locale URL locale segment ('en' | 'lt')
+ * @param {string} props.locale URL locale segment ('en' | 'lt' | 'pl')
  * @returns {JSX.Element}
  */
 export const ServerApp = props => {

@@ -22,6 +22,7 @@ const TARGET_LANG_NAMES = {
   de: 'German',
   fr: 'French',
   lt: 'Lithuanian',
+  pl: 'Polish',
 };
 
 class BreakToRun {}
