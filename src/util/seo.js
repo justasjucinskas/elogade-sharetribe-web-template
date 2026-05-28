@@ -1,11 +1,8 @@
-const ensureOpenGraphLocale = locale => {
-  switch (locale) {
-    case 'en':
-      return 'en_US';
-    default:
-      return locale;
-  }
-};
+// Open Graph expects the locale as `language_TERRITORY` with an underscore
+// (e.g. `en_US`). react-intl gives us a BCP 47 tag with a hyphen (`en-US`),
+// so normalise the separator. Unexpected input is passed through unchanged.
+const ensureOpenGraphLocale = locale =>
+  typeof locale === 'string' ? locale.replace('-', '_') : locale;
 
 /**
  * These will be used with Helmet <meta {...openGraphMetaProps} />

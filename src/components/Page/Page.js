@@ -129,32 +129,32 @@ class PageComponent extends Component {
     this.scrollingDisabledChanged(scrollingDisabled);
 
     const marketplaceRootURL = config.marketplaceRootURL;
-    const shouldReturnPathOnly = referrer && referrer !== 'unsafe-url';
     // React Router's basename strips the URL locale prefix from `location.pathname`,
-    // so `canonicalPath` is locale-free. We add the prefix back here so the canonical
-    // URL points at the actually-served page (e.g. `/lt/l/abc-123`, not `/l/abc-123`).
-    const canonicalPath = canonicalRoutePath(routeConfiguration, location, shouldReturnPathOnly);
+    // so this path is locale-free; we add the prefix back per-locale below. It is also
+    // query- and hash-free (pathOnly=true): the canonical URL must match the page's own
+    // hreflang entry exactly or Google ignores the whole cluster, and keeping it
+    // path-only stops every query-param permutation (faceted SearchPage filters,
+    // pagination, tracking params) from publishing its own canonical/hreflang set.
+    // For listings the dynamic slug is dropped too, leaving `/l/<id>`.
+    const canonicalPath = canonicalRoutePath(routeConfiguration, location, true);
     const prefixWithLocale = (locale, path) => {
       if (!path || path === '/') return `/${locale}`;
       return `/${locale}${path.startsWith('/') ? '' : '/'}${path}`;
     };
     const canonicalUrl = `${marketplaceRootURL}${prefixWithLocale(currentLocale, canonicalPath)}`;
-    // hreflang alternates: one per supported locale plus `x-default` → DEFAULT_LOCALE.
-    // Built from the locale-free pathname only (no query, no hash) so faceted
-    // SearchPage URLs and tracking-param URLs don't publish per-permutation
-    // hreflang clusters. For listings, fall back to the route's canonical path
-    // (so the slug is still stripped). Skipped on noIndex pages.
-    const hreflangPath = canonicalRoutePath(routeConfiguration, location, true);
+    // hreflang alternates: one per supported locale plus `x-default` → DEFAULT_LOCALE,
+    // all built from the same locale-free canonical path so each entry (including the
+    // self-reference) matches `canonicalUrl`. Skipped on noIndex pages.
     const hreflangAlternates = noIndex
       ? []
       : [
           ...SUPPORTED_LOCALES.map(loc => ({
             hrefLang: loc,
-            href: `${marketplaceRootURL}${prefixWithLocale(loc, hreflangPath)}`,
+            href: `${marketplaceRootURL}${prefixWithLocale(loc, canonicalPath)}`,
           })),
           {
             hrefLang: 'x-default',
-            href: `${marketplaceRootURL}${prefixWithLocale(DEFAULT_LOCALE, hreflangPath)}`,
+            href: `${marketplaceRootURL}${prefixWithLocale(DEFAULT_LOCALE, canonicalPath)}`,
           },
         ];
 
