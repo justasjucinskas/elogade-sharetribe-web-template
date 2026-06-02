@@ -318,13 +318,14 @@ export const ServerApp = props => {
       <MaintenanceModeError locale={intlLocale} messages={messages} helmetContext={helmetContext} />
     );
   }
+  const initialPathname = new URL(url, 'http://example.com')?.pathname;
 
   return (
     <Configurations appConfig={appConfig} intlLocale={intlLocale}>
       <IntlProvider locale={intlLocale} messages={messages} textComponent="span">
         <Provider store={store}>
           <HelmetProvider context={helmetContext}>
-            <IncludeScripts config={appConfig} initialPathname={url} />
+            <IncludeScripts config={appConfig} initialPathname={initialPathname} />
             <StaticRouter location={url} context={context} basename={`/${locale}`}>
               <Routes />
             </StaticRouter>
