@@ -708,7 +708,7 @@
   "OrderBreakdown.bookingStart": "Rezervacijos pradžia",
   "OrderBreakdown.bookingWithDSTInEffect": "Vasaros laikas",
   "OrderBreakdown.commission": "{role, select, customer {{marketplaceName} mokestis *} provider {{marketplaceName} mokestis } other {}}",
-  "OrderBreakdown.commissionFeeNote": " Šis mokestis padeda mums palaikyti platformą ir teikti Jums geriausias įmanomas paslaugas!",
+  "OrderBreakdown.commissionFeeNote": "* Šis mokestis padeda mums palaikyti platformą ir teikti Jums geriausias įmanomas paslaugas!",
   "OrderBreakdown.pickupFee": "Atsiėmimas",
   "OrderBreakdown.providerTotalDefault": "Jūsų uždarbis",
   "OrderBreakdown.providerTotalReceived": "Jūsų uždarbis",
