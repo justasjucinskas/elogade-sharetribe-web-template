@@ -11,9 +11,11 @@
  * Conventions:
  *   listingField.<key>.label
  *   listingField.<key>.option.<option>
+ *   listingField.<key>.helpText
  *   listingType.<id>.label
  *   userField.<key>.label
  *   userField.<key>.option.<option>
+ *   userField.<key>.helpText
  *   userType.<id>.label
  *   category.<id>.label
  *   TopbarLink.<href>.text
@@ -47,11 +49,17 @@ const formatExtendedFieldOption = (intl, namespace, fieldKey, optionKey, fallbac
     ? formatHostedLabel(intl, `${namespace}.${fieldKey}.option.${optionKey}`, fallback)
     : fallback;
 
+const formatExtendedFieldHelpText = (intl, namespace, fieldKey, fallback) =>
+  fieldKey ? formatHostedLabel(intl, `${namespace}.${fieldKey}.helpText`, fallback) : fallback;
+
 export const formatListingFieldLabel = (intl, fieldKey, fallback) =>
   formatExtendedFieldLabel(intl, 'listingField', fieldKey, fallback);
 
 export const formatListingFieldOption = (intl, fieldKey, optionKey, fallback) =>
   formatExtendedFieldOption(intl, 'listingField', fieldKey, optionKey, fallback);
+
+export const formatListingFieldHelpText = (intl, fieldKey, fallback) =>
+  formatExtendedFieldHelpText(intl, 'listingField', fieldKey, fallback);
 
 export const formatListingTypeLabel = (intl, listingTypeId, fallback) =>
   listingTypeId
@@ -63,6 +71,9 @@ export const formatUserFieldLabel = (intl, fieldKey, fallback) =>
 
 export const formatUserFieldOption = (intl, fieldKey, optionKey, fallback) =>
   formatExtendedFieldOption(intl, 'userField', fieldKey, optionKey, fallback);
+
+export const formatUserFieldHelpText = (intl, fieldKey, fallback) =>
+  formatExtendedFieldHelpText(intl, 'userField', fieldKey, fallback);
 
 export const formatUserTypeLabel = (intl, userTypeId, fallback) =>
   userTypeId ? formatHostedLabel(intl, `userType.${userTypeId}.label`, fallback) : fallback;

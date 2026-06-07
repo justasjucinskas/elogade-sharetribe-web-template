@@ -19,7 +19,9 @@ import {
 } from '../../util/validators';
 import {
   formatListingFieldLabel,
+  formatListingFieldHelpText,
   formatUserFieldLabel,
+  formatUserFieldHelpText,
   translateEnumOptionsForForm,
   translateUserFieldEnumOptionsForForm,
 } from '../../util/hostedLabels';
@@ -38,10 +40,18 @@ const labelFormatterFor = namespace =>
 const optionsFormatterFor = namespace =>
   namespace === 'user' ? translateUserFieldEnumOptionsForForm : translateEnumOptionsForForm;
 
+const helpTextFormatterFor = namespace =>
+  namespace === 'user' ? formatUserFieldHelpText : formatListingFieldHelpText;
+
 const getLabel = (intl, fieldConfig, fieldNamespace) => {
   const fallback = fieldConfig?.saveConfig?.label || fieldConfig?.label;
   return labelFormatterFor(fieldNamespace)(intl, fieldConfig?.key, fallback);
 };
+
+// Help text comes from Console as a plain string; route it through the hosted-label
+// overlay (keyed off the stable field key) so it localizes like labels/options.
+const getHelpText = (intl, fieldConfig, fieldNamespace) =>
+  helpTextFormatterFor(fieldNamespace)(intl, fieldConfig?.key, fieldConfig?.helpText);
 
 const CustomFieldEnum = props => {
   const { name, fieldConfig, defaultRequiredMessage, formId, intl, fieldNamespace } = props;
@@ -63,7 +73,7 @@ const CustomFieldEnum = props => {
       name={name}
       id={formId ? `${formId}.${name}` : name}
       label={label}
-      helpText={fieldConfig?.helpText}
+      helpText={getHelpText(intl, fieldConfig, fieldNamespace)}
       {...validateMaybe}
     >
       <option disabled value="">
@@ -96,7 +106,7 @@ const CustomFieldMultiEnum = props => {
       id={formId ? `${formId}.${name}` : name}
       name={name}
       label={label}
-      helpText={fieldConfig?.helpText}
+      helpText={getHelpText(intl, fieldConfig, fieldNamespace)}
       options={optionsFormatterFor(fieldNamespace)(intl, fieldKey, enumOptions)}
       {...validateMaybe}
     />
@@ -121,7 +131,7 @@ const CustomFieldShortText = props => {
       type="text"
       maxLength={70}
       label={label}
-      helpText={fieldConfig?.helpText}
+      helpText={getHelpText(intl, fieldConfig, fieldNamespace)}
       placeholder={placeholder}
       {...validateMaybe}
     />
@@ -145,7 +155,7 @@ const CustomFieldText = props => {
       name={name}
       type="textarea"
       label={label}
-      helpText={fieldConfig?.helpText}
+      helpText={getHelpText(intl, fieldConfig, fieldNamespace)}
       placeholder={placeholder}
       {...validateMaybe}
     />
@@ -183,7 +193,7 @@ const CustomFieldLong = props => {
       name={name}
       type="number"
       step="1"
-      helpText={fieldConfig?.helpText}
+      helpText={getHelpText(intl, fieldConfig, fieldNamespace)}
       parse={value => {
         const parsed = Number.parseInt(value, 10);
         return Number.isNaN(parsed) ? null : parsed;
@@ -223,7 +233,7 @@ const CustomFieldBoolean = props => {
       id={formId ? `${formId}.${name}` : name}
       name={name}
       label={label}
-      helpText={fieldConfig?.helpText}
+      helpText={getHelpText(intl, fieldConfig, fieldNamespace)}
       placeholder={placeholder}
       {...validateMaybe}
     />
@@ -256,7 +266,7 @@ const CustomFieldYoutube = props => {
       name={name}
       type="text"
       label={label}
-      helpText={fieldConfig?.helpText}
+      helpText={getHelpText(intl, fieldConfig, fieldNamespace)}
       placeholder={placeholder}
       validate={value => validate(value)}
     />

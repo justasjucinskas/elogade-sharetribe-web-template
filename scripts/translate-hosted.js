@@ -11,9 +11,11 @@
  *
  *   listingField.<key>.label
  *   listingField.<key>.option.<option>
+ *   listingField.<key>.helpText
  *   listingType.<id>.label
  *   userField.<key>.label
  *   userField.<key>.option.<option>
+ *   userField.<key>.helpText
  *   userType.<id>.label
  *   category.<id>.label
  *   TopbarLink.<href>.text
@@ -170,6 +172,10 @@ const collectExtendedFieldKeys = (fields, namespace, into) => {
   for (const field of fields || []) {
     if (!field?.key) continue;
     into.set(`${namespace}.${field.key}.label`, field.label || field.key);
+
+    if (typeof field.helpText === 'string' && field.helpText.length > 0) {
+      into.set(`${namespace}.${field.key}.helpText`, field.helpText);
+    }
 
     const isEnumLike = ['enum', 'multi-enum'].includes(field.schemaType);
     if (isEnumLike && Array.isArray(field.enumOptions)) {
