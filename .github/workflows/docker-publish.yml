@@ -78,3 +78,4 @@ jobs:
             REACT_APP_GOOGLE_CLIENT_ID=${{ vars.REACT_APP_GOOGLE_CLIENT_ID }}
             REACT_APP_CSP=${{ vars.REACT_APP_CSP }}
             REACT_APP_ENV=production
+            REACT_APP_SHARETRIBE_USING_SSL=true
