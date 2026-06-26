@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 
+import { useReveal } from '../../../../hooks/useReveal';
 import Field, { hasDataInFields } from '../../Field';
 
 import SectionContainer from '../SectionContainer';
@@ -15,6 +16,11 @@ import css from './SectionHero.module.css';
 /**
  * Section component for a website's hero section
  * The Section Hero doesn't have any Blocks by default, all the configurations are made in the Section Hero settings
+ *
+ * This template renders a bespoke, animated hero: a Console-driven title /
+ * description / CTA with a decorative drifting aura behind it and a staggered
+ * entrance animation. All content (text, CTA, background) is still edited in
+ * Console — only the presentation is customised here.
  *
  * @component
  * @param {Object} props
@@ -55,6 +61,9 @@ const SectionHero = props => {
 
   const hasHeaderFields = hasDataInFields([title, description, callToAction], fieldOptions);
 
+  // Staggered entrance for the hero content (SSR-safe; see useReveal).
+  const { ref, enabled, revealed } = useReveal();
+
   return (
     <SectionContainer
       id={sectionId}
@@ -63,11 +72,24 @@ const SectionHero = props => {
       appearance={appearance}
       options={fieldOptions}
     >
+      {/* Decorative animated backdrop — sits above the Console background, below the text. */}
+      <div className={css.heroAura} aria-hidden="true" />
+
       {hasHeaderFields ? (
-        <header className={defaultClasses.sectionDetails}>
+        <header
+          ref={ref}
+          className={classNames(defaultClasses.sectionDetails, css.heroContent, {
+            [css.revealReady]: enabled,
+            [css.isRevealed]: revealed,
+          })}
+        >
           <Field data={title} className={defaultClasses.title} options={fieldOptions} />
           <Field data={description} className={defaultClasses.description} options={fieldOptions} />
-          <Field data={callToAction} className={defaultClasses.ctaButton} options={fieldOptions} />
+          <Field
+            data={callToAction}
+            className={classNames(defaultClasses.ctaButton, css.heroCta)}
+            options={fieldOptions}
+          />
         </header>
       ) : null}
     </SectionContainer>
