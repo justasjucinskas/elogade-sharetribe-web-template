@@ -17,12 +17,14 @@ import { useEffect, useRef, useState } from 'react';
  * - `revealed`: flips to true when the element enters the viewport.
  *
  * @param {Object} options
- * @param {number} [options.threshold=0.15] IntersectionObserver threshold
+ * @param {number} [options.threshold=0] IntersectionObserver threshold. Keep at 0 so
+ *   sections taller than the viewport (e.g. a long FAQ) still reveal — a higher
+ *   threshold can be unreachable for tall elements, leaving them stuck hidden.
  * @param {string} [options.rootMargin='0px 0px -10% 0px'] IntersectionObserver rootMargin
  * @returns {{ ref: Object, enabled: boolean, revealed: boolean }}
  */
 export const useReveal = (options = {}) => {
-  const { threshold = 0.15, rootMargin = '0px 0px -10% 0px' } = options;
+  const { threshold = 0, rootMargin = '0px 0px -10% 0px' } = options;
   const ref = useRef(null);
   const [enabled, setEnabled] = useState(false);
   const [revealed, setRevealed] = useState(false);
