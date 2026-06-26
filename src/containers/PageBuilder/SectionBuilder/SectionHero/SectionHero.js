@@ -71,6 +71,7 @@ const SectionHero = props => {
       rootClassName={classNames(rootClassName || css.root)}
       appearance={appearance}
       options={fieldOptions}
+      revealDisabled
     >
       {/* Decorative animated backdrop — sits above the Console background, below the text. */}
       <div className={css.heroAura} aria-hidden="true" />

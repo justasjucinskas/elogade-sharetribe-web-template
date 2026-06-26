@@ -20,12 +20,36 @@
 }
 
 .sectionContent {
-  padding: 32px 0;
+  padding: 40px 0;
   position: relative;
   word-break: break-word;
 
   @media (--viewportMedium) {
-    padding: 64px 0;
+    padding: 80px 0;
+  }
+}
+
+/* ================ Scroll-reveal entrance ================ */
+/* Initial hidden state applies only when JS can animate (revealReady), so
+ * SSR / no-JS / reduced-motion render fully visible. */
+.revealReady {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: opacity, transform;
+}
+
+.isRevealed {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revealReady,
+  .isRevealed {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
 
