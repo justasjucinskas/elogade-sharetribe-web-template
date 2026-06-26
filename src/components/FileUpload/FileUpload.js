@@ -1,5 +1,5 @@
 import React from 'react';
-import { useIntl, FormattedMessage } from 'react-intl';
+import { useIntl, FormattedMessage } from '../../util/reactIntl';
 import classNames from 'classnames';
 import { calculateFileSize } from '../../util/fileHelpers';
 import { FileName } from '../../components';
