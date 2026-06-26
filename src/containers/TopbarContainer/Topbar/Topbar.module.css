@@ -3,9 +3,10 @@
 .root {
   width: 100%;
 
-  /* Top Bar's drop shadow should always be visible */
+  /* Sticky so content scrolls under the frosted bar (the blur needs something behind it) */
   z-index: var(--zIndexTopbar);
-  position: relative;
+  position: sticky;
+  top: 0;
 }
 
 /* Skip to main content link - visually hidden until focused */
@@ -49,11 +50,13 @@
   justify-content: space-between;
   align-items: center;
 
-  /* fill */
-  background-color: var(--colorWhite);
+  /* Frosted glass fill */
+  background-color: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
 
-  /* shadows */
-  box-shadow: var(--boxShadow);
+  /* Hairline divider instead of a heavy drop shadow */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 
   @media (--viewportMedium) {
     height: var(--topbarHeightDesktop);

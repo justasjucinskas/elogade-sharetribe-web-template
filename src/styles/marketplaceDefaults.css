@@ -1,5 +1,6 @@
 @import '../assets/sanitize.css';
 @import './customMediaQueries.css';
+@import './geistFont.css';
 
 /* ================ Custom Properties aka CSS variables ================ */
 
@@ -56,17 +57,20 @@
   * In the future, we are planning to bring more --marketplace* CSS Properties
   * from hosted assets, which means that they could be managed through Console.
   */
-  --marketplaceColor: #6938ef; /* hsl(256, 85%, 58%) */
-  --marketplaceColorLight: #4a12e2; /* hsl(256, 85%, 48%) */
-  --marketplaceColorDark: #8d68f3; /* hsl(256, 85%, 68% */
+  --marketplaceColor: #0071e3; /* Apple blue */
+  --marketplaceColorLight: #3393ea; /* lighter */
+  --marketplaceColorDark: #005bb8; /* darker */
+
+  /* Accent for highlights / gradients (Apple-minimal aesthetic) */
+  --colorAccent: #00d4ff;
 
   /** 
    * The fill color used by <PrimaryButton>
    * These might be overwritten by values from hosted assets
    */
-  --colorPrimaryButton: #138041;
-  --colorPrimaryButtonDark: #0d542a;
-  --colorPrimaryButtonLight: #1aad57;
+  --colorPrimaryButton: #0071e3;
+  --colorPrimaryButtonDark: #005bb8;
+  --colorPrimaryButtonLight: #3393ea;
 
   /** 
    * The fill color used by <SecondaryButton>
@@ -83,7 +87,7 @@
   --colorStatusFinalState: var(--colorGrey600);
 
   /* ================ Font ================ */
-  --fontFamily: -apple-system, BlinkMacSystemFont, 'Inter', Helvetica, Arial, sans-serif,
+  --fontFamily: 'Geist', -apple-system, BlinkMacSystemFont, 'Inter', Helvetica, Arial, sans-serif,
     'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
 
   --fontWeightRegular: 400;
@@ -107,16 +111,16 @@
   --spacingUnit: 6px;
   --spacingUnitDesktop: 8px;
 
-  /* Shadows */
-  --boxShadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+  /* Shadows — layered, low-alpha elevation (modern look) */
+  --boxShadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(0, 0, 0, 0.08);
   --boxShadowTop: 0 -2px 4px 0 rgba(0, 0, 0, 0.1);
-  --boxShadowLight: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
-  --boxShadowPopup: 0 8px 16px 0 rgba(0, 0, 0, 0.3);
+  --boxShadowLight: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.06);
+  --boxShadowPopup: 0 4px 12px -2px rgba(0, 0, 0, 0.12), 0 16px 40px -8px rgba(0, 0, 0, 0.18);
   --boxShadowPopupLight: 0 3px 6px 0 rgba(0, 0, 0, 0.2);
   --boxShadowBreakdown: 0 3px 6px 0 rgba(0, 0, 0, 0.2);
-  --boxShadowButton: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
-  --boxShadowListingCard: 0 0 50px 0 rgba(0, 0, 0, 0.1);
-  --boxShadowFeaturedListingCard: 0 0 30px 0px rgba(0, 0, 0, 0.1);
+  --boxShadowButton: 0 1px 2px 0 rgba(0, 0, 0, 0.06), 0 4px 12px -2px rgba(0, 0, 0, 0.12);
+  --boxShadowListingCard: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 12px 32px -6px rgba(0, 0, 0, 0.1);
+  --boxShadowFeaturedListingCard: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 10px 28px -6px rgba(0, 0, 0, 0.1);
   --boxShadowNotFoundPageSearch: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
   --boxShadowSectionLocationHover: 0 10px 30px 0 rgba(0, 0, 0, 0.1);
   --boxShadowBottomForm: 0 -2px 4px 0 rgba(0, 0, 0, 0.05);
@@ -135,8 +139,8 @@
 
   /* ================ Border radius ================ */
 
-  --borderRadius: 2px;
-  --borderRadiusMedium: 4px;
+  --borderRadius: 8px;
+  --borderRadiusMedium: 16px;
 
   /* ================ Transition styles ================ */
 
@@ -1024,6 +1028,10 @@ textarea {
   outline: none;
   box-shadow: var(--boxShadowButton);
   background-color: var(--marketplaceColorDark);
+  transform: translateY(-1px);
+}
+.buttonDefault:active {
+  transform: translateY(0);
 }
 .buttonDefault:disabled {
   box-shadow: none;
@@ -1031,6 +1039,7 @@ textarea {
   text-decoration: none;
   background-color: var(--colorGrey100);
   color: var(--colorGrey700);
+  transform: none;
 }
 
 /**
@@ -1080,15 +1089,20 @@ textarea {
   box-shadow: var(--boxShadowButton);
   background-color: var(--colorPrimaryButtonDark);
   color: var(--colorWhite);
+  transform: translateY(-1px);
 }
 .buttonPrimary:hover {
   text-decoration: none;
+}
+.buttonPrimary:active {
+  transform: translateY(0);
 }
 .buttonPrimary:disabled {
   box-shadow: none;
   cursor: not-allowed;
   background-color: var(--colorGrey100);
   color: var(--colorGrey700);
+  transform: none;
 }
 
 /**
@@ -1184,9 +1198,13 @@ textarea {
   box-shadow: var(--boxShadowButton);
   border-color: var(--colorGrey300);
   background-color: var(--colorSecondaryButton);
+  transform: translateY(-1px);
 }
 .buttonSecondary:hover {
   text-decoration: none;
+}
+.buttonSecondary:active {
+  transform: translateY(0);
 }
 .buttonSecondary:disabled {
   box-shadow: none;
@@ -1194,6 +1212,7 @@ textarea {
   border-color: var(--colorGrey100);
   background-color: var(--colorGrey100);
   color: var(--colorWhite);
+  transform: none;
 }
 
 /**

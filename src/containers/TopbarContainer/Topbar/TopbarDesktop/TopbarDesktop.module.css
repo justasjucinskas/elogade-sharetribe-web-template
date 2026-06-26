@@ -13,11 +13,13 @@
   align-items: flex-start;
   padding: 0 12px 0 0;
 
-  /* fill */
-  background-color: var(--colorWhite);
+  /* Frosted glass fill */
+  background-color: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
 
-  /* shadows */
-  box-shadow: var(--boxShadowLight);
+  /* Hairline divider instead of a drop shadow */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 
   @media (--viewportLarge) {
     padding: 0 24px 0 0;

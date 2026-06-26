@@ -1,0 +1,46 @@
+/**
+ * Geist — self-hosted (Vercel, SIL OFL).
+ * woff2 files live in src/assets/fonts and are bundled by webpack (hashed at build).
+ * font-display: swap renders fallback text immediately, then swaps to Geist.
+ */
+
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/Geist-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../assets/fonts/Geist-Medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/fonts/Geist-SemiBold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/Geist-Bold.woff2') format('woff2');
+}
+
+/* 800 (Heavy) intentionally maps to the 900 file for now — only a few headings use it. */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 800 900;
+  font-display: swap;
+  src: url('../assets/fonts/Geist-Black.woff2') format('woff2');
+}
