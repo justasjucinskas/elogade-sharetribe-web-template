@@ -120,7 +120,8 @@
   --boxShadowBreakdown: 0 3px 6px 0 rgba(0, 0, 0, 0.2);
   --boxShadowButton: 0 1px 2px 0 rgba(0, 0, 0, 0.06), 0 4px 12px -2px rgba(0, 0, 0, 0.12);
   --boxShadowListingCard: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 12px 32px -6px rgba(0, 0, 0, 0.1);
-  --boxShadowFeaturedListingCard: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 10px 28px -6px rgba(0, 0, 0, 0.1);
+  --boxShadowFeaturedListingCard: 0 1px 2px 0 rgba(0, 0, 0, 0.04),
+    0 10px 28px -6px rgba(0, 0, 0, 0.1);
   --boxShadowNotFoundPageSearch: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
   --boxShadowSectionLocationHover: 0 10px 30px 0 rgba(0, 0, 0, 0.1);
   --boxShadowBottomForm: 0 -2px 4px 0 rgba(0, 0, 0, 0.05);
@@ -491,7 +492,7 @@ select {
   background-color: #fff;
 
   /* Borders */
-  border-radius: 6px;
+  border-radius: var(--borderRadius);
   border: 1px solid #d8dce6;
   outline: none;
 
@@ -526,8 +527,9 @@ select:hover {
 }
 select:focus {
   background-color: #fff;
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.2rem rgb(0 123 255 / 25%);
+  border-color: var(--marketplaceColor);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--marketplaceColor) 18%, transparent);
   transition: all ease-in-out 100ms;
 }
 select:disabled {
@@ -552,7 +554,7 @@ textarea {
   background-color: #fff;
 
   /* Borders */
-  border-radius: 6px;
+  border-radius: var(--borderRadius);
   border: 1px solid #d8dce6;
   outline: none;
 
@@ -578,8 +580,9 @@ textarea:hover {
 input:focus,
 textarea:focus {
   background-color: #fff;
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.2rem rgb(0 123 255 / 25%);
+  border-color: var(--marketplaceColor);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--marketplaceColor) 18%, transparent);
   transition: all ease-in-out 100ms;
 }
 input:disabled,
@@ -903,7 +906,7 @@ textarea {
   background-color: #fff;
 
   /* Borders */
-  border-radius: 6px;
+  border-radius: var(--borderRadius);
   border: 1px solid #d8dce6;
   outline: none;
 
@@ -927,8 +930,9 @@ textarea {
 }
 .marketplaceInputStyles:focus {
   background-color: #fff;
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.2rem rgb(0 123 255 / 25%);
+  border-color: var(--marketplaceColor);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--marketplaceColor) 18%, transparent);
   transition: all ease-in-out 100ms;
 }
 .marketplaceInputStyles:disabled {
