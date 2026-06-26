@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Form as FinalForm, Field } from 'react-final-form';
 import classNames from 'classnames';
 
@@ -8,12 +8,16 @@ import { isMainSearchTypeKeywords } from '../../../../util/search';
 import { Form, LocationAutocompleteInput } from '../../../../components';
 
 import IconSearchDesktop from './IconSearchDesktop';
+import SearchPreviewDropdown from './SearchPreviewDropdown';
 import css from './TopbarSearchForm.module.css';
 
 const identity = v => v;
 
 const KeywordSearchField = props => {
   const { keywordSearchWrapperClasses, iconClass, intl, isMobile = false, inputRef } = props;
+  // Live typeahead preview (desktop topbar + mobile search modal).
+  const showPreview = true;
+  const [isPreviewOpen, setPreviewOpen] = useState(false);
   return (
     <div className={keywordSearchWrapperClasses}>
       <button
@@ -27,19 +31,46 @@ const KeywordSearchField = props => {
       <Field
         name="keywords"
         render={({ input, meta }) => {
+          const handleFocus = e => {
+            input.onFocus(e);
+            setPreviewOpen(true);
+          };
+          const handleBlur = e => {
+            input.onBlur(e);
+            setPreviewOpen(false);
+          };
           return (
-            <input
-              className={isMobile ? css.mobileInput : css.desktopInput}
-              {...input}
-              id={isMobile ? 'keyword-search-mobile' : 'keyword-search'}
-              data-testid={isMobile ? 'keyword-search-mobile' : 'keyword-search'}
-              ref={inputRef}
-              type="text"
-              placeholder={intl.formatMessage({
-                id: 'TopbarSearchForm.placeholder',
-              })}
-              autoComplete="off"
-            />
+            <>
+              <input
+                className={isMobile ? css.mobileInput : css.desktopInput}
+                {...input}
+                onFocus={showPreview ? handleFocus : input.onFocus}
+                onBlur={showPreview ? handleBlur : input.onBlur}
+                onKeyDown={e => {
+                  if (e.key === 'Escape') {
+                    setPreviewOpen(false);
+                  }
+                }}
+                id={isMobile ? 'keyword-search-mobile' : 'keyword-search'}
+                data-testid={isMobile ? 'keyword-search-mobile' : 'keyword-search'}
+                ref={inputRef}
+                type="text"
+                placeholder={intl.formatMessage({
+                  id: 'TopbarSearchForm.placeholder',
+                })}
+                autoComplete="off"
+                role={showPreview ? 'combobox' : undefined}
+                aria-expanded={showPreview ? isPreviewOpen : undefined}
+                aria-autocomplete={showPreview ? 'list' : undefined}
+              />
+              {showPreview ? (
+                <SearchPreviewDropdown
+                  keywords={input.value}
+                  isOpen={isPreviewOpen}
+                  onSelect={() => setPreviewOpen(false)}
+                />
+              ) : null}
+            </>
           );
         }}
       />
