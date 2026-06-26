@@ -32,7 +32,12 @@
   left: 0;
   width: 100vw;
   padding: 24px;
-  background-color: var(--colorWhite);
+
+  /* Frosted, matching the topbar */
+  background-color: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: var(--boxShadowTop);
 }
 
@@ -174,8 +179,8 @@
 .currentPage {
   color: var(--colorBlack);
 
-  /* black left border */
-  border-left: 5px solid black;
+  /* brand left border */
+  border-left: 5px solid var(--marketplaceColor);
   margin-left: -24px;
   padding-left: 19px;
 }
