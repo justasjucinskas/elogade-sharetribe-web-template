@@ -162,7 +162,10 @@
   margin-top: var(--TopbarMobileMenu_topMargin);
 }
 .authenticationLinks {
-  white-space: nowrap;
+  /* Allow the greeting to wrap on narrow screens / longer locales (e.g. LT),
+     while each individual link word stays intact (see .signupLink/.loginLink). */
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .signupLink {
