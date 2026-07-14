@@ -1,0 +1,527 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  position: relative;
+  background: var(--mlpInk);
+  color: var(--colorWhite);
+  overflow: hidden;
+}
+
+.inner {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 24px;
+
+  @media (--viewportMedium) {
+    padding: 112px 32px;
+  }
+}
+
+/* ================= Header ================= */
+
+.header {
+  max-width: 640px;
+  margin-bottom: 48px;
+
+  @media (--viewportMedium) {
+    margin-bottom: 88px;
+  }
+}
+
+.kicker {
+  font-family: var(--mlpMono);
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mlpCyan);
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.title {
+  margin: 0;
+  padding: 0;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--colorWhite);
+}
+
+/* ================= Rows ================= */
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+
+  @media (--viewportMedium) {
+    gap: 120px;
+  }
+}
+
+/* minmax(0, 1fr), not bare 1fr: the scenes contain nowrap chips whose
+   min-content would otherwise force the track — and the whole page — wider
+   than small phones. */
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 30px;
+  align-items: center;
+
+  @media (--viewportMedium) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 80px;
+  }
+}
+
+.rowReverse {
+  @media (--viewportMedium) {
+    direction: rtl;
+  }
+}
+
+.rowReverse .rowText,
+.rowReverse .rowVisual {
+  direction: ltr;
+}
+
+.rowText {
+  max-width: 460px;
+}
+
+.rowKicker {
+  font-family: var(--mlpMono);
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mlpCyan);
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.rowTitle {
+  margin: 0 0 12px;
+  padding: 0;
+  font-size: clamp(26px, 3.6vw, 38px);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    margin-bottom: 16px;
+  }
+}
+
+.rowBody {
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.62);
+
+  @media (--viewportMedium) {
+    font-size: 17px;
+  }
+}
+
+.rowVisual {
+  position: relative;
+}
+
+/* ================= Shared scene panel ================= */
+
+.scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 15px;
+  min-height: 264px;
+  border-radius: 24px;
+  padding: 24px;
+  background: radial-gradient(ellipse 120% 100% at 80% 0%, rgba(0, 113, 227, 0.14), transparent 55%),
+    linear-gradient(165deg, rgba(28, 33, 46, 0.75), rgba(10, 12, 18, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 32px 64px -32px rgba(0, 0, 0, 0.85);
+
+  @media (--viewportMedium) {
+    min-height: 312px;
+    padding: 36px;
+    gap: 16px;
+  }
+}
+
+/* ================= Scene 1: offer ================= */
+
+.sceneListing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.sceneListingArt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: radial-gradient(circle at 50% 80%, rgba(0, 113, 227, 0.4), rgba(255, 255, 255, 0.04));
+  flex-shrink: 0;
+}
+
+.sceneListingIcon {
+  width: 24px;
+  height: 24px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sceneListingMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sceneListingName {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.sceneListingSub {
+  font-family: var(--mlpMono);
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.sceneListingPrice {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--colorWhite);
+}
+
+.sceneBubble {
+  max-width: 78%;
+  padding: 12px 18px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--colorWhite);
+}
+
+.sceneBubbleStrong {
+  font-weight: 700;
+}
+
+.sceneBubbleBuyer {
+  align-self: flex-end;
+  background: linear-gradient(120deg, var(--marketplaceColor), #0085ff);
+  border-radius: 18px 18px 4px 18px;
+  box-shadow: 0 12px 28px -12px rgba(0, 113, 227, 0.6);
+}
+
+.sceneBubbleSeller {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  align-self: flex-start;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 18px 18px 18px 4px;
+  color: var(--mlpCyan);
+  font-weight: 600;
+}
+
+.sceneCheck {
+  width: 15px;
+  height: 15px;
+}
+
+/* ================= Scene 2: new & pre-loved ================= */
+
+.sceneCards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+
+  @media (--viewportMedium) {
+    gap: 24px;
+  }
+}
+
+.sceneCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  /* Shrinkable so the pair never forces the page wider than small phones. */
+  flex: 0 1 150px;
+  min-width: 0;
+  padding: 15px;
+  border-radius: 16px;
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (--viewportMedium) {
+    flex-basis: 176px;
+    padding: 18px;
+  }
+}
+
+.sceneCardNew {
+  transform: rotate(-3deg) translateY(6px);
+}
+
+.sceneCardUsed {
+  transform: rotate(3deg) translateY(-6px);
+}
+
+.scene:hover .sceneCardNew {
+  transform: rotate(-1deg) translateY(0);
+}
+
+.scene:hover .sceneCardUsed {
+  transform: rotate(1deg) translateY(0);
+}
+
+.sceneCardArt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 66px;
+  border-radius: 10px;
+  margin-bottom: 9px;
+  background: radial-gradient(
+    circle at 50% 90%,
+    rgba(0, 113, 227, 0.35),
+    rgba(255, 255, 255, 0.03)
+  );
+}
+
+.sceneCardIcon {
+  width: 30px;
+  height: 30px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sceneCardName {
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.sceneCardPrice {
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--colorWhite);
+}
+
+.sceneCardBadge {
+  align-self: flex-start;
+  margin-top: 6px;
+  font-family: var(--mlpMono);
+  font-size: 9px;
+  line-height: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mlpCyan);
+  padding: 4px 8px;
+  border-radius: 100px;
+  border: 1px solid rgba(0, 212, 255, 0.28);
+  background: rgba(0, 212, 255, 0.07);
+  white-space: nowrap;
+}
+
+.sceneCardBadgeUsed {
+  color: #ffc46b;
+  border-color: rgba(255, 196, 107, 0.32);
+  background: rgba(255, 196, 107, 0.08);
+}
+
+/* ================= Scene 3: payments rail ================= */
+
+.railWrap {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+
+  @media (--viewportMedium) {
+    padding: 12px;
+  }
+}
+
+.rail {
+  position: relative;
+  height: 4px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.railProgress {
+  position: absolute;
+  inset: 0;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--marketplaceColor), var(--mlpCyan));
+  transform-origin: left center;
+  transform: scaleX(1);
+}
+
+.railNode {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--mlpInk);
+  border: 2px solid var(--mlpCyan);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.5);
+}
+
+.railNode1 {
+  left: 2%;
+}
+
+.railNode2 {
+  left: 51%;
+}
+
+.railNode3 {
+  left: 99%;
+}
+
+.railLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.railLabel {
+  font-family: var(--mlpMono);
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.railCaption {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  align-self: flex-end;
+  margin-top: 30px;
+  padding: 9px 15px;
+  border-radius: 100px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--mlpCyan);
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid rgba(0, 212, 255, 0.28);
+}
+
+.railCaptionCheck {
+  width: 14px;
+  height: 14px;
+}
+
+/* ================= Entrance ================= */
+
+.revealReady.header {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.isRevealed.header {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.revealReady .rowText {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.revealReady .rowVisual {
+  opacity: 0;
+  transform: translateY(32px) scale(0.97);
+}
+
+.isRevealed .rowText {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.isRevealed .rowVisual {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.8s ease 0.15s, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
+}
+
+/* Scene 1 choreography: bubbles land one after another. */
+.revealReady .sceneBubble {
+  opacity: 0;
+  transform: translateY(14px) scale(0.96);
+}
+
+.isRevealed .sceneBubble {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.isRevealed .sceneBubbleBuyer {
+  transition-delay: 0.7s;
+}
+
+.isRevealed .sceneBubbleSeller {
+  transition-delay: 1.25s;
+}
+
+/* Scene 3 choreography: progress fills, then funds release. */
+.revealReady .railProgress {
+  transform: scaleX(0);
+}
+
+.isRevealed .railProgress {
+  transform: scaleX(1);
+  transition: transform 1.6s cubic-bezier(0.6, 0, 0.2, 1) 0.5s;
+}
+
+.revealReady .railCaption {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.isRevealed .railCaption {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.55s ease 2s, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) 2s;
+}

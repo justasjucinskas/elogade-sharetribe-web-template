@@ -1,0 +1,145 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  position: relative;
+  background: var(--mlpInk);
+  overflow: hidden;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 80% 90% at 50% 115%,
+    rgba(0, 113, 227, 0.32),
+    transparent 65%
+  );
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 24px 96px;
+
+  @media (--viewportMedium) {
+    padding: 112px 32px 144px;
+  }
+}
+
+.kicker {
+  font-family: var(--mlpMono);
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mlpCyan);
+  margin: 0 0 24px;
+  padding: 0;
+}
+
+.ctaRow {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 30px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 48px 0;
+  }
+
+  &:last-child {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+/* The title slides via transform (compositor-only) — transitioning the row's
+   padding would re-run layout on every frame of the hover. */
+.ctaTitle {
+  font-size: clamp(30px, 5.4vw, 60px);
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--colorWhite);
+  transition: color 0.35s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ctaRow:hover .ctaTitle {
+  background: linear-gradient(96deg, var(--marketplaceColorLight) 10%, var(--mlpCyan) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  @media (--viewportMedium) {
+    transform: translateX(16px);
+  }
+}
+
+.ctaAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  font-family: var(--mlpMono);
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.35s ease;
+}
+
+.ctaRow:hover .ctaAction {
+  color: var(--mlpCyan);
+}
+
+.ctaArrow {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ctaRow:hover .ctaArrow {
+  transform: translateX(6px);
+}
+
+/* Entrance */
+
+.revealReady .kicker,
+.revealReady .ctaRow {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.isRevealed .kicker,
+.isRevealed .ctaRow {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.75s ease, transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.isRevealed .ctaRow:nth-of-type(1) {
+  transition-delay: 0.15s;
+}
+
+.isRevealed .ctaRow:nth-of-type(2) {
+  transition-delay: 0.3s;
+}
+
+/* Entrance stagger must not delay hover feedback. */
+.isRevealed .ctaRow:hover {
+  transition-delay: 0s;
+}

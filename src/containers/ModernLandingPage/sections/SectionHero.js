@@ -1,0 +1,266 @@
+import React, { useRef } from 'react';
+import classNames from 'classnames';
+
+import { useConfiguration } from '../../../context/configurationContext';
+import { useIntl } from '../../../util/reactIntl';
+import { formatMoney } from '../../../util/currency';
+import { createSlug } from '../../../util/urlHelpers';
+import { formatCategoryName, formatListingFieldOption } from '../../../util/hostedLabels';
+import { useReveal } from '../../../hooks/useReveal';
+
+import { NamedLink, ResponsiveImage } from '../../../components';
+
+import { IconPhone, IconHeadphones, IconController, IconArrow } from './icons';
+import css from './SectionHero.module.css';
+
+// Top-level Console category ids + English fallback names for the ticker.
+const TICKER_CATEGORIES = [
+  { id: 'phonesaccessories', fallback: 'Phones & Accessories' },
+  { id: 'computerstablets', fallback: 'Computers & Tablets' },
+  { id: 'audiodevices', fallback: 'Audio Devices' },
+  { id: 'gameconsoles', fallback: 'Game Consoles' },
+  { id: 'videogames', fallback: 'Video Games' },
+  { id: 'wearablessmartdevices', fallback: 'Wearables & Smart Devices' },
+  { id: 'camerasvideo', fallback: 'Cameras & Video' },
+  { id: 'consoleaccessories', fallback: 'Console Accessories' },
+];
+
+/**
+ * Wraps a CTA and nudges it towards the cursor for a "magnetic" hover feel.
+ * Pointer-only enhancement: no effect on touch devices or without hover.
+ */
+const MagneticWrap = ({ className, children }) => {
+  const nodeRef = useRef(null);
+
+  const handleMove = e => {
+    const node = nodeRef.current;
+    if (!node) {
+      return;
+    }
+    const rect = node.getBoundingClientRect();
+    const dx = e.clientX - (rect.left + rect.width / 2);
+    const dy = e.clientY - (rect.top + rect.height / 2);
+    node.style.transform = `translate(${dx * 0.16}px, ${dy * 0.16}px)`;
+  };
+
+  const handleLeave = () => {
+    const node = nodeRef.current;
+    if (node) {
+      node.style.transform = '';
+    }
+  };
+
+  return (
+    <span ref={nodeRef} className={className} onMouseMove={handleMove} onMouseLeave={handleLeave}>
+      {children}
+    </span>
+  );
+};
+
+/**
+ * Condition badge for a listing card: the `productcondition` enum option,
+ * translated through the hostedLabels overlay with the Console label as
+ * fallback.
+ */
+const conditionBadge = (intl, config, listing) => {
+  const conditionKey = listing.attributes.publicData?.productcondition;
+  if (!conditionKey) {
+    return null;
+  }
+  const fieldConfig = config.listing?.listingFields?.find(f => f.key === 'productcondition');
+  const optionConfig = fieldConfig?.enumOptions?.find(o => o.option === conditionKey);
+  return formatListingFieldOption(
+    intl,
+    'productcondition',
+    conditionKey,
+    optionConfig?.label || conditionKey
+  );
+};
+
+const SectionHero = props => {
+  const { listings = [] } = props;
+  const intl = useIntl();
+  const config = useConfiguration();
+  const { ref, enabled, revealed } = useReveal();
+
+  const msg = id => intl.formatMessage({ id: `ModernLandingPage.${id}` });
+
+  const tickerItems = [
+    ...TICKER_CATEGORIES.map(c => formatCategoryName(intl, c.id, c.fallback)),
+    msg('tickerOffers'),
+    msg('tickerProtection'),
+    msg('tickerPayout'),
+  ];
+
+  // Real listings carry the showcase when at least three (with photos) exist;
+  // the iconized placeholders keep the composition intact otherwise.
+  const variantPrefix = config.layout?.listingImage?.variantPrefix || 'listing-card';
+  const [newest, second, third] = listings;
+  const showcaseListings =
+    listings.length >= 3
+      ? [
+          { listing: second, cardClass: css.cardLeft },
+          { listing: newest, cardClass: css.cardCenter },
+          { listing: third, cardClass: css.cardRight },
+        ]
+      : null;
+
+  const placeholderCards = [
+    {
+      key: 'audio',
+      icon: <IconHeadphones className={css.cardIcon} />,
+      name: 'Sony WH-1000XM5',
+      price: '€189',
+      badge: msg('badgeLikeNew'),
+      cardClass: css.cardLeft,
+    },
+    {
+      key: 'phone',
+      icon: <IconPhone className={css.cardIcon} />,
+      name: 'iPhone 15 Pro · 128 GB',
+      price: '€749',
+      badge: msg('badgePreloved'),
+      cardClass: css.cardCenter,
+    },
+    {
+      key: 'console',
+      icon: <IconController className={css.cardIcon} />,
+      name: 'DualSense Edge',
+      price: '€159',
+      badge: msg('badgeNew'),
+      cardClass: css.cardRight,
+    },
+  ];
+
+  return (
+    <section className={css.root}>
+      <div className={css.backdrop} aria-hidden="true">
+        <div className={css.gridLines} />
+        <div className={css.orbA} />
+        <div className={css.orbB} />
+        <div className={css.orbC} />
+      </div>
+
+      <div
+        ref={ref}
+        className={classNames(css.inner, {
+          [css.revealReady]: enabled,
+          [css.isRevealed]: revealed,
+        })}
+      >
+        <p className={css.kicker}>
+          <span className={css.kickerDot} />
+          {msg('heroKicker')}
+        </p>
+
+        <h1 className={css.title}>
+          <span className={css.titleWord}>
+            <span className={classNames(css.titleWordInner, css.titleWordInner1)}>
+              {msg('heroWord1')}
+            </span>
+          </span>{' '}
+          <span className={css.titleWord}>
+            <span className={classNames(css.titleWordInner, css.titleWordInner2)}>
+              {msg('heroWord2')}
+            </span>
+          </span>{' '}
+          <span className={css.titleWord}>
+            <span
+              className={classNames(css.titleWordInner, css.titleWordInner3, css.titleWordAccent)}
+            >
+              {msg('heroWord3')}
+            </span>
+          </span>
+        </h1>
+
+        <p className={css.subtitle}>{msg('heroSubtitle')}</p>
+
+        <div className={css.ctas}>
+          <MagneticWrap className={css.magnetic}>
+            <NamedLink name="SearchPage" className={css.ctaPrimary}>
+              {msg('heroCtaBrowse')}
+              <IconArrow className={css.ctaArrow} />
+            </NamedLink>
+          </MagneticWrap>
+          <NamedLink name="NewListingPage" className={css.ctaGhost}>
+            {msg('heroCtaSell')}
+          </NamedLink>
+        </div>
+
+        <div className={css.showcase}>
+          {showcaseListings
+            ? showcaseListings.map(({ listing, cardClass }) => {
+                const { title, price } = listing.attributes;
+                const firstImage = listing.images?.[0];
+                const imageVariants = firstImage
+                  ? Object.keys(firstImage.attributes.variants).filter(k =>
+                      k.startsWith(variantPrefix)
+                    )
+                  : [];
+                const badge = conditionBadge(intl, config, listing);
+                return (
+                  <NamedLink
+                    key={listing.id.uuid}
+                    name="ListingPage"
+                    params={{ id: listing.id.uuid, slug: createSlug(title) }}
+                    className={classNames(css.card, cardClass)}
+                  >
+                    <div className={css.cardArt}>
+                      <ResponsiveImage
+                        rootClassName={css.cardImage}
+                        alt={title}
+                        image={firstImage}
+                        variants={imageVariants}
+                        sizes="264px"
+                      />
+                      <div className={css.cardShade} />
+                    </div>
+                    <div className={css.cardMeta}>
+                      <span className={css.cardName}>{title}</span>
+                      <span className={css.cardRow}>
+                        <span className={css.cardPrice}>
+                          {price ? formatMoney(intl, price) : null}
+                        </span>
+                        {badge ? <span className={css.cardBadge}>{badge}</span> : null}
+                      </span>
+                    </div>
+                  </NamedLink>
+                );
+              })
+            : placeholderCards.map(card => (
+                <div key={card.key} className={classNames(css.card, card.cardClass)}>
+                  <div className={css.cardArt}>
+                    <div className={css.cardGlow} />
+                    {card.icon}
+                  </div>
+                  <div className={css.cardMeta}>
+                    <span className={css.cardName}>{card.name}</span>
+                    <span className={css.cardRow}>
+                      <span className={css.cardPrice}>{card.price}</span>
+                      <span className={css.cardBadge}>{card.badge}</span>
+                    </span>
+                  </div>
+                </div>
+              ))}
+        </div>
+      </div>
+
+      <div className={css.ticker} aria-hidden="true">
+        <div className={css.tickerTrack}>
+          {[0, 1].map(copy => (
+            <div key={copy} className={css.tickerGroup}>
+              {tickerItems.map((item, i) => (
+                <span key={`${copy}-${i}`} className={css.tickerItem}>
+                  {item}
+                  <span className={css.tickerDot} />
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default SectionHero;

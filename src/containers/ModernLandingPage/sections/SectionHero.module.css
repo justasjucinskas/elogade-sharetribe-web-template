@@ -1,0 +1,622 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  position: relative;
+  overflow: hidden;
+  background: var(--mlpInk);
+  color: var(--colorWhite);
+}
+
+/* ================= Backdrop ================= */
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.gridLines {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 20%, transparent 75%);
+}
+
+.orbA,
+.orbB,
+.orbC {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: transform;
+}
+
+.orbA {
+  width: 560px;
+  height: 560px;
+  top: -220px;
+  left: -140px;
+  background: radial-gradient(circle at center, rgba(0, 113, 227, 0.42), transparent 70%);
+  animation: orbDriftA 26s ease-in-out infinite alternate;
+}
+
+.orbB {
+  width: 480px;
+  height: 480px;
+  top: 10%;
+  right: -180px;
+  background: radial-gradient(circle at center, rgba(0, 212, 255, 0.2), transparent 70%);
+  animation: orbDriftB 32s ease-in-out infinite alternate;
+}
+
+.orbC {
+  width: 420px;
+  height: 420px;
+  bottom: -160px;
+  left: 32%;
+  background: radial-gradient(circle at center, rgba(0, 113, 227, 0.22), transparent 70%);
+  animation: orbDriftC 38s ease-in-out infinite alternate;
+}
+
+/* Translate-only drift: scaling a blurred layer forces re-rasterization
+   every frame; pure translation stays on the compositor. */
+@keyframes orbDriftA {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(90px, 60px, 0);
+  }
+}
+
+@keyframes orbDriftB {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-70px, 90px, 0);
+  }
+}
+
+@keyframes orbDriftC {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(60px, -70px, 0);
+  }
+}
+
+/* ================= Content ================= */
+
+.inner {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 24px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  @media (--viewportMedium) {
+    padding: 112px 32px 0;
+  }
+}
+
+.kicker {
+  font-family: var(--mlpMono);
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mlpCyan);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 18px;
+  padding: 6px 15px;
+  border: 1px solid rgba(0, 212, 255, 0.22);
+  border-radius: 100px;
+  background: rgba(0, 212, 255, 0.05);
+
+  @media (--viewportMedium) {
+    margin: 0 0 24px;
+  }
+}
+
+.kickerDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mlpCyan);
+  animation: kickerPulse 2.4s ease-in-out infinite;
+}
+
+/* Opacity-only: animating box-shadow repaints every frame. */
+@keyframes kickerPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.title {
+  margin: 0;
+  padding: 0;
+  font-size: clamp(54px, 10vw, 116px);
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  color: var(--colorWhite);
+}
+
+/* Word masks — each word rises out of its own overflow-hidden span. */
+.titleWord {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* Keep descenders + tracking inside the mask. */
+  padding-bottom: 0.09em;
+  margin-bottom: -0.09em;
+}
+
+.titleWordInner {
+  display: inline-block;
+  will-change: transform;
+}
+
+.titleWordAccent {
+  background: linear-gradient(96deg, var(--marketplaceColor) 10%, var(--mlpCyan) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  max-width: 620px;
+  margin: 18px 0 0;
+  padding: 0;
+  font-size: 17px;
+  line-height: 1.6;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.62);
+
+  @media (--viewportMedium) {
+    margin: 24px 0 0;
+    font-size: 19px;
+  }
+}
+
+/* ================= CTAs ================= */
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 30px;
+
+  @media (--viewportMedium) {
+    gap: 16px;
+    margin-top: 40px;
+  }
+}
+
+.magnetic {
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 15px 27px;
+  border-radius: 100px;
+  background: linear-gradient(120deg, var(--marketplaceColor), #0085ff);
+  color: var(--colorWhite);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  box-shadow: 0 12px 32px -8px rgba(0, 113, 227, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  transition: box-shadow 0.35s ease, filter 0.35s ease;
+
+  &:hover {
+    text-decoration: none;
+    filter: brightness(1.08);
+    box-shadow: 0 16px 44px -8px rgba(0, 140, 255, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.14) inset;
+  }
+}
+
+.ctaArrow {
+  width: 17px;
+  height: 17px;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ctaPrimary:hover .ctaArrow {
+  transform: translateX(4px);
+}
+
+.ctaGhost {
+  display: inline-flex;
+  align-items: center;
+  padding: 15px 27px;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--colorWhite);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+
+  &:hover {
+    text-decoration: none;
+    border-color: rgba(255, 255, 255, 0.42);
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+/* ================= Showcase cards ================= */
+
+/* Mobile: a full-bleed, swipeable, center-snapping strip — all three cards
+   reachable. Desktop: the overlapping 3D fan. The strip must not contribute
+   intrinsic width to the layout grid (same trap as the ticker) —
+   contain: inline-size zeroes that contribution out. Negative margins bleed
+   through .inner's 24px side padding. The side padding centers a 236px card:
+   %-padding resolves against .inner's content box (strip width minus the
+   48px bleed), so it's 50% - 118px + 24px. Not vw — that would include the
+   scrollbar and overflow the page on classic-scrollbar browsers. */
+.showcase {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  contain: inline-size;
+  align-self: stretch;
+  margin: 54px -24px 0;
+  padding: 8px calc(50% - 94px) 36px;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  @media (--viewportMedium) {
+    justify-content: center;
+    contain: none;
+    align-self: auto;
+    width: 100%;
+    margin: 72px 0 0;
+    padding: 0 0 48px;
+    gap: 0;
+    overflow: visible;
+    perspective: 1400px;
+  }
+}
+
+.showcase::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  display: block;
+  flex: none;
+  scroll-snap-align: center;
+  width: 236px;
+  border-radius: 20px;
+  padding: 12px;
+  background: linear-gradient(165deg, rgba(30, 35, 48, 0.92), rgba(12, 14, 21, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 32px 64px -24px rgba(0, 0, 0, 0.8);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (--viewportMedium) {
+    width: 264px;
+  }
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.cardLeft {
+  @media (--viewportMedium) {
+    transform: translateX(26%) rotateY(11deg) scale(0.88);
+    z-index: 1;
+
+    &:hover {
+      transform: translateX(26%) rotateY(6deg) scale(0.92);
+    }
+  }
+}
+
+/* The newest listing leads the strip on mobile; on desktop it re-centers. */
+.cardCenter {
+  position: relative;
+  order: -1;
+  z-index: 2;
+
+  @media (--viewportMedium) {
+    order: 0;
+  }
+
+  &:hover {
+    transform: translateY(-6px) scale(1.02);
+  }
+}
+
+.cardRight {
+  @media (--viewportMedium) {
+    transform: translateX(-26%) rotateY(-11deg) scale(0.88);
+    z-index: 1;
+
+    &:hover {
+      transform: translateX(-26%) rotateY(-6deg) scale(0.92);
+    }
+  }
+}
+
+.cardArt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 138px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: radial-gradient(ellipse 90% 80% at 50% 110%, rgba(0, 113, 227, 0.3), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+
+  @media (--viewportMedium) {
+    height: 156px;
+  }
+}
+
+.cardGlow {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.22), transparent 70%);
+  filter: blur(18px);
+}
+
+.cardIcon {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  color: rgba(255, 255, 255, 0.85);
+  filter: drop-shadow(0 6px 20px rgba(0, 212, 255, 0.35));
+}
+
+.cardImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover .cardImage {
+  transform: scale(1.05);
+}
+
+/* Cools raw listing photos toward the hero's dark palette so bright
+   user-shot backgrounds don't punch a hole in the composition. */
+.cardShade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5, 7, 13, 0) 55%, rgba(5, 7, 13, 0.35)),
+    radial-gradient(ellipse 90% 80% at 50% 110%, rgba(0, 113, 227, 0.16), transparent 70%);
+  pointer-events: none;
+}
+
+.cardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 6px 6px;
+}
+
+/* Side cards read as background depth on desktop — dim their meta so the
+   center card's overlap doesn't look like clipped UI. On the mobile strip the
+   cards never overlap, so they stay at full strength. */
+.cardLeft .cardMeta,
+.cardRight .cardMeta {
+  @media (--viewportMedium) {
+    opacity: 0.45;
+  }
+}
+
+.cardName {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+}
+
+.cardPrice {
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--colorWhite);
+}
+
+.cardBadge {
+  font-family: var(--mlpMono);
+  font-size: 9px;
+  line-height: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mlpCyan);
+  padding: 4px 8px;
+  border-radius: 100px;
+  border: 1px solid rgba(0, 212, 255, 0.28);
+  background: rgba(0, 212, 255, 0.07);
+  white-space: nowrap;
+}
+
+/* ================= Ticker ================= */
+
+.ticker {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  /* Fixed height + absolutely positioned track: the max-content-wide marquee
+     must not contribute to the page's intrinsic width, or it stretches the
+     layout grid far beyond the viewport. */
+  height: 54px;
+  mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+
+  @media (--viewportMedium) {
+    height: 66px;
+  }
+}
+
+.tickerTrack {
+  position: absolute;
+  left: 0;
+  top: 18px;
+  display: flex;
+  width: max-content;
+  animation: tickerScroll 44s linear infinite;
+
+  @media (--viewportMedium) {
+    top: 24px;
+  }
+}
+
+.ticker:hover .tickerTrack {
+  animation-play-state: paused;
+}
+
+@keyframes tickerScroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.tickerGroup {
+  display: flex;
+  align-items: center;
+}
+
+.tickerItem {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--mlpMono);
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+.tickerDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--mlpCyan);
+  opacity: 0.7;
+  margin: 0 27px;
+}
+
+/* ================= Entrance choreography ================= */
+
+/*
+ * SSR-safe: everything is visible by default. Only when JS + motion are
+ * available (.revealReady) do we pre-hide, then .isRevealed plays the
+ * staggered entrance.
+ */
+
+.revealReady .titleWordInner {
+  transform: translateY(112%);
+}
+
+.revealReady .kicker,
+.revealReady .subtitle,
+.revealReady .ctas,
+.revealReady .showcase {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.isRevealed .titleWordInner {
+  transform: translateY(0);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.isRevealed .titleWordInner1 {
+  transition-delay: 0.1s;
+}
+
+.isRevealed .titleWordInner2 {
+  transition-delay: 0.22s;
+}
+
+.isRevealed .titleWordInner3 {
+  transition-delay: 0.34s;
+}
+
+.isRevealed .kicker,
+.isRevealed .subtitle,
+.isRevealed .ctas,
+.isRevealed .showcase {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.isRevealed .kicker {
+  transition-delay: 0s;
+}
+
+.isRevealed .subtitle {
+  transition-delay: 0.45s;
+}
+
+.isRevealed .ctas {
+  transition-delay: 0.58s;
+}
+
+.isRevealed .showcase {
+  transition-delay: 0.72s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbA,
+  .orbB,
+  .orbC,
+  .kickerDot,
+  .tickerTrack {
+    animation: none;
+  }
+}
