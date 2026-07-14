@@ -8,6 +8,8 @@ import {
   HardDrive,
   Headphones,
   Laptop,
+  Lock,
+  LockOpen,
   Smartphone,
   Watch,
 } from 'lucide-react';
@@ -45,3 +47,5 @@ export const IconWatch = withStroke(Watch);
 export const IconCamera = withStroke(Camera);
 export const IconArrow = withStroke(ArrowRight);
 export const IconCheck = withStroke(Check);
+export const IconLock = withStroke(Lock);
+export const IconLockOpen = withStroke(LockOpen);

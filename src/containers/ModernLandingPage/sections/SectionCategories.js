@@ -44,6 +44,20 @@ const SectionCategories = () => {
 
   const msg = id => intl.formatMessage({ id: `ModernLandingPage.${id}` });
 
+  // Cursor-tracked spotlight: delegated on the grid (NamedLink doesn't forward
+  // arbitrary handlers) — set the hovered tile's local pointer coordinates as
+  // CSS vars so its .tileSpot radial follows the cursor. Direct style mutation,
+  // no React re-render.
+  const handleSpotlight = e => {
+    const tile = e.target.closest(`.${css.tile}`);
+    if (!tile) {
+      return;
+    }
+    const rect = tile.getBoundingClientRect();
+    tile.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+    tile.style.setProperty('--my', `${e.clientY - rect.top}px`);
+  };
+
   return (
     <section className={css.root}>
       <div className={css.inner}>
@@ -61,6 +75,7 @@ const SectionCategories = () => {
 
         <div
           ref={grid.ref}
+          onMouseMove={handleSpotlight}
           className={classNames(css.grid, {
             [css.revealReady]: grid.enabled,
             [css.isRevealed]: grid.revealed,
@@ -76,6 +91,7 @@ const SectionCategories = () => {
                 className={classNames(css.tile, tile.tileClass ? css[tile.tileClass] : null)}
               >
                 <span className={css.tileGlow} aria-hidden="true" />
+                <span className={css.tileSpot} aria-hidden="true" />
                 <Icon className={css.tileIcon} />
                 <span className={css.tileName}>
                   {formatCategoryName(intl, tile.id, tile.fallback)}

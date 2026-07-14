@@ -6,6 +6,18 @@
   overflow: hidden;
 }
 
+/* Film grain — matches the hero so the dark sections share one surface. */
+.root::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--mlpGrain);
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+  opacity: 0.06;
+}
+
 .backdrop {
   position: absolute;
   inset: 0;
@@ -62,6 +74,11 @@
 
   &:hover {
     text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mlpCyan);
+    outline-offset: 4px;
   }
 }
 

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import classNames from 'classnames';
 
 import { useConfiguration } from '../../../context/configurationContext';
@@ -24,38 +24,6 @@ const TICKER_CATEGORIES = [
   { id: 'camerasvideo', fallback: 'Cameras & Video' },
   { id: 'consoleaccessories', fallback: 'Console Accessories' },
 ];
-
-/**
- * Wraps a CTA and nudges it towards the cursor for a "magnetic" hover feel.
- * Pointer-only enhancement: no effect on touch devices or without hover.
- */
-const MagneticWrap = ({ className, children }) => {
-  const nodeRef = useRef(null);
-
-  const handleMove = e => {
-    const node = nodeRef.current;
-    if (!node) {
-      return;
-    }
-    const rect = node.getBoundingClientRect();
-    const dx = e.clientX - (rect.left + rect.width / 2);
-    const dy = e.clientY - (rect.top + rect.height / 2);
-    node.style.transform = `translate(${dx * 0.16}px, ${dy * 0.16}px)`;
-  };
-
-  const handleLeave = () => {
-    const node = nodeRef.current;
-    if (node) {
-      node.style.transform = '';
-    }
-  };
-
-  return (
-    <span ref={nodeRef} className={className} onMouseMove={handleMove} onMouseLeave={handleLeave}>
-      {children}
-    </span>
-  );
-};
 
 /**
  * Condition badge for a listing card: the `productcondition` enum option,
@@ -93,27 +61,28 @@ const SectionHero = props => {
   ];
 
   // Real listings carry the showcase when at least three (with photos) exist;
-  // the iconized placeholders keep the composition intact otherwise.
+  // the iconized placeholders keep the composition intact otherwise. Up to five
+  // lead cards fan out on desktop; on mobile they become a swipeable strip.
   const variantPrefix = config.layout?.listingImage?.variantPrefix || 'listing-card';
-  const [newest, second, third] = listings;
-  const showcaseListings =
-    listings.length >= 3
-      ? [
-          { listing: second, cardClass: css.cardLeft },
-          { listing: newest, cardClass: css.cardCenter },
-          { listing: third, cardClass: css.cardRight },
-        ]
-      : null;
 
+  // Fan slot per listing index (0 = newest). Desktop places each into the fan
+  // via CSS `order` (centre, then inner pair, then outer pair); the array stays
+  // newest-first so the mobile strip opens on the newest listing.
+  const FAN_SLOTS = [
+    css.cardCenter,
+    css.cardLeft,
+    css.cardRight,
+    css.cardFarLeft,
+    css.cardFarRight,
+  ];
+  const fanCount = listings.length >= 5 ? 5 : listings.length >= 3 ? 3 : 0;
+  const showcaseListings = fanCount
+    ? listings.slice(0, fanCount).map((listing, i) => ({ listing, cardClass: FAN_SLOTS[i] }))
+    : null;
+
+  // Placeholder composition mirrors the real fan (centre card first for the
+  // mobile strip) when fewer than three photographed listings are available.
   const placeholderCards = [
-    {
-      key: 'audio',
-      icon: <IconHeadphones className={css.cardIcon} />,
-      name: 'Sony WH-1000XM5',
-      price: '€189',
-      badge: msg('badgeLikeNew'),
-      cardClass: css.cardLeft,
-    },
     {
       key: 'phone',
       icon: <IconPhone className={css.cardIcon} />,
@@ -121,6 +90,14 @@ const SectionHero = props => {
       price: '€749',
       badge: msg('badgePreloved'),
       cardClass: css.cardCenter,
+    },
+    {
+      key: 'audio',
+      icon: <IconHeadphones className={css.cardIcon} />,
+      name: 'Sony WH-1000XM5',
+      price: '€189',
+      badge: msg('badgeLikeNew'),
+      cardClass: css.cardLeft,
     },
     {
       key: 'console',
@@ -148,11 +125,6 @@ const SectionHero = props => {
           [css.isRevealed]: revealed,
         })}
       >
-        <p className={css.kicker}>
-          <span className={css.kickerDot} />
-          {msg('heroKicker')}
-        </p>
-
         <h1 className={css.title}>
           <span className={css.titleWord}>
             <span className={classNames(css.titleWordInner, css.titleWordInner1)}>
@@ -176,12 +148,10 @@ const SectionHero = props => {
         <p className={css.subtitle}>{msg('heroSubtitle')}</p>
 
         <div className={css.ctas}>
-          <MagneticWrap className={css.magnetic}>
-            <NamedLink name="SearchPage" className={css.ctaPrimary}>
-              {msg('heroCtaBrowse')}
-              <IconArrow className={css.ctaArrow} />
-            </NamedLink>
-          </MagneticWrap>
+          <NamedLink name="SearchPage" className={css.ctaPrimary}>
+            {msg('heroCtaBrowse')}
+            <IconArrow className={css.ctaArrow} />
+          </NamedLink>
           <NamedLink name="NewListingPage" className={css.ctaGhost}>
             {msg('heroCtaSell')}
           </NamedLink>

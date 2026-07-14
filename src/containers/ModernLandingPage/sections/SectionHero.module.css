@@ -7,6 +7,19 @@
   color: var(--colorWhite);
 }
 
+/* Film grain — a fixed, pointer-events-none noise layer over the whole hero
+   (blends via overlay so it textures the dark gradient without dirtying text). */
+.root::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--mlpGrain);
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+  opacity: 0.06;
+}
+
 /* ================= Backdrop ================= */
 
 .backdrop {
@@ -106,47 +119,6 @@
   }
 }
 
-.kicker {
-  font-family: var(--mlpMono);
-  font-size: 11px;
-  line-height: 18px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--mlpCyan);
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0 0 18px;
-  padding: 6px 15px;
-  border: 1px solid rgba(0, 212, 255, 0.22);
-  border-radius: 100px;
-  background: rgba(0, 212, 255, 0.05);
-
-  @media (--viewportMedium) {
-    margin: 0 0 24px;
-  }
-}
-
-.kickerDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--mlpCyan);
-  animation: kickerPulse 2.4s ease-in-out infinite;
-}
-
-/* Opacity-only: animating box-shadow repaints every frame. */
-@keyframes kickerPulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
 .title {
   margin: 0;
   padding: 0;
@@ -210,12 +182,6 @@
   }
 }
 
-.magnetic {
-  display: inline-block;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform;
-}
-
 .ctaPrimary {
   display: inline-flex;
   align-items: center;
@@ -229,12 +195,21 @@
   font-weight: 600;
   letter-spacing: -0.01em;
   box-shadow: 0 12px 32px -8px rgba(0, 113, 227, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
-  transition: box-shadow 0.35s ease, filter 0.35s ease;
+  transition: box-shadow 0.35s ease, filter 0.35s ease, transform 0.2s ease;
 
   &:hover {
     text-decoration: none;
     filter: brightness(1.08);
     box-shadow: 0 16px 44px -8px rgba(0, 140, 255, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.14) inset;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mlpCyan);
+    outline-offset: 3px;
   }
 }
 
@@ -259,12 +234,21 @@
   line-height: 24px;
   font-weight: 500;
   letter-spacing: -0.01em;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
+  transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.2s ease;
 
   &:hover {
     text-decoration: none;
     border-color: rgba(255, 255, 255, 0.42);
     background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mlpCyan);
+    outline-offset: 3px;
   }
 }
 
@@ -328,27 +312,23 @@
   &:hover {
     text-decoration: none;
   }
-}
 
-.cardLeft {
-  @media (--viewportMedium) {
-    transform: translateX(26%) rotateY(11deg) scale(0.88);
-    z-index: 1;
-
-    &:hover {
-      transform: translateX(26%) rotateY(6deg) scale(0.92);
-    }
+  &:focus-visible {
+    outline: 2px solid var(--mlpCyan);
+    outline-offset: 4px;
   }
 }
 
-/* The newest listing leads the strip on mobile; on desktop it re-centers. */
+/* Desktop fan: `order` slots the five cards left→right (outer, inner, centre,
+   inner, outer); each transform pulls its card toward the centre and tilts it,
+   so the pair on each side recedes behind the newest listing. On mobile the
+   cards keep their DOM order (newest first) as a swipeable strip. */
 .cardCenter {
   position: relative;
-  order: -1;
-  z-index: 2;
+  z-index: 3;
 
   @media (--viewportMedium) {
-    order: 0;
+    order: 3;
   }
 
   &:hover {
@@ -356,13 +336,50 @@
   }
 }
 
+.cardLeft {
+  @media (--viewportMedium) {
+    order: 2;
+    transform: translateX(26%) rotateY(11deg) scale(0.88);
+    z-index: 2;
+
+    &:hover {
+      transform: translateX(26%) rotateY(6deg) scale(0.92);
+    }
+  }
+}
+
 .cardRight {
   @media (--viewportMedium) {
+    order: 4;
     transform: translateX(-26%) rotateY(-11deg) scale(0.88);
-    z-index: 1;
+    z-index: 2;
 
     &:hover {
       transform: translateX(-26%) rotateY(-6deg) scale(0.92);
+    }
+  }
+}
+
+.cardFarLeft {
+  @media (--viewportMedium) {
+    order: 1;
+    transform: translateX(74%) rotateY(16deg) scale(0.74);
+    z-index: 1;
+
+    &:hover {
+      transform: translateX(74%) rotateY(11deg) scale(0.78);
+    }
+  }
+}
+
+.cardFarRight {
+  @media (--viewportMedium) {
+    order: 5;
+    transform: translateX(-74%) rotateY(-16deg) scale(0.74);
+    z-index: 1;
+
+    &:hover {
+      transform: translateX(-74%) rotateY(-11deg) scale(0.78);
     }
   }
 }
@@ -441,6 +458,13 @@
   }
 }
 
+.cardFarLeft .cardMeta,
+.cardFarRight .cardMeta {
+  @media (--viewportMedium) {
+    opacity: 0.28;
+  }
+}
+
 .cardName {
   font-size: 14px;
   line-height: 18px;
@@ -464,6 +488,7 @@
   line-height: 24px;
   font-weight: 700;
   letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
   color: var(--colorWhite);
 }
 
@@ -561,7 +586,6 @@
   transform: translateY(112%);
 }
 
-.revealReady .kicker,
 .revealReady .subtitle,
 .revealReady .ctas,
 .revealReady .showcase {
@@ -586,17 +610,12 @@
   transition-delay: 0.34s;
 }
 
-.isRevealed .kicker,
 .isRevealed .subtitle,
 .isRevealed .ctas,
 .isRevealed .showcase {
   opacity: 1;
   transform: translateY(0);
   transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.isRevealed .kicker {
-  transition-delay: 0s;
 }
 
 .isRevealed .subtitle {
@@ -615,7 +634,6 @@
   .orbA,
   .orbB,
   .orbC,
-  .kickerDot,
   .tickerTrack {
     animation: none;
   }

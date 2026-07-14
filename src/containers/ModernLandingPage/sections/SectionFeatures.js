@@ -5,7 +5,7 @@ import { useIntl } from '../../../util/reactIntl';
 import { useConfiguration } from '../../../context/configurationContext';
 import { useReveal } from '../../../hooks/useReveal';
 
-import { IconHeadphones, IconPhone, IconCheck } from './icons';
+import { IconHeadphones, IconPhone, IconCheck, IconLock, IconLockOpen } from './icons';
 import css from './SectionFeatures.module.css';
 
 /**
@@ -34,53 +34,84 @@ const OfferScene = ({ msg }) => (
   </div>
 );
 
+// One product across the grading scale — cyan (sealed) → amber (well-loved).
+// Reuses the existing condition-badge copy; bar length tracks the price so the
+// spread between new and pre-loved reads at a glance.
+const CONDITION_TIERS = [
+  { key: 'badgeNew', price: '€999', pct: 100, toneClass: 'tierNew' },
+  { key: 'badgeLikeNew', price: '€879', pct: 88, toneClass: 'tierMid' },
+  { key: 'badgePreloved', price: '€749', pct: 75, toneClass: 'tierUsed' },
+];
+
 /**
- * Scene 2 — new & pre-loved: the same product listed in both markets,
- * side by side with honest condition badges.
+ * Scene 2 — new & pre-loved: one product graded on a single honest standard.
+ * A compact "grade sheet" where sealed retail stock and well-loved workhorses
+ * line up on the same scale, each with a colour-coded grade and its price.
  */
 const ConditionScene = ({ msg }) => (
   <div className={css.scene}>
-    <div className={css.sceneCards}>
-      <div className={classNames(css.sceneCard, css.sceneCardNew)}>
-        <span className={css.sceneCardArt}>
-          <IconPhone className={css.sceneCardIcon} />
+    <div className={css.grades}>
+      <div className={css.gradesHead}>
+        <span className={css.gradesArt}>
+          <IconPhone className={css.gradesIcon} />
         </span>
-        <span className={css.sceneCardName}>iPhone 15 Pro</span>
-        <span className={css.sceneCardPrice}>€999</span>
-        <span className={css.sceneCardBadge}>{msg('badgeNew')}</span>
+        <span className={css.gradesName}>iPhone 15 Pro</span>
       </div>
-      <div className={classNames(css.sceneCard, css.sceneCardUsed)}>
-        <span className={css.sceneCardArt}>
-          <IconPhone className={css.sceneCardIcon} />
-        </span>
-        <span className={css.sceneCardName}>iPhone 15 Pro</span>
-        <span className={css.sceneCardPrice}>€749</span>
-        <span className={classNames(css.sceneCardBadge, css.sceneCardBadgeUsed)}>
-          {msg('badgePreloved')}
-        </span>
-      </div>
+      <ul className={css.tiers}>
+        {CONDITION_TIERS.map(tier => (
+          <li key={tier.key} className={classNames(css.tier, css[tier.toneClass])}>
+            <span className={css.tierBar} style={{ width: `${tier.pct}%` }} aria-hidden="true" />
+            <span className={css.tierDot} aria-hidden="true" />
+            <span className={css.tierLabel}>{msg(tier.key)}</span>
+            <span className={css.tierPrice}>{tier.price}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   </div>
 );
 
+const PAYMENT_STAGES = ['railPaid', 'railShipped', 'railDelivered'];
+
 /**
- * Scene 3 — protected payments: a fulfilment rail whose progress fills as it
- * reveals; funds release at the final checkpoint.
+ * Scene 3 — protected payments: an escrow "vault" meter. The ring fills as the
+ * order moves paid → shipped → delivered; the buyer's money stays under lock
+ * until delivery, when the lock springs open and the funds release to the
+ * seller. The composition is visible/complete by default (SSR + reduced motion);
+ * the entrance choreography lives in the stylesheet, keyed off the reveal state.
  */
 const PaymentsScene = ({ msg }) => (
   <div className={css.scene}>
-    <div className={css.railWrap}>
-      <div className={css.rail}>
-        <span className={css.railProgress} />
-        <span className={classNames(css.railNode, css.railNode1)} />
-        <span className={classNames(css.railNode, css.railNode2)} />
-        <span className={classNames(css.railNode, css.railNode3)} />
+    <div className={css.escrow}>
+      <div className={css.meter}>
+        <svg className={css.meterRing} viewBox="0 0 120 120" aria-hidden="true">
+          <defs>
+            <linearGradient id="escrowGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop className={css.meterStopA} offset="0%" />
+              <stop className={css.meterStopB} offset="100%" />
+            </linearGradient>
+          </defs>
+          <circle className={css.meterTrack} cx="60" cy="60" r="52" />
+          <circle className={css.meterProgress} cx="60" cy="60" r="52" />
+        </svg>
+        <div className={css.meterCore}>
+          <span className={css.meterIcon} aria-hidden="true">
+            <IconLock className={css.meterLock} />
+            <IconLockOpen className={css.meterUnlock} />
+          </span>
+          <span className={css.meterAmount}>€189</span>
+        </div>
       </div>
-      <div className={css.railLabels}>
-        <span className={css.railLabel}>{msg('railPaid')}</span>
-        <span className={css.railLabel}>{msg('railShipped')}</span>
-        <span className={css.railLabel}>{msg('railDelivered')}</span>
-      </div>
+
+      <ol className={css.stages}>
+        {PAYMENT_STAGES.map(key => (
+          <li key={key} className={css.stage}>
+            <IconCheck className={css.stageCheck} />
+            {msg(key)}
+          </li>
+        ))}
+      </ol>
+
       <div className={css.railCaption}>
         <IconCheck className={css.railCaptionCheck} />
         {msg('railCaption')}

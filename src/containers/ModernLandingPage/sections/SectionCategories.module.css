@@ -1,7 +1,22 @@
 @import '../../../styles/customMediaQueries.css';
 
 .root {
+  position: relative;
   background: var(--mlpFog);
+}
+
+/* Faint grain so the light fog strip shares the dark sections' surface
+   texture — lower opacity than the dark sections since noise reads stronger
+   over a light ground. */
+.root::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--mlpGrain);
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+  opacity: 0.035;
 }
 
 .inner {
@@ -122,6 +137,31 @@
     border-color: rgba(0, 212, 255, 0.35);
     box-shadow: 0 24px 48px -20px rgba(2, 8, 30, 0.55), 0 0 0 1px rgba(0, 212, 255, 0.12);
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--mlpCyan);
+    outline-offset: 3px;
+  }
+}
+
+/* Cursor-tracked spotlight — a cyan radial that follows the pointer, set via
+   the --mx/--my vars written by the grid's onMouseMove delegate. Sits below the
+   tile content (paints before the icon/name), so text stays crisp. */
+.tileSpot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    200px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(0, 212, 255, 0.18),
+    transparent 60%
+  );
+  transition: opacity 0.35s ease;
+}
+
+.tile:hover .tileSpot {
+  opacity: 1;
 }
 
 /* All strip cards share one size on mobile; the grid spans only apply on

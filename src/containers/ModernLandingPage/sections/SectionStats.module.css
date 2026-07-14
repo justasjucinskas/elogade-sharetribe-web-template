@@ -21,15 +21,24 @@
 }
 
 .stat {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
   text-align: center;
+}
 
+/* Column dividers fade at top and bottom instead of hard-ruling the full
+   height — a softer separation than a flat border. Desktop only. */
+.stat:not(:first-child)::before {
   @media (--viewportMedium) {
-    &:not(:first-child) {
-      border-left: 1px solid rgba(0, 0, 0, 0.08);
-    }
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8%;
+    bottom: 8%;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.12) 50%, transparent);
   }
 }
 
@@ -39,6 +48,7 @@
   line-height: 1.1;
   font-weight: 700;
   letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
   color: var(--mlpInk);
 
   @media (--viewportMedium) {
