@@ -221,6 +221,113 @@
   }
 }
 
+/* ===== Mobile menu — left drawer ===== */
+
+.menuModal {
+  z-index: var(--zIndexModal, 100);
+}
+
+/* The dimmed backdrop. The panel is aligned to the left edge so the drawer
+   "drives" in from the left; clicking the free space closes it (closeOnScrimClick). */
+.menuScrollLayer {
+  display: flex;
+  flex-grow: 1;
+  justify-content: flex-start;
+  align-items: stretch;
+
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+  overflow: hidden;
+
+  background-color: rgba(17, 17, 19, 0.44);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+
+  animation: menuScrimIn 320ms ease both;
+}
+
+/* The sliding panel itself. */
+.menuDrawer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  width: 86vw;
+  max-width: 360px;
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+
+  padding: 0;
+
+  background-color: var(--colorWhite);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 8px 0 48px rgba(0, 0, 0, 0.22);
+
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* Drive in from the left edge */
+  transform: translateX(-100%);
+  animation: menuDriveIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @media (--viewportMedium) {
+    max-width: 400px;
+  }
+}
+
+/* Flex wrapper so the footer CTA can pin to the bottom of the drawer. */
+.menuContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: 0;
+}
+
+/* Reposition the modal's close button into the drawer's top-right corner
+   (default global style pins it to the viewport corner). */
+.menuDrawer :global(.marketplaceModalCloseStyles) {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 12px;
+  color: var(--colorGrey700);
+  border-radius: var(--borderRadiusMedium, 6px);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.menuDrawer :global(.marketplaceModalCloseStyles):enabled:hover,
+.menuDrawer :global(.marketplaceModalCloseStyles):enabled:active {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--colorBlack);
+}
+
+@keyframes menuScrimIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes menuDriveIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menuScrollLayer,
+  .menuDrawer {
+    animation: none;
+  }
+  .menuDrawer {
+    transform: none;
+  }
+}
+
 .missingInformationModal {
   composes: marketplaceModalBaseStyles from global;
   padding-top: 70px;

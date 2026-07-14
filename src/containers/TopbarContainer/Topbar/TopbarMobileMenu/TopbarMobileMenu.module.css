@@ -1,7 +1,7 @@
 @import '../../../../styles/customMediaQueries.css';
 
 .root {
-  flex-shrink: 0;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   min-height: 100%;
@@ -14,6 +14,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  width: 100%;
+  padding: 0 24px;
 }
 
 .accountLinksWrapper,
@@ -21,48 +23,55 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  width: 100%;
 }
 .accountLinksWrapper {
-  margin-bottom: 36px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
 }
 
 .footer {
-  position: fixed;
+  /* Pinned to the bottom of the drawer (not the viewport) so it tracks the
+     narrow panel width instead of spanning the whole screen. */
+  position: sticky;
   bottom: 0;
-  left: 0;
-  width: 100vw;
-  padding: 24px;
+  z-index: 1;
+  width: 100%;
+  margin-top: auto;
+  padding: 16px 24px calc(16px + env(safe-area-inset-bottom, 0px));
 
   /* Frosted, matching the topbar */
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.82);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   backdrop-filter: blur(16px) saturate(180%);
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: var(--boxShadowTop);
+}
+/* Hide the bar entirely when there is no CTA to show. */
+.footer:empty {
+  display: none;
 }
 
 .avatar {
   /* Layout */
   flex-shrink: 0;
-  margin: var(--TopbarMobileMenu_topMargin) 0 0 0;
+  margin: 24px 0 0 24px;
 }
 
 .greeting {
   /* Font */
   font-weight: var(--fontWeightBlack);
   font-size: 24px;
-  line-height: 24px;
+  line-height: 28px;
 
-  padding: 3px 0 3px 0;
-  margin-bottom: 1px;
-  margin-top: 16px;
+  padding: 0;
+  margin-bottom: 2px;
+  margin-top: 18px;
 
   @media (--viewportMedium) {
-    font-size: 40px;
-    line-height: 56px;
-    padding: 5px 0 3px 0;
-    /* x * 8px */
-    margin-top: 24px;
+    font-size: 26px;
+    line-height: 32px;
+    margin-top: 20px;
   }
 }
 
@@ -100,20 +109,25 @@
 
 .customLinkFont {
   /* Font */
-  font-weight: var(--fontWeightBold);
-  font-size: 21px;
+  font-weight: var(--fontWeightSemiBold);
+  font-size: 18px;
   line-height: 24px;
 
-  padding: 4px 0 2px 0;
-  /* x * 6px */
-  margin-top: 24px;
-  margin-bottom: 18px;
+  /* Comfortable tap rows within the narrow drawer */
+  padding: 12px 0;
+  margin: 0;
+}
 
-  @media (--viewportMedium) {
-    font-size: 30px;
-    line-height: 40px;
-    padding: 1px 0 7px 0;
-  }
+/* Make the whole row tappable and add a subtle press affordance */
+.inbox a,
+.navigationLink a {
+  display: inline-block;
+  transition: opacity 0.15s ease;
+}
+.inbox a:hover,
+.navigationLink a:hover {
+  opacity: 0.6;
+  text-decoration: none;
 }
 
 .inbox {
@@ -121,19 +135,14 @@
   composes: customLinkFont;
   color: var(--marketplaceColor);
   position: relative;
-
-  margin-top: auto;
-  margin-bottom: 13px;
+  margin: 0;
 }
 
 .navigationLink {
   /* Font */
   composes: customLinkFont;
   color: var(--marketplaceColor);
-
-  /* Layout */
-  margin-top: 0;
-  margin-bottom: 11px;
+  margin: 0;
 }
 .currentPageLink {
   color: var(--marketplaceColorDark);
@@ -158,8 +167,10 @@
   /* Font */
   composes: h1 from global;
 
-  margin-bottom: 48px;
-  margin-top: var(--TopbarMobileMenu_topMargin);
+  /* Clear the close button pinned to the drawer's top-right corner */
+  margin-top: 56px;
+  margin-bottom: 32px;
+  padding-right: 8px;
 }
 .authenticationLinks {
   /* Allow the greeting to wrap on narrow screens / longer locales (e.g. LT),
@@ -188,7 +199,8 @@
   padding-left: 19px;
 }
 
+/* Reserve space so the last item clears the sticky footer CTA when scrolled */
 .spacer {
   width: 100%;
-  height: 124px;
+  height: 80px;
 }

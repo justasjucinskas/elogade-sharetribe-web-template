@@ -387,10 +387,14 @@ const TopbarComponent = props => {
       </div>
       <Modal
         id="TopbarMobileMenu"
-        containerClassName={css.modalContainer}
+        className={css.menuModal}
+        scrollLayerClassName={css.menuScrollLayer}
+        containerClassName={css.menuDrawer}
+        contentClassName={css.menuContent}
         isOpen={isMobileMenuOpen}
         onClose={() => redirectToURLWithoutModalState(history, location, 'mobilemenu')}
         usePortal
+        closeOnScrimClick
         onManageDisableScrolling={onManageDisableScrolling}
         focusElementId={MOBILE_MENU_BUTTON_ID}
       >
