@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { addMarketplaceEntities } from '../../ducks/marketplaceData.duck';
 import { createImageVariantConfig } from '../../util/sdkLoader';
 import { storableError } from '../../util/errors';
+import { CATEGORY_TILES } from './sections/categoryTiles';
 
 // ================ Async Thunks ================ //
 
@@ -48,12 +49,36 @@ export const queryFeaturedListingsThunk = createAsyncThunk(
   queryFeaturedListingsPayloadCreator
 );
 
+/**
+ * Fetch a live published-listing count per top-level category for the "Shop by
+ * category" tiles. Sharetribe has no aggregation endpoint, so we fire one cheap
+ * `perPage: 1` query per category and read `meta.totalItems` (the total match
+ * count, independent of the page size). A single category's failure yields a
+ * null count for that tile only — it must not sink the rest of the page.
+ */
+const queryCategoryCountsPayloadCreator = (arg, { extra: sdk }) => {
+  return Promise.all(
+    CATEGORY_TILES.map(({ id }) =>
+      sdk.listings
+        .query({ pub_categoryLevel1: id, perPage: 1 })
+        .then(res => [id, res.data.meta.totalItems])
+        .catch(() => [id, null])
+    )
+  ).then(entries => Object.fromEntries(entries));
+};
+
+export const queryCategoryCountsThunk = createAsyncThunk(
+  'ModernLandingPage/queryCategoryCounts',
+  queryCategoryCountsPayloadCreator
+);
+
 // ================ Slice ================ //
 
 const initialState = {
   featuredListingRefs: [],
   queryInProgress: false,
   queryError: null,
+  categoryCounts: {},
 };
 
 const modernLandingPageSlice = createSlice({
@@ -73,6 +98,9 @@ const modernLandingPageSlice = createSlice({
       .addCase(queryFeaturedListingsThunk.rejected, (state, action) => {
         state.queryInProgress = false;
         state.queryError = action.payload;
+      })
+      .addCase(queryCategoryCountsThunk.fulfilled, (state, action) => {
+        state.categoryCounts = action.payload;
       });
   },
 });
@@ -82,5 +110,8 @@ export default modernLandingPageSlice.reducer;
 // ================ Load data ================ //
 
 export const loadData = (params, search, config) => dispatch => {
-  return dispatch(queryFeaturedListingsThunk({ config }));
+  return Promise.all([
+    dispatch(queryFeaturedListingsThunk({ config })),
+    dispatch(queryCategoryCountsThunk()),
+  ]);
 };

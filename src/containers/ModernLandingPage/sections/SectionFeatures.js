@@ -2,17 +2,16 @@ import React from 'react';
 import classNames from 'classnames';
 
 import { useIntl } from '../../../util/reactIntl';
-import { useConfiguration } from '../../../context/configurationContext';
 import { useReveal } from '../../../hooks/useReveal';
 
-import { IconHeadphones, IconPhone, IconCheck, IconLock, IconLockOpen } from './icons';
+import { IconHeadphones, IconPhone, IconCamera, IconCheck, IconLock, IconLockOpen } from './icons';
 import css from './SectionFeatures.module.css';
 
 /**
- * Scene 1 — offer negotiation: a listing row and a short "haggle" exchange
- * that plays out with staggered bubbles when the row scrolls into view.
+ * Scene 1 — message before you buy: a listing row and a short buyer↔seller
+ * exchange that plays out with staggered bubbles when the row scrolls into view.
  */
-const OfferScene = ({ msg }) => (
+const MessageScene = ({ msg }) => (
   <div className={css.scene}>
     <div className={css.sceneListing}>
       <span className={css.sceneListingArt}>
@@ -25,11 +24,11 @@ const OfferScene = ({ msg }) => (
       <span className={css.sceneListingPrice}>€189</span>
     </div>
     <div className={classNames(css.sceneBubble, css.sceneBubbleBuyer)}>
-      {msg('sceneOfferLabel')} · <strong className={css.sceneBubbleStrong}>€165</strong>
+      {msg('sceneQuestion')}
     </div>
     <div className={classNames(css.sceneBubble, css.sceneBubbleSeller)}>
-      <IconCheck className={css.sceneCheck} />
-      {msg('sceneAccepted')}
+      <IconCamera className={css.sceneReplyIcon} />
+      {msg('sceneReply')}
     </div>
   </div>
 );
@@ -121,7 +120,7 @@ const PaymentsScene = ({ msg }) => (
 );
 
 const FEATURES = [
-  { key: 'feature1', Scene: OfferScene },
+  { key: 'feature1', Scene: MessageScene },
   { key: 'feature2', Scene: ConditionScene },
   { key: 'feature3', Scene: PaymentsScene },
 ];
@@ -153,7 +152,6 @@ const FeatureRow = ({ feature, index, msg }) => {
 
 const SectionFeatures = () => {
   const intl = useIntl();
-  const config = useConfiguration();
   const header = useReveal();
 
   const msg = (id, values) => intl.formatMessage({ id: `ModernLandingPage.${id}` }, values);
@@ -168,9 +166,6 @@ const SectionFeatures = () => {
             [css.isRevealed]: header.revealed,
           })}
         >
-          <p className={css.kicker}>
-            {msg('featuresKicker', { marketplaceName: config.marketplaceName })}
-          </p>
           <h2 className={css.title}>{msg('featuresTitle')}</h2>
         </header>
 

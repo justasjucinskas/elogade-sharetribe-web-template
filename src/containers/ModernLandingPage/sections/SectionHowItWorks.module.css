@@ -39,18 +39,6 @@
   }
 }
 
-.kicker {
-  font-family: var(--mlpMono);
-  font-size: 11px;
-  line-height: 18px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--marketplaceColor);
-  margin: 0 0 12px;
-  padding: 0;
-}
-
 .title {
   margin: 0;
   padding: 0;
@@ -63,28 +51,86 @@
 
 /* ================= Steps ================= */
 
+/* Mobile: a swipeable, scroll-snapping strip so the three steps don't stack
+   into a tall wall — the next card peeks to signal there's more. Negative
+   margins bleed the strip through .inner's 24px side padding; the matching
+   side padding + scroll-padding re-inset the cards. overflow-y is pinned to
+   hidden so the x-scroller can't spawn a stray vertical scrollbar (the reveal
+   offset and card shadows sit inside the vertical padding). Desktop: the row
+   with connectors. */
 .steps {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: 0 -24px;
+  padding: 6px 24px 20px;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  flex-direction: row;
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 24px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 
   @media (--viewportMedium) {
-    flex-direction: row;
+    margin: 0;
+    padding: 0;
     align-items: stretch;
     gap: 0;
+    overflow: visible;
+    scroll-snap-type: none;
   }
+}
+
+.steps::-webkit-scrollbar {
+  display: none;
 }
 
 .step {
   display: flex;
+  flex: 0 0 82%;
+  min-width: 0;
+  scroll-snap-align: start;
 
   @media (--viewportMedium) {
     flex: 1 1 0;
-    min-width: 0;
+    scroll-snap-align: none;
   }
+}
+
+/* ================= Swipe pager (mobile only) ================= */
+
+.pager {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+
+  @media (--viewportMedium) {
+    display: none;
+  }
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 100px;
+  appearance: none;
+  background: rgba(5, 7, 13, 0.16);
+  cursor: pointer;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.35s ease;
+}
+
+.dot:focus-visible {
+  outline: 2px solid var(--marketplaceColor);
+  outline-offset: 3px;
+}
+
+.dotActive {
+  width: 22px;
+  background: var(--marketplaceColor);
 }
 
 .card {

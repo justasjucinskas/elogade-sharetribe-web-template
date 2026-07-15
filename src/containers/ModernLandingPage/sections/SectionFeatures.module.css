@@ -41,18 +41,6 @@
   }
 }
 
-.kicker {
-  font-family: var(--mlpMono);
-  font-size: 11px;
-  line-height: 18px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--mlpCyan);
-  margin: 0 0 12px;
-  padding: 0;
-}
-
 .title {
   margin: 0;
   padding: 0;
@@ -170,7 +158,7 @@
   }
 }
 
-/* ================= Scene 1: offer ================= */
+/* ================= Scene 1: message ================= */
 
 .sceneListing {
   display: flex;
@@ -240,10 +228,6 @@
   color: var(--colorWhite);
 }
 
-.sceneBubbleStrong {
-  font-weight: 700;
-}
-
 .sceneBubbleBuyer {
   align-self: flex-end;
   background: linear-gradient(120deg, var(--marketplaceColor), #0085ff);
@@ -263,7 +247,7 @@
   font-weight: 600;
 }
 
-.sceneCheck {
+.sceneReplyIcon {
   width: 15px;
   height: 15px;
 }

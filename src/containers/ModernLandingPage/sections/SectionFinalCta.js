@@ -25,8 +25,6 @@ const SectionFinalCta = () => {
           [css.isRevealed]: revealed,
         })}
       >
-        <p className={css.kicker}>{msg('ctaKicker')}</p>
-
         <NamedLink name="SearchPage" className={css.ctaRow}>
           <span className={css.ctaTitle}>{msg('ctaBuyTitle')}</span>
           <span className={css.ctaAction}>

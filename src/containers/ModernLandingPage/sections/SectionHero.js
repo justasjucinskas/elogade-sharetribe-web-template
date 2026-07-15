@@ -4,26 +4,27 @@ import classNames from 'classnames';
 import { useConfiguration } from '../../../context/configurationContext';
 import { useIntl } from '../../../util/reactIntl';
 import { formatMoney } from '../../../util/currency';
-import { createSlug } from '../../../util/urlHelpers';
-import { formatCategoryName, formatListingFieldOption } from '../../../util/hostedLabels';
+import { formatListingFieldOption } from '../../../util/hostedLabels';
 import { useReveal } from '../../../hooks/useReveal';
 
 import { NamedLink, ResponsiveImage } from '../../../components';
 
-import { IconPhone, IconHeadphones, IconController, IconArrow } from './icons';
+import {
+  IconPhone,
+  IconLaptop,
+  IconHeadphones,
+  IconController,
+  IconWatch,
+  IconCamera,
+  IconArrow,
+} from './icons';
 import css from './SectionHero.module.css';
 
-// Top-level Console category ids + English fallback names for the ticker.
-const TICKER_CATEGORIES = [
-  { id: 'phonesaccessories', fallback: 'Phones & Accessories' },
-  { id: 'computerstablets', fallback: 'Computers & Tablets' },
-  { id: 'audiodevices', fallback: 'Audio Devices' },
-  { id: 'gameconsoles', fallback: 'Game Consoles' },
-  { id: 'videogames', fallback: 'Video Games' },
-  { id: 'wearablessmartdevices', fallback: 'Wearables & Smart Devices' },
-  { id: 'camerasvideo', fallback: 'Cameras & Video' },
-  { id: 'consoleaccessories', fallback: 'Console Accessories' },
-];
+// Two vertical columns cascade down the right edge. Each column is cycled up to
+// this many cards so its content is always taller than the column viewport —
+// the seamless (duplicated) marquee track needs that to loop without a gap.
+const COLUMN_COUNT = 2;
+const CARDS_PER_COLUMN = 5;
 
 /**
  * Condition badge for a listing card: the `productcondition` enum option,
@@ -45,6 +46,20 @@ const conditionBadge = (intl, config, listing) => {
   );
 };
 
+// Round-robin the descriptors into COLUMN_COUNT columns, then cycle each column
+// up to CARDS_PER_COLUMN so every column is tall enough to loop seamlessly.
+const buildColumns = descriptors => {
+  const columns = Array.from({ length: COLUMN_COUNT }, () => []);
+  descriptors.forEach((d, i) => columns[i % COLUMN_COUNT].push(d));
+  return columns.map(col => {
+    if (col.length === 0) {
+      return col;
+    }
+    const target = Math.max(CARDS_PER_COLUMN, col.length);
+    return Array.from({ length: target }, (_, i) => col[i % col.length]);
+  });
+};
+
 const SectionHero = props => {
   const { listings = [] } = props;
   const intl = useIntl();
@@ -53,61 +68,122 @@ const SectionHero = props => {
 
   const msg = id => intl.formatMessage({ id: `ModernLandingPage.${id}` });
 
-  const tickerItems = [
-    ...TICKER_CATEGORIES.map(c => formatCategoryName(intl, c.id, c.fallback)),
-    msg('tickerOffers'),
-    msg('tickerProtection'),
-    msg('tickerPayout'),
-  ];
-
-  // Real listings carry the showcase when at least three (with photos) exist;
-  // the iconized placeholders keep the composition intact otherwise. Up to five
-  // lead cards fan out on desktop; on mobile they become a swipeable strip.
   const variantPrefix = config.layout?.listingImage?.variantPrefix || 'listing-card';
 
-  // Fan slot per listing index (0 = newest). Desktop places each into the fan
-  // via CSS `order` (centre, then inner pair, then outer pair); the array stays
-  // newest-first so the mobile strip opens on the newest listing.
-  const FAN_SLOTS = [
-    css.cardCenter,
-    css.cardLeft,
-    css.cardRight,
-    css.cardFarLeft,
-    css.cardFarRight,
-  ];
-  const fanCount = listings.length >= 5 ? 5 : listings.length >= 3 ? 3 : 0;
-  const showcaseListings = fanCount
-    ? listings.slice(0, fanCount).map((listing, i) => ({ listing, cardClass: FAN_SLOTS[i] }))
-    : null;
+  // Real listings (with photos) carry the waterfall; below a small threshold we
+  // fall back to iconized placeholders so the composition never looks empty.
+  const usableListings = listings.filter(l => l.images?.length > 0);
+  const useReal = usableListings.length >= 4;
 
-  // Placeholder composition mirrors the real fan (centre card first for the
-  // mobile strip) when fewer than three photographed listings are available.
-  const placeholderCards = [
+  const listingDescriptors = usableListings.map(listing => {
+    const { title, price } = listing.attributes;
+    const firstImage = listing.images?.[0];
+    const imageVariants = firstImage
+      ? Object.keys(firstImage.attributes.variants).filter(k => k.startsWith(variantPrefix))
+      : [];
+    return {
+      type: 'listing',
+      key: listing.id.uuid,
+      title,
+      priceText: price ? formatMoney(intl, price) : null,
+      badge: conditionBadge(intl, config, listing),
+      image: firstImage,
+      imageVariants,
+    };
+  });
+
+  // Placeholder composition — only rendered when too few photographed listings
+  // exist. Real product names read better than "Item A".
+  const placeholderDescriptors = [
     {
       key: 'phone',
       icon: <IconPhone className={css.cardIcon} />,
-      name: 'iPhone 15 Pro · 128 GB',
-      price: '€749',
+      title: 'iPhone 15 Pro · 128 GB',
+      priceText: '€749',
       badge: msg('badgePreloved'),
-      cardClass: css.cardCenter,
     },
     {
       key: 'audio',
       icon: <IconHeadphones className={css.cardIcon} />,
-      name: 'Sony WH-1000XM5',
-      price: '€189',
+      title: 'Sony WH-1000XM5',
+      priceText: '€189',
       badge: msg('badgeLikeNew'),
-      cardClass: css.cardLeft,
+    },
+    {
+      key: 'laptop',
+      icon: <IconLaptop className={css.cardIcon} />,
+      title: 'MacBook Air M2',
+      priceText: '€829',
+      badge: msg('badgeLikeNew'),
     },
     {
       key: 'console',
       icon: <IconController className={css.cardIcon} />,
-      name: 'DualSense Edge',
-      price: '€159',
+      title: 'DualSense Edge',
+      priceText: '€159',
       badge: msg('badgeNew'),
-      cardClass: css.cardRight,
     },
-  ];
+    {
+      key: 'watch',
+      icon: <IconWatch className={css.cardIcon} />,
+      title: 'Apple Watch Series 9',
+      priceText: '€329',
+      badge: msg('badgeLikeNew'),
+    },
+    {
+      key: 'camera',
+      icon: <IconCamera className={css.cardIcon} />,
+      title: 'Canon EOS R50',
+      priceText: '€679',
+      badge: msg('badgeNew'),
+    },
+  ].map(p => ({ type: 'placeholder', ...p }));
+
+  const columns = buildColumns(useReal ? listingDescriptors : placeholderDescriptors);
+
+  // A single card. The whole waterfall is a decorative, non-interactive
+  // showcase (see the parent's aria-hidden), so every card is a plain div —
+  // clicks are funnelled to the "Browse listings" CTA instead. This keeps the
+  // continuously moving strip consistent and accessible: no moving link targets.
+  const renderCard = (d, key) => (
+    <div key={key} className={css.card}>
+      {d.type === 'listing' ? (
+        <>
+          <div className={css.cardArt}>
+            <ResponsiveImage
+              rootClassName={css.cardImage}
+              alt=""
+              image={d.image}
+              variants={d.imageVariants}
+              sizes="300px"
+            />
+            <div className={css.cardShade} />
+          </div>
+          <div className={css.cardMeta}>
+            <span className={css.cardName}>{d.title}</span>
+            <span className={css.cardRow}>
+              <span className={css.cardPrice}>{d.priceText}</span>
+              {d.badge ? <span className={css.cardBadge}>{d.badge}</span> : null}
+            </span>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className={css.cardArt}>
+            <div className={css.cardGlow} />
+            {d.icon}
+          </div>
+          <div className={css.cardMeta}>
+            <span className={css.cardName}>{d.title}</span>
+            <span className={css.cardRow}>
+              <span className={css.cardPrice}>{d.priceText}</span>
+              <span className={css.cardBadge}>{d.badge}</span>
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  );
 
   return (
     <section className={css.root}>
@@ -115,119 +191,64 @@ const SectionHero = props => {
         <div className={css.gridLines} />
         <div className={css.orbA} />
         <div className={css.orbB} />
-        <div className={css.orbC} />
       </div>
 
-      <div
-        ref={ref}
-        className={classNames(css.inner, {
-          [css.revealReady]: enabled,
-          [css.isRevealed]: revealed,
-        })}
-      >
-        <h1 className={css.title}>
-          <span className={css.titleWord}>
-            <span className={classNames(css.titleWordInner, css.titleWordInner1)}>
-              {msg('heroWord1')}
+      <div className={css.inner}>
+        <div
+          ref={ref}
+          className={classNames(css.content, {
+            [css.revealReady]: enabled,
+            [css.isRevealed]: revealed,
+          })}
+        >
+          <h1 className={css.title}>
+            <span className={css.titleWord}>
+              <span className={classNames(css.titleWordInner, css.titleWordInner1)}>
+                {msg('heroWord1')}
+              </span>
+            </span>{' '}
+            <span className={css.titleWord}>
+              <span className={classNames(css.titleWordInner, css.titleWordInner2)}>
+                {msg('heroWord2')}
+              </span>
+            </span>{' '}
+            <span className={css.titleWord}>
+              <span
+                className={classNames(css.titleWordInner, css.titleWordInner3, css.titleWordAccent)}
+              >
+                {msg('heroWord3')}
+              </span>
             </span>
-          </span>{' '}
-          <span className={css.titleWord}>
-            <span className={classNames(css.titleWordInner, css.titleWordInner2)}>
-              {msg('heroWord2')}
-            </span>
-          </span>{' '}
-          <span className={css.titleWord}>
-            <span
-              className={classNames(css.titleWordInner, css.titleWordInner3, css.titleWordAccent)}
+          </h1>
+
+          <p className={css.subtitle}>{msg('heroSubtitle')}</p>
+
+          <div className={css.ctas}>
+            <NamedLink name="SearchPage" className={css.ctaPrimary}>
+              {msg('heroCtaBrowse')}
+              <IconArrow className={css.ctaArrow} />
+            </NamedLink>
+            <NamedLink name="NewListingPage" className={css.ctaGhost}>
+              {msg('heroCtaSell')}
+            </NamedLink>
+          </div>
+        </div>
+      </div>
+
+      <div className={css.waterfall} aria-hidden="true">
+        {columns.map((col, colIndex) =>
+          col.length === 0 ? null : (
+            <div
+              key={colIndex}
+              className={classNames(css.column, colIndex % 2 === 0 ? css.columnA : css.columnB)}
             >
-              {msg('heroWord3')}
-            </span>
-          </span>
-        </h1>
-
-        <p className={css.subtitle}>{msg('heroSubtitle')}</p>
-
-        <div className={css.ctas}>
-          <NamedLink name="SearchPage" className={css.ctaPrimary}>
-            {msg('heroCtaBrowse')}
-            <IconArrow className={css.ctaArrow} />
-          </NamedLink>
-          <NamedLink name="NewListingPage" className={css.ctaGhost}>
-            {msg('heroCtaSell')}
-          </NamedLink>
-        </div>
-
-        <div className={css.showcase}>
-          {showcaseListings
-            ? showcaseListings.map(({ listing, cardClass }) => {
-                const { title, price } = listing.attributes;
-                const firstImage = listing.images?.[0];
-                const imageVariants = firstImage
-                  ? Object.keys(firstImage.attributes.variants).filter(k =>
-                      k.startsWith(variantPrefix)
-                    )
-                  : [];
-                const badge = conditionBadge(intl, config, listing);
-                return (
-                  <NamedLink
-                    key={listing.id.uuid}
-                    name="ListingPage"
-                    params={{ id: listing.id.uuid, slug: createSlug(title) }}
-                    className={classNames(css.card, cardClass)}
-                  >
-                    <div className={css.cardArt}>
-                      <ResponsiveImage
-                        rootClassName={css.cardImage}
-                        alt={title}
-                        image={firstImage}
-                        variants={imageVariants}
-                        sizes="264px"
-                      />
-                      <div className={css.cardShade} />
-                    </div>
-                    <div className={css.cardMeta}>
-                      <span className={css.cardName}>{title}</span>
-                      <span className={css.cardRow}>
-                        <span className={css.cardPrice}>
-                          {price ? formatMoney(intl, price) : null}
-                        </span>
-                        {badge ? <span className={css.cardBadge}>{badge}</span> : null}
-                      </span>
-                    </div>
-                  </NamedLink>
-                );
-              })
-            : placeholderCards.map(card => (
-                <div key={card.key} className={classNames(css.card, card.cardClass)}>
-                  <div className={css.cardArt}>
-                    <div className={css.cardGlow} />
-                    {card.icon}
-                  </div>
-                  <div className={css.cardMeta}>
-                    <span className={css.cardName}>{card.name}</span>
-                    <span className={css.cardRow}>
-                      <span className={css.cardPrice}>{card.price}</span>
-                      <span className={css.cardBadge}>{card.badge}</span>
-                    </span>
-                  </div>
-                </div>
-              ))}
-        </div>
-      </div>
-
-      <div className={css.ticker} aria-hidden="true">
-        <div className={css.tickerTrack}>
-          {[0, 1].map(copy => (
-            <div key={copy} className={css.tickerGroup}>
-              {tickerItems.map((item, i) => (
-                <span key={`${copy}-${i}`} className={css.tickerItem}>
-                  {item}
-                  <span className={css.tickerDot} />
-                </span>
-              ))}
+              <div className={css.columnTrack}>
+                {col.map((d, i) => renderCard(d, `${colIndex}-a-${i}`))}
+                {col.map((d, i) => renderCard(d, `${colIndex}-b-${i}`))}
+              </div>
             </div>
-          ))}
-        </div>
+          )
+        )}
       </div>
     </section>
   );

@@ -5,6 +5,12 @@
   overflow: hidden;
   background: var(--mlpInk);
   color: var(--colorWhite);
+
+  @media (--viewportLarge) {
+    display: flex;
+    align-items: center;
+    min-height: min(920px, 94vh);
+  }
 }
 
 /* Film grain — a fixed, pointer-events-none noise layer over the whole hero
@@ -18,6 +24,7 @@
   background-size: 180px 180px;
   mix-blend-mode: overlay;
   opacity: 0.06;
+  z-index: 3;
 }
 
 /* ================= Backdrop ================= */
@@ -25,6 +32,7 @@
 .backdrop {
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -34,12 +42,11 @@
   background-image: linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
   background-size: 72px 72px;
-  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse 80% 70% at 30% 40%, black 20%, transparent 78%);
 }
 
 .orbA,
-.orbB,
-.orbC {
+.orbB {
   position: absolute;
   border-radius: 50%;
   filter: blur(90px);
@@ -49,28 +56,19 @@
 .orbA {
   width: 560px;
   height: 560px;
-  top: -220px;
-  left: -140px;
+  top: -200px;
+  left: -160px;
   background: radial-gradient(circle at center, rgba(0, 113, 227, 0.42), transparent 70%);
   animation: orbDriftA 26s ease-in-out infinite alternate;
 }
 
 .orbB {
-  width: 480px;
-  height: 480px;
-  top: 10%;
-  right: -180px;
+  width: 520px;
+  height: 520px;
+  top: 30%;
+  right: -140px;
   background: radial-gradient(circle at center, rgba(0, 212, 255, 0.2), transparent 70%);
   animation: orbDriftB 32s ease-in-out infinite alternate;
-}
-
-.orbC {
-  width: 420px;
-  height: 420px;
-  bottom: -160px;
-  left: 32%;
-  background: radial-gradient(circle at center, rgba(0, 113, 227, 0.22), transparent 70%);
-  animation: orbDriftC 38s ease-in-out infinite alternate;
 }
 
 /* Translate-only drift: scaling a blurred layer forces re-rasterization
@@ -93,36 +91,34 @@
   }
 }
 
-@keyframes orbDriftC {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(60px, -70px, 0);
-  }
-}
-
-/* ================= Content ================= */
+/* ================= Content (left) ================= */
 
 .inner {
   position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 72px 24px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  z-index: 2;
+  padding: 64px 24px 0;
 
-  @media (--viewportMedium) {
-    padding: 112px 32px 0;
+  @media (--viewportLarge) {
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 clamp(24px, 5vw, 64px);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
   }
+}
+
+.content {
+  max-width: 560px;
+  text-align: left;
 }
 
 .title {
   margin: 0;
   padding: 0;
-  font-size: clamp(54px, 10vw, 116px);
+  font-size: clamp(46px, 8vw, 88px);
   line-height: 1.02;
   font-weight: 800;
   letter-spacing: -0.045em;
@@ -152,7 +148,7 @@
 }
 
 .subtitle {
-  max-width: 620px;
+  max-width: 480px;
   margin: 18px 0 0;
   padding: 0;
   font-size: 17px;
@@ -161,7 +157,7 @@
   color: rgba(255, 255, 255, 0.62);
 
   @media (--viewportMedium) {
-    margin: 24px 0 0;
+    margin: 22px 0 0;
     font-size: 19px;
   }
 }
@@ -172,7 +168,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 15px;
   margin-top: 30px;
 
@@ -252,136 +248,106 @@
   }
 }
 
-/* ================= Showcase cards ================= */
+/* ================= Waterfall (right) ================= */
 
-/* Mobile: a full-bleed, swipeable, center-snapping strip — all three cards
-   reachable. Desktop: the overlapping 3D fan. The strip must not contribute
-   intrinsic width to the layout grid (same trap as the ticker) —
-   contain: inline-size zeroes that contribution out. Negative margins bleed
-   through .inner's 24px side padding. The side padding centers a 236px card:
-   %-padding resolves against .inner's content box (strip width minus the
-   48px bleed), so it's 50% - 118px + 24px. Not vw — that would include the
-   scrollbar and overflow the page on classic-scrollbar browsers. */
-.showcase {
+/* Mobile: an in-flow, capped-height block below the copy. Desktop: pinned to
+   the right edge, full hero height, flowing off-screen top and bottom.
+   overflow:hidden clips the transform-driven marquee so it never widens the
+   page. */
+.waterfall {
   position: relative;
+  z-index: 1;
   display: flex;
-  align-items: flex-end;
-  contain: inline-size;
-  align-self: stretch;
-  margin: 54px -24px 0;
-  padding: 8px calc(50% - 94px) 36px;
-  gap: 14px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+  gap: 12px;
+  height: 400px;
+  margin: 44px 0 0;
+  padding: 0 20px;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, transparent 0%, black 13%, black 87%, transparent 100%);
 
-  @media (--viewportMedium) {
-    justify-content: center;
-    contain: none;
-    align-self: auto;
-    width: 100%;
-    margin: 72px 0 0;
-    padding: 0 0 48px;
-    gap: 0;
-    overflow: visible;
-    perspective: 1400px;
+  @media (--viewportLarge) {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(48vw, 780px);
+    height: auto;
+    gap: 20px;
+    margin: 0;
+    padding: 0 clamp(12px, 2vw, 28px) 0 0;
+    mask-image: linear-gradient(180deg, transparent 0%, black 9%, black 91%, transparent 100%);
   }
 }
 
-.showcase::-webkit-scrollbar {
-  display: none;
+/* Blend the leftmost cards into the ink so the waterfall reads as emerging
+   from the right rather than starting at a hard edge. Non-interactive, so
+   clicks fall through to the cards beneath. */
+.waterfall::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--mlpInk) 0%, rgba(5, 7, 13, 0) 12%);
 }
 
+.column {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.columnTrack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  will-change: transform;
+  animation-name: waterfallDown;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+
+  @media (--viewportLarge) {
+    gap: 18px;
+  }
+}
+
+/* Two identical stacked sets; translating the track by half its own height
+   swaps set A for its clone, so the loop is seamless. */
+@keyframes waterfallDown {
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.columnA .columnTrack {
+  animation-duration: 46s;
+}
+
+.columnB .columnTrack {
+  animation-duration: 36s;
+  animation-delay: -7s;
+}
+
+/* ================= Cards ================= */
+
+/* Purely decorative: the waterfall is aria-hidden and non-interactive, so cards
+   have no hover/focus affordances — the "Browse listings" CTA carries intent. */
 .card {
   display: block;
-  flex: none;
-  scroll-snap-align: center;
-  width: 236px;
-  border-radius: 20px;
-  padding: 12px;
+  border-radius: 18px;
+  padding: 10px;
   background: linear-gradient(165deg, rgba(30, 35, 48, 0.92), rgba(12, 14, 21, 0.96));
   border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 32px 64px -24px rgba(0, 0, 0, 0.8);
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-
-  @media (--viewportMedium) {
-    width: 264px;
-  }
-
-  &:hover {
-    text-decoration: none;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--mlpCyan);
-    outline-offset: 4px;
-  }
-}
-
-/* Desktop fan: `order` slots the five cards left→right (outer, inner, centre,
-   inner, outer); each transform pulls its card toward the centre and tilts it,
-   so the pair on each side recedes behind the newest listing. On mobile the
-   cards keep their DOM order (newest first) as a swipeable strip. */
-.cardCenter {
-  position: relative;
-  z-index: 3;
-
-  @media (--viewportMedium) {
-    order: 3;
-  }
-
-  &:hover {
-    transform: translateY(-6px) scale(1.02);
-  }
-}
-
-.cardLeft {
-  @media (--viewportMedium) {
-    order: 2;
-    transform: translateX(26%) rotateY(11deg) scale(0.88);
-    z-index: 2;
-
-    &:hover {
-      transform: translateX(26%) rotateY(6deg) scale(0.92);
-    }
-  }
-}
-
-.cardRight {
-  @media (--viewportMedium) {
-    order: 4;
-    transform: translateX(-26%) rotateY(-11deg) scale(0.88);
-    z-index: 2;
-
-    &:hover {
-      transform: translateX(-26%) rotateY(-6deg) scale(0.92);
-    }
-  }
-}
-
-.cardFarLeft {
-  @media (--viewportMedium) {
-    order: 1;
-    transform: translateX(74%) rotateY(16deg) scale(0.74);
-    z-index: 1;
-
-    &:hover {
-      transform: translateX(74%) rotateY(11deg) scale(0.78);
-    }
-  }
-}
-
-.cardFarRight {
-  @media (--viewportMedium) {
-    order: 5;
-    transform: translateX(-74%) rotateY(-16deg) scale(0.74);
-    z-index: 1;
-
-    &:hover {
-      transform: translateX(-74%) rotateY(-11deg) scale(0.78);
-    }
-  }
+  box-shadow: 0 24px 50px -24px rgba(0, 0, 0, 0.8);
 }
 
 .cardArt {
@@ -389,15 +355,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 138px;
-  border-radius: 12px;
+  height: 140px;
+  border-radius: 11px;
   overflow: hidden;
   background: radial-gradient(ellipse 90% 80% at 50% 110%, rgba(0, 113, 227, 0.3), transparent 70%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
   border: 1px solid rgba(255, 255, 255, 0.06);
 
-  @media (--viewportMedium) {
-    height: 156px;
+  @media (--viewportLarge) {
+    height: 176px;
   }
 }
 
@@ -412,8 +378,8 @@
 
 .cardIcon {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   color: rgba(255, 255, 255, 0.85);
   filter: drop-shadow(0 6px 20px rgba(0, 212, 255, 0.35));
 }
@@ -424,11 +390,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.card:hover .cardImage {
-  transform: scale(1.05);
 }
 
 /* Cools raw listing photos toward the hero's dark palette so bright
@@ -445,24 +406,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 12px 6px 6px;
-}
-
-/* Side cards read as background depth on desktop — dim their meta so the
-   center card's overlap doesn't look like clipped UI. On the mobile strip the
-   cards never overlap, so they stay at full strength. */
-.cardLeft .cardMeta,
-.cardRight .cardMeta {
-  @media (--viewportMedium) {
-    opacity: 0.45;
-  }
-}
-
-.cardFarLeft .cardMeta,
-.cardFarRight .cardMeta {
-  @media (--viewportMedium) {
-    opacity: 0.28;
-  }
+  padding: 11px 5px 5px;
 }
 
 .cardName {
@@ -484,15 +428,18 @@
 }
 
 .cardPrice {
-  font-size: 17px;
-  line-height: 24px;
+  font-size: 16px;
+  line-height: 22px;
   font-weight: 700;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--colorWhite);
 }
 
+/* Hidden on the narrow mobile waterfall cards, where longer condition labels
+   (e.g. "LABAI GERA") overflow; shown only on the wider desktop cards. */
 .cardBadge {
+  display: none;
   font-family: var(--mlpMono);
   font-size: 9px;
   line-height: 12px;
@@ -505,73 +452,10 @@
   border: 1px solid rgba(0, 212, 255, 0.28);
   background: rgba(0, 212, 255, 0.07);
   white-space: nowrap;
-}
 
-/* ================= Ticker ================= */
-
-.ticker {
-  position: relative;
-  overflow: hidden;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  /* Fixed height + absolutely positioned track: the max-content-wide marquee
-     must not contribute to the page's intrinsic width, or it stretches the
-     layout grid far beyond the viewport. */
-  height: 54px;
-  mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
-
-  @media (--viewportMedium) {
-    height: 66px;
+  @media (--viewportLarge) {
+    display: inline-block;
   }
-}
-
-.tickerTrack {
-  position: absolute;
-  left: 0;
-  top: 18px;
-  display: flex;
-  width: max-content;
-  animation: tickerScroll 44s linear infinite;
-
-  @media (--viewportMedium) {
-    top: 24px;
-  }
-}
-
-.ticker:hover .tickerTrack {
-  animation-play-state: paused;
-}
-
-@keyframes tickerScroll {
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.tickerGroup {
-  display: flex;
-  align-items: center;
-}
-
-.tickerItem {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--mlpMono);
-  font-size: 11px;
-  line-height: 18px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
-  white-space: nowrap;
-}
-
-.tickerDot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--mlpCyan);
-  opacity: 0.7;
-  margin: 0 27px;
 }
 
 /* ================= Entrance choreography ================= */
@@ -587,8 +471,7 @@
 }
 
 .revealReady .subtitle,
-.revealReady .ctas,
-.revealReady .showcase {
+.revealReady .ctas {
   opacity: 0;
   transform: translateY(22px);
 }
@@ -611,8 +494,7 @@
 }
 
 .isRevealed .subtitle,
-.isRevealed .ctas,
-.isRevealed .showcase {
+.isRevealed .ctas {
   opacity: 1;
   transform: translateY(0);
   transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -626,15 +508,11 @@
   transition-delay: 0.58s;
 }
 
-.isRevealed .showcase {
-  transition-delay: 0.72s;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .orbA,
   .orbB,
-  .orbC,
-  .tickerTrack {
+  .columnA .columnTrack,
+  .columnB .columnTrack {
     animation: none;
   }
 }

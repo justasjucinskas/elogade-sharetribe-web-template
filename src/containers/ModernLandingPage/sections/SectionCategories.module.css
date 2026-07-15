@@ -40,18 +40,6 @@
   }
 }
 
-.kicker {
-  font-family: var(--mlpMono);
-  font-size: 11px;
-  line-height: 18px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--marketplaceColor);
-  margin: 0 0 12px;
-  padding: 0;
-}
-
 .title {
   margin: 0;
   padding: 0;
@@ -212,20 +200,35 @@
   }
 }
 
-/* Feature-tile emphasis is desktop-only — on the mobile strip every card
-   matches. */
+/* The larger tiles get proportionally larger icons so their extra area doesn't
+   read as empty space. Desktop-only — on the mobile strip every card matches. */
 .tileFeature .tileIcon {
   @media (--viewportMedium) {
-    width: 196px;
-    height: 196px;
-    right: 22px;
-    bottom: 22px;
+    width: 260px;
+    height: 260px;
+    right: 20px;
+    bottom: 16px;
+  }
+}
+
+.tileWide .tileIcon {
+  @media (--viewportMedium) {
+    width: 152px;
+    height: 152px;
+    right: 14px;
+    bottom: 10px;
   }
 }
 
 .tile:hover .tileIcon {
   opacity: 0.55;
   transform: rotate(0deg) scale(1.07);
+}
+
+.tileHead {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .tileName {
@@ -239,6 +242,15 @@
   @media (--viewportMedium) {
     font-size: 18px;
   }
+}
+
+/* Live per-category listing count, loaded via ModernLandingPage.duck. */
+.tileCount {
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .tileFeature .tileName {

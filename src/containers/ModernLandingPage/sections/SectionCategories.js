@@ -7,37 +7,11 @@ import { useReveal } from '../../../hooks/useReveal';
 
 import { NamedLink } from '../../../components';
 
-import {
-  IconPhone,
-  IconLaptop,
-  IconHeadphones,
-  IconConsole,
-  IconController,
-  IconDisc,
-  IconWatch,
-  IconCamera,
-  IconArrow,
-} from './icons';
+import { IconArrow } from './icons';
+import { CATEGORY_TILES } from './categoryTiles';
 import css from './SectionCategories.module.css';
 
-// Top-level Console category ids; tiles deep-link into SearchPage filters.
-const CATEGORY_TILES = [
-  {
-    id: 'phonesaccessories',
-    fallback: 'Phones & Accessories',
-    icon: IconPhone,
-    tileClass: 'tileFeature',
-  },
-  { id: 'computerstablets', fallback: 'Computers & Tablets', icon: IconLaptop },
-  { id: 'audiodevices', fallback: 'Audio Devices', icon: IconHeadphones },
-  { id: 'gameconsoles', fallback: 'Game Consoles', icon: IconConsole },
-  { id: 'wearablessmartdevices', fallback: 'Wearables & Smart Devices', icon: IconWatch },
-  { id: 'camerasvideo', fallback: 'Cameras & Video', icon: IconCamera, tileClass: 'tileWide' },
-  { id: 'videogames', fallback: 'Video Games', icon: IconDisc },
-  { id: 'consoleaccessories', fallback: 'Console Accessories', icon: IconController },
-];
-
-const SectionCategories = () => {
+const SectionCategories = ({ categoryCounts = {} }) => {
   const intl = useIntl();
   const header = useReveal();
   const grid = useReveal();
@@ -68,7 +42,6 @@ const SectionCategories = () => {
             [css.isRevealed]: header.revealed,
           })}
         >
-          <p className={css.kicker}>{msg('categoriesKicker')}</p>
           <h2 className={css.title}>{msg('categoriesTitle')}</h2>
           <p className={css.subtitle}>{msg('categoriesSubtitle')}</p>
         </header>
@@ -83,6 +56,7 @@ const SectionCategories = () => {
         >
           {CATEGORY_TILES.map(tile => {
             const Icon = tile.icon;
+            const count = categoryCounts[tile.id];
             return (
               <NamedLink
                 key={tile.id}
@@ -93,8 +67,15 @@ const SectionCategories = () => {
                 <span className={css.tileGlow} aria-hidden="true" />
                 <span className={css.tileSpot} aria-hidden="true" />
                 <Icon className={css.tileIcon} />
-                <span className={css.tileName}>
-                  {formatCategoryName(intl, tile.id, tile.fallback)}
+                <span className={css.tileHead}>
+                  <span className={css.tileName}>
+                    {formatCategoryName(intl, tile.id, tile.fallback)}
+                  </span>
+                  {typeof count === 'number' ? (
+                    <span className={css.tileCount}>
+                      {intl.formatMessage({ id: 'ModernLandingPage.categoryCount' }, { count })}
+                    </span>
+                  ) : null}
                 </span>
                 <span className={css.tileCta}>
                   {msg('categoryCta')}

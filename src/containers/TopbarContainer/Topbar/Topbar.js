@@ -135,6 +135,8 @@ const TopbarComponent = props => {
     className,
     rootClassName,
     desktopClassName,
+    onDark,
+    scrolled,
     mobileRootClassName,
     mobileClassName,
     isAuthenticated,
@@ -369,6 +371,8 @@ const TopbarComponent = props => {
       <div className={css.desktop}>
         <TopbarDesktop
           className={desktopClassName}
+          onDark={onDark}
+          scrolled={scrolled}
           currentUserHasListings={currentUserHasListings}
           currentUser={currentUser}
           currentPage={resolvedCurrentPage}

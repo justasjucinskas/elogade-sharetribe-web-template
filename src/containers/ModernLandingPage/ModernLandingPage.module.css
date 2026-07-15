@@ -12,4 +12,11 @@
   --mlpGrain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
 
   background: var(--mlpInk);
+
+  /* This div is a grid item of LayoutSingleColumn's grid, whose implicit
+     `min-width: auto` lets a nested horizontal scroller's content inflate the
+     track and blow out the page width on mobile. Pinning it to 0 lets the
+     column collapse to the viewport so section-level swipe strips clip
+     correctly. */
+  min-width: 0;
 }

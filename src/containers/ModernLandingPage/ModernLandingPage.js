@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 
@@ -13,7 +13,6 @@ import TopbarContainer from '../TopbarContainer/TopbarContainer';
 import FooterContainer from '../FooterContainer/FooterContainer';
 
 import SectionHero from './sections/SectionHero';
-import SectionStats from './sections/SectionStats';
 import SectionCategories from './sections/SectionCategories';
 import SectionHowItWorks from './sections/SectionHowItWorks';
 import SectionFeatures from './sections/SectionFeatures';
@@ -28,9 +27,20 @@ import css from './ModernLandingPage.module.css';
  * renames. The hero showcase renders real listings loaded via loadData.
  */
 export const ModernLandingPageComponent = props => {
-  const { scrollingDisabled, featuredListings } = props;
+  const { scrollingDisabled, featuredListings, categoryCounts } = props;
   const config = useConfiguration();
   const intl = useIntl();
+
+  // The topbar sits transparent over the dark hero and solidifies into a
+  // frosted bar once the hero scrolls past. SSR renders the transparent
+  // (top-of-page) state; the listener syncs it on mount and on scroll.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const marketplaceName = config.marketplaceName;
   const schemaTitle = intl.formatMessage(
@@ -51,11 +61,13 @@ export const ModernLandingPageComponent = props => {
         description: schemaDescription,
       }}
     >
-      <LayoutSingleColumn topbar={<TopbarContainer />} footer={<FooterContainer />}>
+      <LayoutSingleColumn
+        topbar={<TopbarContainer onDark scrolled={scrolled} />}
+        footer={<FooterContainer />}
+      >
         <div className={css.root}>
           <SectionHero listings={featuredListings} />
-          <SectionStats />
-          <SectionCategories />
+          <SectionCategories categoryCounts={categoryCounts} />
           <SectionHowItWorks />
           <SectionFeatures />
           <SectionFinalCta />
@@ -66,10 +78,11 @@ export const ModernLandingPageComponent = props => {
 };
 
 const mapStateToProps = state => {
-  const { featuredListingRefs } = state.ModernLandingPage;
+  const { featuredListingRefs, categoryCounts } = state.ModernLandingPage;
   return {
     scrollingDisabled: isScrollingDisabled(state),
     featuredListings: getListingsById(state, featuredListingRefs.map(ref => ref.id)),
+    categoryCounts,
   };
 };
 
