@@ -23,9 +23,7 @@ const MessageScene = ({ msg }) => (
       </span>
       <span className={css.sceneListingPrice}>€189</span>
     </div>
-    <div className={classNames(css.sceneBubble, css.sceneBubbleBuyer)}>
-      {msg('sceneQuestion')}
-    </div>
+    <div className={classNames(css.sceneBubble, css.sceneBubbleBuyer)}>{msg('sceneQuestion')}</div>
     <div className={classNames(css.sceneBubble, css.sceneBubbleSeller)}>
       <IconCamera className={css.sceneReplyIcon} />
       {msg('sceneReply')}
@@ -34,18 +32,19 @@ const MessageScene = ({ msg }) => (
 );
 
 // One product across the grading scale — cyan (sealed) → amber (well-loved).
-// Reuses the existing condition-badge copy; bar length tracks the price so the
-// spread between new and pre-loved reads at a glance.
+// Reuses the existing condition-badge copy; each grade pairs with a short,
+// honest wear note instead of a price.
 const CONDITION_TIERS = [
-  { key: 'badgeNew', price: '€999', pct: 100, toneClass: 'tierNew' },
-  { key: 'badgeLikeNew', price: '€879', pct: 88, toneClass: 'tierMid' },
-  { key: 'badgePreloved', price: '€749', pct: 75, toneClass: 'tierUsed' },
+  { key: 'badgeNew', noteKey: 'gradeNoteNew', toneClass: 'tierNew' },
+  { key: 'badgeLikeNew', noteKey: 'gradeNoteLikeNew', toneClass: 'tierMid' },
+  { key: 'badgePreloved', noteKey: 'gradeNoteUsed', toneClass: 'tierUsed' },
 ];
 
 /**
  * Scene 2 — new & pre-loved: one product graded on a single honest standard.
- * A compact "grade sheet" where sealed retail stock and well-loved workhorses
- * line up on the same scale, each with a colour-coded grade and its price.
+ * A vertical spectrum rail (sealed → well-loved) threads through the three
+ * grade rows; each row carries its colour-coded grade and a plain-language
+ * wear note, so the scale reads without any prices.
  */
 const ConditionScene = ({ msg }) => (
   <div className={css.scene}>
@@ -59,10 +58,15 @@ const ConditionScene = ({ msg }) => (
       <ul className={css.tiers}>
         {CONDITION_TIERS.map(tier => (
           <li key={tier.key} className={classNames(css.tier, css[tier.toneClass])}>
-            <span className={css.tierBar} style={{ width: `${tier.pct}%` }} aria-hidden="true" />
             <span className={css.tierDot} aria-hidden="true" />
-            <span className={css.tierLabel}>{msg(tier.key)}</span>
-            <span className={css.tierPrice}>{tier.price}</span>
+            <span className={css.tierCard}>
+              <span className={css.tierBar} aria-hidden="true" />
+              <span className={css.tierLabel}>{msg(tier.key)}</span>
+              <span className={css.tierNote}>
+                <IconCheck className={css.tierNoteCheck} />
+                {msg(tier.noteKey)}
+              </span>
+            </span>
           </li>
         ))}
       </ul>

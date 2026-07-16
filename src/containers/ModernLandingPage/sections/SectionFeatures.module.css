@@ -299,6 +299,7 @@
 }
 
 .tiers {
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -308,6 +309,28 @@
 
   @media (--viewportMedium) {
     gap: 10px;
+  }
+}
+
+/* Spectrum rail: one continuous scale from sealed (cyan) to well-loved
+   (amber), threading through the grade dots. Spans first → last dot centre
+   (offsets track the row heights: two-line cards below viewportLarge,
+   single-line above); draws downwards on reveal. */
+.tiers::before {
+  content: '';
+  position: absolute;
+  left: 3.5px;
+  top: 28px;
+  bottom: 28px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #00d4ff, #40d0ac, #ffc46b);
+  opacity: 0.45;
+  transform-origin: top center;
+
+  @media (--viewportLarge) {
+    top: 22px;
+    bottom: 22px;
   }
 }
 
@@ -325,33 +348,13 @@
 }
 
 .tier {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: 11px;
-  overflow: hidden;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-/* Price bar: width ∝ price (set inline), tinted by the grade and fading out to
-   the right. Behind the row content; grows via scaleX on reveal. */
-.tierBar {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  z-index: 0;
-  background: linear-gradient(90deg, var(--tierColor), transparent);
-  opacity: 0.16;
-  transform-origin: left center;
+  gap: 12px;
 }
 
 .tierDot {
   position: relative;
-  z-index: 1;
   flex-shrink: 0;
   width: 9px;
   height: 9px;
@@ -360,11 +363,46 @@
   box-shadow: 0 0 10px -1px var(--tierColor);
 }
 
+/* Below viewportLarge the grade label and wear note stack, so the label never
+   truncates in the longer locales; on wide columns they share one line. */
+.tierCard {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  overflow: hidden;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+
+  @media (--viewportLarge) {
+    flex-direction: row;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 14px;
+  }
+}
+
+/* Grade tint: the row's colour IS its grade — a soft wash fading out to the
+   right. Behind the row content; sweeps in via scaleX on reveal. */
+.tierBar {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(90deg, var(--tierColor), transparent);
+  opacity: 0.14;
+  transform-origin: left center;
+}
+
 .tierLabel {
   position: relative;
   z-index: 1;
-  flex: 1;
   min-width: 0;
+  max-width: 100%;
   font-family: var(--mlpMono);
   font-size: 10px;
   line-height: 14px;
@@ -379,18 +417,31 @@
   @media (--viewportMedium) {
     font-size: 11px;
   }
+
+  @media (--viewportLarge) {
+    flex: 1;
+  }
 }
 
-.tierPrice {
+/* Plain-language wear note — the honest "what you're getting" line that
+   replaced the price. */
+.tierNote {
   position: relative;
   z-index: 1;
   flex-shrink: 0;
-  font-size: 16px;
-  line-height: 20px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--colorWhite);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tierNoteCheck {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  color: var(--tierColor);
 }
 
 /* ================= Scene 3: escrow vault meter ================= */
@@ -610,8 +661,9 @@
   transition-delay: 1.25s;
 }
 
-/* Scene 2 choreography: the grade sheet builds top-down — header, then each
-   tier row settles in, then its price bar sweeps out. */
+/* Scene 2 choreography: the grade sheet builds top-down — header, then the
+   spectrum rail draws down while each tier row settles in and its grade tint
+   sweeps out. */
 .revealReady .gradesHead {
   opacity: 0;
   transform: translateY(-8px);
@@ -621,6 +673,15 @@
   opacity: 1;
   transform: translateY(0);
   transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.revealReady .tiers::before {
+  transform: scaleY(0);
+}
+
+.isRevealed .tiers::before {
+  transform: scaleY(1);
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s;
 }
 
 .revealReady .tier {

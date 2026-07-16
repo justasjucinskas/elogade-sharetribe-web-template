@@ -3,17 +3,14 @@ import {
   ArrowRight,
   Camera,
   Check,
-  ChevronRight,
   Disc,
   Gamepad2,
-  Handshake,
   HardDrive,
   Headphones,
   Laptop,
   Lock,
   LockOpen,
   Smartphone,
-  Truck,
   Watch,
 } from 'lucide-react';
 
@@ -49,9 +46,6 @@ export const IconDisc = withStroke(Disc);
 export const IconWatch = withStroke(Watch);
 export const IconCamera = withStroke(Camera);
 export const IconArrow = withStroke(ArrowRight);
-export const IconChevron = withStroke(ChevronRight);
 export const IconCheck = withStroke(Check);
 export const IconLock = withStroke(Lock);
 export const IconLockOpen = withStroke(LockOpen);
-export const IconHandshake = withStroke(Handshake);
-export const IconTruck = withStroke(Truck);

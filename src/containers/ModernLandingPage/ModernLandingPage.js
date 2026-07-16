@@ -14,7 +14,7 @@ import FooterContainer from '../FooterContainer/FooterContainer';
 
 import SectionHero from './sections/SectionHero';
 import SectionCategories from './sections/SectionCategories';
-import SectionHowItWorks from './sections/SectionHowItWorks';
+import SectionVideo from './sections/SectionVideo';
 import SectionFeatures from './sections/SectionFeatures';
 import SectionFinalCta from './sections/SectionFinalCta';
 
@@ -68,7 +68,7 @@ export const ModernLandingPageComponent = props => {
         <div className={css.root}>
           <SectionHero listings={featuredListings} />
           <SectionCategories categoryCounts={categoryCounts} />
-          <SectionHowItWorks />
+          <SectionVideo />
           <SectionFeatures />
           <SectionFinalCta />
         </div>
