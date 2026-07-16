@@ -2,21 +2,15 @@ import React from 'react';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { useLocation } from 'react-router-dom';
+import classNames from 'classnames';
 
-import { useConfiguration } from '../../context/configurationContext';
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
 import { propTypes } from '../../util/types';
 import { isPasswordRecoveryEmailNotFoundError } from '../../util/errors';
 import { isScrollingDisabled } from '../../ducks/ui.duck';
+import { useReveal } from '../../hooks/useReveal';
 
-import {
-  Heading,
-  Page,
-  InlineTextButton,
-  IconKeys,
-  ResponsiveBackgroundImageContainer,
-  LayoutSingleColumn,
-} from '../../components';
+import { Heading, Page, InlineTextButton, LayoutSingleColumn } from '../../components';
 
 import TopbarContainer from '../../containers/TopbarContainer/TopbarContainer';
 import FooterContainer from '../../containers/FooterContainer/FooterContainer';
@@ -30,15 +24,41 @@ import {
 } from './PasswordRecoveryPage.duck';
 import css from './PasswordRecoveryPage.module.css';
 
+/**
+ * The brand/marketing panel shown alongside the form — same immersive dark
+ * treatment as the login/signup pages, with the reset flow spelled out as
+ * three numbered steps.
+ */
+const BrandPanel = ({ intl }) => {
+  const msg = id => intl.formatMessage({ id: `PasswordRecoveryPage.${id}` });
+
+  return (
+    <div className={css.brandPanel}>
+      <h2 className={css.brandTitle}>
+        {msg('brandTitleLead')}{' '}
+        <span className={css.brandTitleAccent}>{msg('brandTitleAccent')}</span>
+      </h2>
+      <p className={css.brandSubtitle}>{msg('brandSubtitle')}</p>
+      <ol className={css.brandSteps}>
+        {['brandStep1', 'brandStep2', 'brandStep3'].map((key, i) => (
+          <li key={key} className={css.brandStep}>
+            <span className={css.brandStepBadge}>{i + 1}</span>
+            {msg(key)}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+};
+
 const PasswordRecovery = props => {
   const { initialEmail, onChange, onSubmitEmail, recoveryInProgress, recoveryError } = props;
   return (
-    <div className={css.submitEmailContent}>
-      <IconKeys className={css.modalIcon} />
-      <Heading as="h1" rootClassName={css.modalTitle}>
+    <div className={css.content}>
+      <Heading as="h1" rootClassName={css.cardTitle}>
         <FormattedMessage id="PasswordRecoveryPage.forgotPasswordTitle" />
       </Heading>
-      <p className={css.modalMessage}>
+      <p className={css.cardMessage}>
         <FormattedMessage id="PasswordRecoveryPage.forgotPasswordMessage" />
       </p>
       <PasswordRecoveryForm
@@ -54,12 +74,11 @@ const PasswordRecovery = props => {
 
 const GenericError = () => {
   return (
-    <div className={css.genericErrorContent}>
-      <IconKeys className={css.modalIcon} />
-      <Heading as="h1" rootClassName={css.modalTitle}>
+    <div className={css.content}>
+      <Heading as="h1" rootClassName={css.cardTitle}>
         <FormattedMessage id="PasswordRecoveryPage.actionFailedTitle" />
       </Heading>
-      <p className={css.modalMessage}>
+      <p className={css.cardMessage}>
         <FormattedMessage id="PasswordRecoveryPage.actionFailedMessage" />
       </p>
     </div>
@@ -93,12 +112,11 @@ const EmailSubmittedContent = props => {
   );
 
   return (
-    <div className={css.emailSubmittedContent}>
-      <IconKeys className={css.modalIcon} />
-      <Heading as="h1" rootClassName={css.modalTitle}>
+    <div className={css.content}>
+      <Heading as="h1" rootClassName={css.cardTitle}>
         <FormattedMessage id="PasswordRecoveryPage.emailSubmittedTitle" />
       </Heading>
-      <p className={css.modalMessage}>
+      <p className={css.cardMessage}>
         <FormattedMessage
           id="PasswordRecoveryPage.emailSubmittedMessage"
           values={{ submittedEmailText }}
@@ -124,7 +142,9 @@ const EmailSubmittedContent = props => {
 };
 
 /**
- * The password recovery page.
+ * The password recovery page — shares the split-layout design of the
+ * login/signup pages: dark immersive brand backdrop on the left, light form
+ * card on the right.
  *
  * @param {Object} props
  * @param {boolean} props.scrollingDisabled - Whether the scrolling is disabled
@@ -139,9 +159,9 @@ const EmailSubmittedContent = props => {
  * @returns {JSX.Element} Password recovery page component
  */
 export const PasswordRecoveryPageComponent = props => {
-  const config = useConfiguration();
   const intl = useIntl();
   const location = useLocation();
+  const { ref: revealRef, enabled: revealEnabled, revealed } = useReveal();
   const searchParams = new URLSearchParams(location.search);
   const emailParam = searchParams.get('email');
 
@@ -175,36 +195,45 @@ export const PasswordRecoveryPageComponent = props => {
       })}
       scrollingDisabled={scrollingDisabled}
     >
-      <LayoutSingleColumn
-        mainColumnClassName={css.layoutWrapperMain}
-        topbar={<TopbarContainer />}
-        footer={<FooterContainer />}
-      >
-        <ResponsiveBackgroundImageContainer
-          className={css.root}
-          childrenWrapperClassName={css.contentContainer}
-          as="section"
-          image={config.branding.brandImage}
-          sizes="100%"
-          useOverlay
-        >
-          {isPasswordRecoveryEmailNotFoundError(recoveryError) ? (
-            showPasswordRecoveryForm
-          ) : recoveryError ? (
-            <GenericError />
-          ) : alreadyrequested ? (
-            <EmailSubmittedContent
-              passwordRequested={passwordRequested}
-              initialEmail={initialEmail}
-              submittedEmail={submittedEmail}
-              onRetypeEmail={onRetypeEmail}
-              onSubmitEmail={onSubmitEmail}
-              recoveryInProgress={recoveryInProgress}
-            />
-          ) : (
-            showPasswordRecoveryForm
-          )}
-        </ResponsiveBackgroundImageContainer>
+      <LayoutSingleColumn topbar={<TopbarContainer />} footer={<FooterContainer />}>
+        <section className={css.root}>
+          <div className={css.backdrop} aria-hidden="true">
+            <div className={css.gridLines} />
+            <div className={css.orbA} />
+            <div className={css.orbB} />
+          </div>
+
+          <div
+            ref={revealRef}
+            className={classNames(css.layout, {
+              [css.revealReady]: revealEnabled,
+              [css.isRevealed]: revealed,
+            })}
+          >
+            <BrandPanel intl={intl} />
+
+            <div className={css.formPanel}>
+              <div className={css.card}>
+                {isPasswordRecoveryEmailNotFoundError(recoveryError) ? (
+                  showPasswordRecoveryForm
+                ) : recoveryError ? (
+                  <GenericError />
+                ) : alreadyrequested ? (
+                  <EmailSubmittedContent
+                    passwordRequested={passwordRequested}
+                    initialEmail={initialEmail}
+                    submittedEmail={submittedEmail}
+                    onRetypeEmail={onRetypeEmail}
+                    onSubmitEmail={onSubmitEmail}
+                    recoveryInProgress={recoveryInProgress}
+                  />
+                ) : (
+                  showPasswordRecoveryForm
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
       </LayoutSingleColumn>
     </Page>
   );
