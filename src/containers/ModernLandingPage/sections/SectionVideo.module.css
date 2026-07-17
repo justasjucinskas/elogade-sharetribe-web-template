@@ -64,19 +64,18 @@
 
 /* ================= Video card ================= */
 
-/* Taller than 16:9 on phones so the poster typography has room to breathe;
-   once playing, the embed letterboxes against the near-black card, which
-   reads as part of the surface. */
+/* 16:9 on every breakpoint: the poster frame is 16:9 artwork whose subjects
+   sit near the edges (a 4:3 crop slices them), and the playing embed then
+   fills the card without letterboxing. */
 .videoCard {
   position: relative;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 9;
   border-radius: 24px;
   overflow: hidden;
   background: var(--mlpInk);
   box-shadow: 0 1px 2px rgba(5, 7, 13, 0.06), 0 44px 88px -40px rgba(5, 7, 13, 0.55);
 
   @media (--viewportMedium) {
-    aspect-ratio: 16 / 9;
     border-radius: 28px;
   }
 }
@@ -92,6 +91,8 @@
 
 /* ================= Poster (pre-play facade) ================= */
 
+/* The gradient only shows for the instant before the poster image decodes —
+   it keeps the card on-brand instead of flashing white. */
 .poster {
   position: absolute;
   inset: 0;
@@ -107,6 +108,35 @@
   background: radial-gradient(90% 130% at 12% 100%, rgba(0, 113, 227, 0.55), transparent 62%),
     radial-gradient(70% 110% at 88% -4%, rgba(0, 212, 255, 0.2), transparent 60%),
     linear-gradient(160deg, #0d1526, var(--mlpInk) 55%);
+}
+
+/* The video's title frame, bundled locally so nothing loads from YouTube
+   before play. Slow Ken-Burns zoom on hover keeps the card feeling alive. */
+.posterImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.poster:hover .posterImage {
+  transform: scale(1.04);
+}
+
+/* Legibility scrim: the frame is bright, so the title and chips need a dark
+   anchor — heavier at the bottom under the title, a whisper of ink overall. */
+.posterScrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      to top,
+      rgba(5, 7, 13, 0.68) 0%,
+      rgba(5, 7, 13, 0.18) 34%,
+      rgba(5, 7, 13, 0.02) 55%
+    ),
+    linear-gradient(to bottom, rgba(5, 7, 13, 0.28) 0%, rgba(5, 7, 13, 0) 22%);
 }
 
 /* Film grain — matches the hero/features surfaces. Lives on the poster (not
@@ -127,19 +157,8 @@
   outline-offset: -4px;
 }
 
-/* Center glow that breathes in on hover, hinting the card is alive. */
-.posterGlow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(45% 60% at 50% 50%, rgba(0, 113, 227, 0.3), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-
-.poster:hover .posterGlow {
-  opacity: 1;
-}
-
+/* Dark glass (not white) so the chip stays readable over the frame's pale
+   sky. */
 .durationChip {
   position: absolute;
   top: 18px;
@@ -149,11 +168,11 @@
   line-height: 18px;
   font-weight: 500;
   letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.92);
   padding: 5px 11px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 100px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(5, 7, 13, 0.42);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 
@@ -174,8 +193,8 @@
   width: 68px;
   height: 68px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(5, 7, 13, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 18px 40px -12px rgba(5, 7, 13, 0.6);
@@ -274,8 +293,11 @@
     transform: none;
   }
   .playButton,
-  .posterGlow {
+  .posterImage {
     transition: none;
+  }
+  .poster:hover .posterImage {
+    transform: none;
   }
   .playButton::before {
     animation: none;

@@ -6,6 +6,7 @@ import { useIntl } from '../../../util/reactIntl';
 import { useReveal } from '../../../hooks/useReveal';
 
 import css from './SectionVideo.module.css';
+import posterImage from './intro-video-poster-1280.jpg';
 
 // The marketplace intro video on YouTube ("What is ELOGADE?", 41 s).
 const VIDEO_ID = 'xHKuwg5jRdw';
@@ -23,10 +24,10 @@ const IconPlay = ({ className }) => (
 );
 
 /**
- * Intro-video section: a code-drawn poster on the page's dark surface
- * (gradient glow + film grain — no YouTube frame, so the card stays on-brand)
- * that swaps to a privacy-enhanced YouTube embed on click. Nothing is loaded
- * from YouTube until the visitor asks for the video.
+ * Intro-video section: a poster showing the video's title frame (bundled as a
+ * first-party asset over a brand-dark scrim) that swaps to a privacy-enhanced
+ * YouTube embed on click. Nothing is loaded from YouTube until the visitor
+ * asks for the video.
  */
 const SectionVideo = () => {
   const intl = useIntl();
@@ -77,7 +78,14 @@ const SectionVideo = () => {
               aria-label={`${msg('videoPlay')} — ${cardTitle}`}
               onClick={() => setPlaying(true)}
             >
-              <span className={css.posterGlow} aria-hidden="true" />
+              <img
+                className={css.posterImage}
+                src={posterImage}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+              <span className={css.posterScrim} aria-hidden="true" />
               <span className={css.durationChip}>{VIDEO_DURATION}</span>
               <span className={css.playButton} aria-hidden="true">
                 <IconPlay className={css.playGlyph} />
