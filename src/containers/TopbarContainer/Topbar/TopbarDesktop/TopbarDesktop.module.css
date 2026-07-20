@@ -377,11 +377,15 @@
   color: var(--colorWhite);
 }
 
-/* Every dropdown in the bar (profile menu, language switcher, custom-links
-   menu) renders through the shared MenuContent as a <ul role="menu"> on a light
-   panel. Reset the retinted tokens there so their labels stay dark — otherwise
-   they inherit the bar's white text and vanish against the panel. */
-.onDark [role='menu'] {
+/* Every dropdown in the bar renders on a light panel: the profile menu,
+   language switcher and custom-links menu come through the shared MenuContent
+   as a <ul role="menu">, and the search typeahead renders its own panel around
+   a <ul role="listbox">. Reset the retinted tokens on both so their labels stay
+   dark — otherwise they inherit the bar's white text and vanish against the
+   panel. The typeahead needs this for its status text ("Searching…", "No
+   matches") and its borders, which read --colorGrey600 / --colorGrey100. */
+.onDark [role='menu'],
+.onDark [data-search-preview] {
   --colorGrey700: hsl(240 3% 30%);
   --colorGrey600: hsl(240 3% 40%);
   --colorBlack: hsl(0 0% 0%);

@@ -76,8 +76,15 @@ const SearchPreviewDropdownComponent = props => {
   const hasResults = listings.length > 0;
 
   return (
-    // preventDefault on mousedown keeps the input focused so row clicks register
-    <div className={css.dropdown} onMouseDown={e => e.preventDefault()} role="listbox">
+    // preventDefault on mousedown keeps the input focused so row clicks register.
+    // data-search-preview is the hook the dark topbar uses to reset its retinted
+    // colour tokens on this panel — see TopbarDesktop.module.css.
+    <div
+      className={css.dropdown}
+      onMouseDown={e => e.preventDefault()}
+      role="listbox"
+      data-search-preview
+    >
       {inProgress && !hasResults ? (
         <div className={css.message}>
           <FormattedMessage id="TopbarSearchForm.searching" />
