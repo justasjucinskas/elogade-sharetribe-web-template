@@ -337,7 +337,7 @@
 /* Dark bar for the landing. The topbar is its own grid row (it does not
    overlap the hero), so it can't be transparent — it would reveal the white
    page background. Instead it's opaque ink matching the hero (#05070d ==
-   --mlpInk, hardcoded since that token lives in the landing subtree, not here),
+   --modernInk, hardcoded since that token lives in the landing subtree, not here),
    so bar and hero read as one continuous dark surface. On scroll it gains a
    frosted blur + hairline border to detach from the content passing under.
 

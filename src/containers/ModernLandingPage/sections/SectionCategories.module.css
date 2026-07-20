@@ -2,7 +2,7 @@
 
 .root {
   position: relative;
-  background: var(--mlpFog);
+  background: var(--modernFog);
 }
 
 /* Faint grain so the light fog strip shares the dark sections' surface
@@ -13,7 +13,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: var(--mlpGrain);
+  background-image: var(--modernGrain);
   background-size: 180px 180px;
   mix-blend-mode: overlay;
   opacity: 0.035;
@@ -47,7 +47,7 @@
   line-height: 1.08;
   font-weight: 700;
   letter-spacing: -0.035em;
-  color: var(--mlpInk);
+  color: var(--modernInk);
 }
 
 .subtitle {
@@ -55,7 +55,7 @@
   padding: 0;
   font-size: 16px;
   line-height: 1.6;
-  color: var(--mlpMutedInk);
+  color: var(--modernMutedInk);
 
   @media (--viewportMedium) {
     margin-top: 16px;
@@ -127,7 +127,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--mlpCyan);
+    outline: 2px solid var(--modernCyan);
     outline-offset: 3px;
   }
 }
@@ -187,7 +187,7 @@
   bottom: 6px;
   width: 88px;
   height: 88px;
-  color: var(--mlpCyan);
+  color: var(--modernCyan);
   opacity: 0.26;
   transform: rotate(-4deg);
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
@@ -263,7 +263,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--mlpMono);
+  font-family: var(--modernMono);
   font-size: 10px;
   line-height: 12px;
   font-weight: 500;
@@ -274,7 +274,7 @@
 }
 
 .tile:hover .tileCta {
-  color: var(--mlpCyan);
+  color: var(--modernCyan);
 }
 
 .tileCtaArrow {

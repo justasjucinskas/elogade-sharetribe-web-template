@@ -3,7 +3,7 @@
 .root {
   position: relative;
   overflow: hidden;
-  background: var(--mlpInk);
+  background: var(--modernInk);
   color: var(--colorWhite);
 
   @media (--viewportLarge) {
@@ -20,7 +20,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: var(--mlpGrain);
+  background-image: var(--modernGrain);
   background-size: 180px 180px;
   mix-blend-mode: overlay;
   opacity: 0.06;
@@ -141,7 +141,7 @@
 }
 
 .titleWordAccent {
-  background: linear-gradient(96deg, var(--marketplaceColor) 10%, var(--mlpCyan) 90%);
+  background: linear-gradient(96deg, var(--marketplaceColor) 10%, var(--modernCyan) 90%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -204,7 +204,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--mlpCyan);
+    outline: 2px solid var(--modernCyan);
     outline-offset: 3px;
   }
 }
@@ -243,7 +243,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--mlpCyan);
+    outline: 2px solid var(--modernCyan);
     outline-offset: 3px;
   }
 }
@@ -288,7 +288,7 @@
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(90deg, var(--mlpInk) 0%, rgba(5, 7, 13, 0) 12%);
+  background: linear-gradient(90deg, var(--modernInk) 0%, rgba(5, 7, 13, 0) 12%);
 }
 
 .column {
@@ -440,13 +440,13 @@
    (e.g. "LABAI GERA") overflow; shown only on the wider desktop cards. */
 .cardBadge {
   display: none;
-  font-family: var(--mlpMono);
+  font-family: var(--modernMono);
   font-size: 9px;
   line-height: 12px;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--mlpCyan);
+  color: var(--modernCyan);
   padding: 4px 8px;
   border-radius: 100px;
   border: 1px solid rgba(0, 212, 255, 0.28);

@@ -46,7 +46,7 @@
   line-height: 1.08;
   font-weight: 700;
   letter-spacing: -0.035em;
-  color: var(--mlpInk);
+  color: var(--modernInk);
 }
 
 .lede {
@@ -54,7 +54,7 @@
   padding: 0;
   font-size: 16px;
   line-height: 1.65;
-  color: var(--mlpMutedInk);
+  color: var(--modernMutedInk);
 
   @media (--viewportMedium) {
     margin-top: 18px;
@@ -72,7 +72,7 @@
   aspect-ratio: 16 / 9;
   border-radius: 24px;
   overflow: hidden;
-  background: var(--mlpInk);
+  background: var(--modernInk);
   box-shadow: 0 1px 2px rgba(5, 7, 13, 0.06), 0 44px 88px -40px rgba(5, 7, 13, 0.55);
 
   @media (--viewportMedium) {
@@ -107,7 +107,7 @@
   color: var(--colorWhite);
   background: radial-gradient(90% 130% at 12% 100%, rgba(0, 113, 227, 0.55), transparent 62%),
     radial-gradient(70% 110% at 88% -4%, rgba(0, 212, 255, 0.2), transparent 60%),
-    linear-gradient(160deg, #0d1526, var(--mlpInk) 55%);
+    linear-gradient(160deg, #0d1526, var(--modernInk) 55%);
 }
 
 /* The video's title frame, bundled locally so nothing loads from YouTube
@@ -146,14 +146,14 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: var(--mlpGrain);
+  background-image: var(--modernGrain);
   background-size: 180px 180px;
   mix-blend-mode: overlay;
   opacity: 0.07;
 }
 
 .poster:focus-visible {
-  outline: 2px solid var(--mlpCyan);
+  outline: 2px solid var(--modernCyan);
   outline-offset: -4px;
 }
 
@@ -163,7 +163,7 @@
   position: absolute;
   top: 18px;
   right: 18px;
-  font-family: var(--mlpMono);
+  font-family: var(--modernMono);
   font-size: 12px;
   line-height: 18px;
   font-weight: 500;

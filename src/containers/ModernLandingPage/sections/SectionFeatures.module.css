@@ -2,7 +2,7 @@
 
 .root {
   position: relative;
-  background: var(--mlpInk);
+  background: var(--modernInk);
   color: var(--colorWhite);
   overflow: hidden;
 }
@@ -13,7 +13,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: var(--mlpGrain);
+  background-image: var(--modernGrain);
   background-size: 180px 180px;
   mix-blend-mode: overlay;
   opacity: 0.06;
@@ -94,13 +94,13 @@
 }
 
 .rowKicker {
-  font-family: var(--mlpMono);
+  font-family: var(--modernMono);
   font-size: 11px;
   line-height: 18px;
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--mlpCyan);
+  color: var(--modernCyan);
   margin: 0 0 12px;
   padding: 0;
 }
@@ -203,7 +203,7 @@
 }
 
 .sceneListingSub {
-  font-family: var(--mlpMono);
+  font-family: var(--modernMono);
   font-size: 10px;
   line-height: 14px;
   letter-spacing: 0.14em;
@@ -243,7 +243,7 @@
   background: rgba(0, 212, 255, 0.1);
   border: 1px solid rgba(0, 212, 255, 0.3);
   border-radius: 18px 18px 18px 4px;
-  color: var(--mlpCyan);
+  color: var(--modernCyan);
   font-weight: 600;
 }
 
@@ -403,7 +403,7 @@
   z-index: 1;
   min-width: 0;
   max-width: 100%;
-  font-family: var(--mlpMono);
+  font-family: var(--modernMono);
   font-size: 10px;
   line-height: 14px;
   font-weight: 500;
@@ -502,7 +502,7 @@
 }
 
 .meterStopB {
-  stop-color: var(--mlpCyan);
+  stop-color: var(--modernCyan);
 }
 
 .meterCore {
@@ -521,7 +521,7 @@
   position: relative;
   width: 26px;
   height: 26px;
-  color: var(--mlpCyan);
+  color: var(--modernCyan);
 }
 
 .meterLock,
@@ -568,7 +568,7 @@
   border-radius: 100px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
-  font-family: var(--mlpMono);
+  font-family: var(--modernMono);
   font-size: 10px;
   line-height: 12px;
   font-weight: 500;
@@ -584,7 +584,7 @@
 .stageCheck {
   width: 13px;
   height: 13px;
-  color: var(--mlpCyan);
+  color: var(--modernCyan);
 }
 
 .railCaption {
@@ -596,7 +596,7 @@
   font-size: 13px;
   line-height: 18px;
   font-weight: 600;
-  color: var(--mlpCyan);
+  color: var(--modernCyan);
   background: rgba(0, 212, 255, 0.08);
   border: 1px solid rgba(0, 212, 255, 0.28);
 }

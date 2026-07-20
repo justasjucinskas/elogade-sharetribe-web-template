@@ -2,7 +2,7 @@
 
 .root {
   position: relative;
-  background: var(--mlpInk);
+  background: var(--modernInk);
   overflow: hidden;
 }
 
@@ -12,7 +12,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: var(--mlpGrain);
+  background-image: var(--modernGrain);
   background-size: 180px 180px;
   mix-blend-mode: overlay;
   opacity: 0.06;
@@ -65,7 +65,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--mlpCyan);
+    outline: 2px solid var(--modernCyan);
     outline-offset: 4px;
   }
 }
@@ -82,7 +82,7 @@
 }
 
 .ctaRow:hover .ctaTitle {
-  background: linear-gradient(96deg, var(--marketplaceColorLight) 10%, var(--mlpCyan) 90%);
+  background: linear-gradient(96deg, var(--marketplaceColorLight) 10%, var(--modernCyan) 90%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -97,7 +97,7 @@
   align-items: center;
   gap: 9px;
   flex-shrink: 0;
-  font-family: var(--mlpMono);
+  font-family: var(--modernMono);
   font-size: 11px;
   line-height: 18px;
   font-weight: 500;
@@ -108,7 +108,7 @@
 }
 
 .ctaRow:hover .ctaAction {
-  color: var(--mlpCyan);
+  color: var(--modernCyan);
 }
 
 .ctaArrow {

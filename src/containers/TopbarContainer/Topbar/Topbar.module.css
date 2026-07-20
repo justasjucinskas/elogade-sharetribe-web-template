@@ -71,7 +71,7 @@
 /* ============ Dark overlay variant (ModernLandingPage) ============ */
 
 /* Mobile counterpart of TopbarDesktop's .onDark: opaque ink matching the
-   landing hero (#05070d == --mlpInk, hardcoded since that token lives in the
+   landing hero (#05070d == --modernInk, hardcoded since that token lives in the
    landing subtree). The icons consume --colorGrey700, so retinting the token
    turns them light without reaching into their class names. */
 .onDark {
