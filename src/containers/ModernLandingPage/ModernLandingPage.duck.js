@@ -28,7 +28,12 @@ const queryFeaturedListingsPayloadCreator = (
       minStock: 1,
       stockMode: 'match-undefined',
       include: ['author', 'images'],
+      // The showcase cards render nothing but the title, the price, the first
+      // photo and the seller's name, so the rest of the listing payload would
+      // only bloat the SSR-serialized state.
+      'fields.listing': ['title', 'price'],
       'fields.image': [`variants.${variantPrefix}`, `variants.${variantPrefix}-2x`],
+      'limit.images': 1,
       // The showcase cards credit the seller by name.
       'fields.user': ['profile.displayName'],
       ...createImageVariantConfig(`${variantPrefix}`, 400, aspectRatio),
