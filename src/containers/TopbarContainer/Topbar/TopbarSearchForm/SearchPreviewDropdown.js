@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { connect } from 'react-redux';
+import classNames from 'classnames';
 
 import { FormattedMessage, useIntl } from '../../../../util/reactIntl';
 import { formatMoney } from '../../../../util/currency';
@@ -17,7 +18,7 @@ const imageVariants = image => {
   return Object.keys(variants).filter(k => k.startsWith('listing-card'));
 };
 
-const PreviewRow = ({ listing, onSelect, intl }) => {
+const PreviewRow = ({ listing, onSelect, intl, isActive }) => {
   const id = listing?.id?.uuid;
   const { title = '', price } = listing?.attributes || {};
   const slug = createSlug(title);
@@ -25,7 +26,13 @@ const PreviewRow = ({ listing, onSelect, intl }) => {
   const priceText = price ? formatMoney(intl, price) : null;
 
   return (
-    <NamedLink className={css.row} name="ListingPage" params={{ id, slug }} onClick={onSelect}>
+    <NamedLink
+      className={classNames(css.row, { [css.rowActive]: isActive })}
+      name="ListingPage"
+      params={{ id, slug }}
+      onClick={onSelect}
+      tabIndex={-1}
+    >
       <div className={css.thumb}>
         <ResponsiveImage
           rootClassName={css.thumbImage}
@@ -48,7 +55,18 @@ const PreviewRow = ({ listing, onSelect, intl }) => {
  * "see all results" link. Purely client-side (no SSR loadData).
  */
 const SearchPreviewDropdownComponent = props => {
-  const { keywords, isOpen, onSelect, listings, inProgress, onQuery, onClear } = props;
+  const {
+    keywords,
+    isOpen,
+    onSelect,
+    listings,
+    inProgress,
+    onQuery,
+    onClear,
+    listboxId,
+    optionId,
+    activeIndex = -1,
+  } = props;
   const intl = useIntl();
   const trimmed = (keywords || '').trim();
   const timeoutRef = useRef(null);
@@ -79,29 +97,35 @@ const SearchPreviewDropdownComponent = props => {
     // preventDefault on mousedown keeps the input focused so row clicks register.
     // data-search-preview is the hook the dark topbar uses to reset its retinted
     // colour tokens on this panel — see TopbarDesktop.module.css.
-    <div
-      className={css.dropdown}
-      onMouseDown={e => e.preventDefault()}
-      role="listbox"
-      data-search-preview
-    >
+    <div className={css.dropdown} onMouseDown={e => e.preventDefault()} data-search-preview>
+      {/* Status text lives outside the listbox: only the result rows are options. */}
       {inProgress && !hasResults ? (
-        <div className={css.message}>
+        <div className={css.message} role="status">
           <FormattedMessage id="TopbarSearchForm.searching" />
         </div>
       ) : null}
 
       {!inProgress && !hasResults ? (
-        <div className={css.message}>
+        <div className={css.message} role="status">
           <FormattedMessage id="TopbarSearchForm.noResults" values={{ keywords: trimmed }} />
         </div>
       ) : null}
 
       {hasResults ? (
-        <ul className={css.list}>
-          {listings.map(listing => (
-            <li key={listing.id.uuid} role="option" aria-selected={false}>
-              <PreviewRow listing={listing} onSelect={onSelect} intl={intl} />
+        <ul className={css.list} id={listboxId} role="listbox">
+          {listings.map((listing, i) => (
+            <li
+              key={listing.id.uuid}
+              id={optionId ? optionId(i) : undefined}
+              role="option"
+              aria-selected={i === activeIndex}
+            >
+              <PreviewRow
+                listing={listing}
+                onSelect={onSelect}
+                intl={intl}
+                isActive={i === activeIndex}
+              />
             </li>
           ))}
         </ul>

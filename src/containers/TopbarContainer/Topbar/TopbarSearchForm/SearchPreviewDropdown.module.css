@@ -53,6 +53,13 @@
   }
 }
 
+/* Arrow-key highlight. Focus stays on the input (aria-activedescendant
+   pattern), so this is the only visible cue for keyboard users — it has to
+   match the mouse hover treatment. */
+.rowActive {
+  background-color: var(--colorGrey50);
+}
+
 .thumb {
   flex-shrink: 0;
   width: 48px;
