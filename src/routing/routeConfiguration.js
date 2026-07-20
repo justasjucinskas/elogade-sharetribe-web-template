@@ -20,7 +20,6 @@ const EditListingPage = loadable(() => import(/* webpackChunkName: "EditListingP
 const EmailVerificationPage = loadable(() => import(/* webpackChunkName: "EmailVerificationPage" */ '../containers/EmailVerificationPage/EmailVerificationPage'));
 const InboxPage = loadable(() => import(/* webpackChunkName: "InboxPage" */ '../containers/InboxPage/InboxPage'));
 const MakeOfferPage = loadable(() => import(/* webpackChunkName: "MakeOfferPage" */ '../containers/MakeOfferPage/MakeOfferPage'));
-const LandingPage = loadable(() => import(/* webpackChunkName: "LandingPage" */ '../containers/LandingPage/LandingPage'));
 const ListingPageCoverPhoto = loadable(() => import(/* webpackChunkName: "ListingPageCoverPhoto" */ /* webpackPrefetch: true */ '../containers/ListingPage/ListingPageCoverPhoto'));
 const ListingPageCarousel = loadable(() => import(/* webpackChunkName: "ListingPageCarousel" */ /* webpackPrefetch: true */ '../containers/ListingPage/ListingPageCarousel'));
 const ManageListingsPage = loadable(() => import(/* webpackChunkName: "ManageListingsPage" */ '../containers/ManageListingsPage/ManageListingsPage'));
@@ -78,14 +77,10 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
   
   return [
     {
+      // The code-owned ModernLandingPage is the marketplace front page. The route keeps the
+      // name 'LandingPage' so every NamedLink/NamedRedirect pointing "home" stays valid.
       path: '/',
       name: 'LandingPage',
-      component: LandingPage,
-      loadData: pageDataLoadingAPI.LandingPage.loadData,
-    },
-    {
-      path: '/landing',
-      name: 'ModernLandingPage',
       component: ModernLandingPage,
       loadData: pageDataLoadingAPI.ModernLandingPage.loadData,
     },
