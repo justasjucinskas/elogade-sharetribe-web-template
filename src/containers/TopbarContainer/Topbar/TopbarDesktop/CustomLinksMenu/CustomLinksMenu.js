@@ -72,7 +72,19 @@ const calculateContainerWidth = (containerRefTarget, parentWidth) => {
   const siblingArray = containerRefTarget?.parentNode?.childNodes
     ? Array.from(containerRefTarget.parentNode.childNodes).filter(n => n !== containerRefTarget)
     : [];
-  const siblingWidthsCombined = siblingArray.reduce((acc, node) => acc + node.offsetWidth, 0);
+  // offsetWidth rounds to whole pixels and ignores margins, which made this overestimate the
+  // available width by the siblings' combined horizontal margins. Locales whose priority links
+  // can't shrink (e.g. lt) then overflowed the viewport and the whole page scrolled sideways.
+  const siblingWidthsCombined = siblingArray.reduce((acc, node) => {
+    // Text nodes and comments don't participate in the flex layout.
+    if (node.nodeType !== 1) {
+      return acc;
+    }
+    const styles = window.getComputedStyle(node);
+    const marginLeft = parseFloat(styles.marginLeft) || 0;
+    const marginRight = parseFloat(styles.marginRight) || 0;
+    return acc + node.getBoundingClientRect().width + marginLeft + marginRight;
+  }, 0);
 
   // .root class of the TopbarDesktop has 24px padding on the right
   // Firefox doesn't support computedStyleMap()
