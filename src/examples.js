@@ -132,7 +132,6 @@ import * as Typography from './containers/StyleguidePage/Typography.example';
 import * as CMSSections from './containers/PageBuilder/SectionBuilder/SectionBuilder.example';
 import * as Markdown from './containers/PageBuilder/Markdown.example';
 import * as PageBuilder from './containers/PageBuilder/PageBuilder.example';
-import * as LandingPage from './containers/LandingPage/LandingPage.example';
 
 export {
   ActivityFeed,
@@ -207,7 +206,6 @@ export {
   InboxPage,
   ImageCarousel,
   KeywordFilter,
-  LandingPage,
   LayoutComposer,
   LinkedLogo,
   ListingCard,

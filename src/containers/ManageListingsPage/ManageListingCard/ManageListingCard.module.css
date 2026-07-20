@@ -17,10 +17,10 @@
   display: block;
   width: 100%;
   position: relative;
-  transition: var(--transitionStyleButton);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
 
   &:hover {
-    transform: scale(1.02);
+    transform: translateY(-4px);
     box-shadow: var(--boxShadowListingCard);
   }
 }

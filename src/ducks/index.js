@@ -13,6 +13,7 @@ import hostedAssets from './hostedAssets.duck';
 import featuredListings from './featuredListings.duck';
 import marketplaceData from './marketplaceData.duck';
 import paymentMethods from './paymentMethods.duck';
+import searchPreview from './searchPreview.duck';
 import stripe from './stripe.duck';
 import stripeConnectAccount from './stripeConnectAccount.duck';
 import user from './user.duck';
@@ -27,6 +28,7 @@ export {
   featuredListings,
   marketplaceData,
   paymentMethods,
+  searchPreview,
   stripe,
   stripeConnectAccount,
   user,

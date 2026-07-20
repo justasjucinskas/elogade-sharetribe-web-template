@@ -36,3 +36,25 @@
   padding-left: 0;
   padding-right: 0;
 }
+
+/* Multi-column layouts render each block as a floating card (single-column
+ * layouts stay full-width content). Targets the grid's direct children. */
+.twoColumns > *,
+.threeColumns > *,
+.fourColumns > * {
+  padding: 28px 24px;
+  background-color: var(--colorWhite);
+  border: 1px solid var(--colorGrey100);
+  border-radius: var(--borderRadiusMedium);
+  box-shadow: var(--boxShadowListingCard);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+}
+
+@media (--viewportMedium) {
+  .twoColumns > *:hover,
+  .threeColumns > *:hover,
+  .fourColumns > *:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 16px 40px -8px rgba(0, 0, 0, 0.12);
+  }
+}

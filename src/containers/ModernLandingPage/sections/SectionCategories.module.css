@@ -1,0 +1,343 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  position: relative;
+  background: var(--modernFog);
+}
+
+/* Faint grain so the light fog strip shares the dark sections' surface
+   texture — lower opacity than the dark sections since noise reads stronger
+   over a light ground. */
+.root::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--modernGrain);
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+  opacity: 0.035;
+}
+
+.inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 24px;
+
+  @media (--viewportMedium) {
+    padding: 112px 32px;
+  }
+}
+
+/* ================= Header ================= */
+
+.header {
+  max-width: 640px;
+  margin-bottom: 42px;
+
+  @media (--viewportMedium) {
+    margin-bottom: 56px;
+  }
+}
+
+.title {
+  margin: 0;
+  padding: 0;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--modernInk);
+}
+
+.subtitle {
+  margin: 15px 0 0;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--modernMutedInk);
+
+  @media (--viewportMedium) {
+    margin-top: 16px;
+    font-size: 18px;
+  }
+}
+
+/* ================= Bento grid ================= */
+
+/* Mobile: a full-bleed horizontal scroll strip — same intrinsic-width guard
+   as the hero strip (contain: inline-size + negative margins through .inner's
+   24px side padding). Desktop: the bento grid. */
+.grid {
+  display: flex;
+  gap: 12px;
+  contain: inline-size;
+  margin: 0 -24px;
+  padding: 4px 24px 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 24px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  @media (--viewportMedium) {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 184px;
+    gap: 16px;
+    contain: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+}
+
+.grid::-webkit-scrollbar {
+  display: none;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: none;
+  scroll-snap-align: start;
+  width: 224px;
+  height: 176px;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 18px;
+  background: linear-gradient(160deg, #14171f, #0a0c12);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.45s ease,
+    border-color 0.45s ease;
+
+  @media (--viewportMedium) {
+    width: auto;
+    height: auto;
+    padding: 24px;
+  }
+
+  &:hover {
+    text-decoration: none;
+    transform: translateY(-5px);
+    border-color: rgba(0, 212, 255, 0.35);
+    box-shadow: 0 24px 48px -20px rgba(2, 8, 30, 0.55), 0 0 0 1px rgba(0, 212, 255, 0.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--modernCyan);
+    outline-offset: 3px;
+  }
+}
+
+/* Cursor-tracked spotlight — a cyan radial that follows the pointer, set via
+   the --mx/--my vars written by the grid's onMouseMove delegate. Sits below the
+   tile content (paints before the icon/name), so text stays crisp. */
+.tileSpot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    200px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(0, 212, 255, 0.18),
+    transparent 60%
+  );
+  transition: opacity 0.35s ease;
+}
+
+.tile:hover .tileSpot {
+  opacity: 1;
+}
+
+/* All strip cards share one size on mobile; the grid spans only apply on
+   desktop (they're inert in the flex strip). */
+.tileFeature {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.tileWide {
+  grid-column: span 2;
+}
+
+.tileGlow {
+  position: absolute;
+  right: -40px;
+  bottom: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 113, 227, 0.35), transparent 70%);
+  filter: blur(24px);
+  opacity: 0.6;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.tile:hover .tileGlow {
+  opacity: 1;
+  transform: scale(1.25);
+}
+
+.tileIcon {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 88px;
+  height: 88px;
+  color: var(--modernCyan);
+  opacity: 0.26;
+  transform: rotate(-4deg);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
+
+  @media (--viewportMedium) {
+    width: 108px;
+    height: 108px;
+    right: 10px;
+    bottom: 10px;
+  }
+}
+
+/* The larger tiles get proportionally larger icons so their extra area doesn't
+   read as empty space. Desktop-only — on the mobile strip every card matches. */
+.tileFeature .tileIcon {
+  @media (--viewportMedium) {
+    width: 260px;
+    height: 260px;
+    right: 20px;
+    bottom: 16px;
+  }
+}
+
+.tileWide .tileIcon {
+  @media (--viewportMedium) {
+    width: 152px;
+    height: 152px;
+    right: 14px;
+    bottom: 10px;
+  }
+}
+
+.tile:hover .tileIcon {
+  opacity: 0.55;
+  transform: rotate(0deg) scale(1.07);
+}
+
+.tileHead {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tileName {
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--colorWhite);
+  max-width: 82%;
+
+  @media (--viewportMedium) {
+    font-size: 18px;
+  }
+}
+
+/* Live per-category listing count, loaded via ModernLandingPage.duck. */
+.tileCount {
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tileFeature .tileName {
+  @media (--viewportMedium) {
+    font-size: 26px;
+  }
+}
+
+.tileCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--modernMono);
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 0.3s ease;
+}
+
+.tile:hover .tileCta {
+  color: var(--modernCyan);
+}
+
+.tileCtaArrow {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tile:hover .tileCtaArrow {
+  transform: translateX(3px);
+}
+
+/* ================= Entrance ================= */
+
+.revealReady.header,
+.revealReady .tile {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.isRevealed.header {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.isRevealed .tile {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.45s ease,
+    border-color 0.45s ease;
+}
+
+/* Entrance stagger must not delay hover feedback. */
+.isRevealed .tile:hover {
+  transform: translateY(-5px);
+  transition-delay: 0s;
+}
+
+.isRevealed .tile:nth-child(2) {
+  transition-delay: 0.08s;
+}
+
+.isRevealed .tile:nth-child(3) {
+  transition-delay: 0.16s;
+}
+
+.isRevealed .tile:nth-child(4) {
+  transition-delay: 0.24s;
+}
+
+.isRevealed .tile:nth-child(5) {
+  transition-delay: 0.32s;
+}
+
+.isRevealed .tile:nth-child(6) {
+  transition-delay: 0.4s;
+}
+
+.isRevealed .tile:nth-child(7) {
+  transition-delay: 0.48s;
+}
+
+.isRevealed .tile:nth-child(8) {
+  transition-delay: 0.56s;
+}

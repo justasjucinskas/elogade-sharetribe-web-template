@@ -13,11 +13,14 @@
   align-items: flex-start;
   padding: 0 12px 0 0;
 
-  /* fill */
-  background-color: var(--colorWhite);
+  /* Frosted glass fill — opaque enough that dark text/logo stay legible even
+     when a dark section (e.g. the landing hero) scrolls under the sticky bar. */
+  background-color: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
 
-  /* shadows */
-  box-shadow: var(--boxShadowLight);
+  /* Hairline divider instead of a drop shadow */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 
   @media (--viewportLarge) {
     padding: 0 24px 0 0;
@@ -26,12 +29,10 @@
 
 /* logo */
 .logoLink {
-  border-bottom: 0px solid;
-  transition: var(--transitionStyleButton);
+  transition: opacity var(--transitionStyleButton);
 }
 .logoLink:hover {
-  border-bottom: 4px solid var(--marketplaceColor);
-  border-radius: 0;
+  opacity: 0.75;
 }
 
 /* Search */
@@ -87,8 +88,7 @@
 .topbarLink {
   flex-shrink: 0;
 
-  border-bottom: 0px solid;
-  transition: var(--transitionStyleButton);
+  transition: color var(--transitionStyleButton);
 
   font-weight: var(--fontWeightMedium);
   font-size: 14px;
@@ -102,14 +102,43 @@
 
   &:hover {
     color: var(--colorBlack);
-    border-bottom: 4px solid var(--marketplaceColor);
-    border-radius: 0;
     text-decoration: none;
   }
 
   @media (--viewportMedium) {
     line-height: 16px;
     margin: 0;
+  }
+}
+
+/* Primary topbar call-to-action (Sign up): a rounded pill button, vertically
+   centered in the bar. Modernizes the old text-link-with-underline treatment. */
+.signupCta {
+  flex-shrink: 0;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+
+  height: 40px;
+  margin: 0 8px 0 4px;
+  padding: 0 18px;
+  border-radius: 100px;
+
+  background-color: var(--marketplaceColor);
+  color: var(--colorWhite);
+  font-weight: var(--fontWeightSemiBold);
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0;
+
+  transition: background-color var(--transitionStyleButton), transform var(--transitionStyleButton);
+
+  &:hover {
+    background-color: var(--marketplaceColorDark);
+    color: var(--colorWhite);
+    text-decoration: none;
+    transform: translateY(-1px);
   }
 }
 
@@ -175,13 +204,8 @@
   padding: 0 12px 0 12px;
 
   &:hover {
-    border-bottom: 4px solid var(--marketplaceColor);
-    border-radius: 0;
+    opacity: 0.8;
     text-decoration: none;
-  }
-
-  &:active {
-    border-bottom: 0;
   }
 }
 
@@ -306,4 +330,64 @@
       background-color: var(--colorBlack);
     }
   }
+}
+
+/* ================= Dark overlay variant (ModernLandingPage) ================= */
+
+/* Dark bar for the landing. The topbar is its own grid row (it does not
+   overlap the hero), so it can't be transparent — it would reveal the white
+   page background. Instead it's opaque ink matching the hero (#05070d ==
+   --modernInk, hardcoded since that token lives in the landing subtree, not here),
+   so bar and hero read as one continuous dark surface. On scroll it gains a
+   frosted blur + hairline border to detach from the content passing under.
+
+   Children are retinted to light by overriding the color *tokens* they consume
+   — so cross-module children (LanguageSwitcher, search form) come along without
+   this stylesheet reaching their hashed class names. The one surface that must
+   stay light — the profile dropdown — resets these tokens below. */
+.onDark {
+  --colorGrey700: rgba(255, 255, 255, 0.82);
+  --colorGrey600: rgba(255, 255, 255, 0.7);
+  --colorBlack: #ffffff;
+  --colorGrey100: rgba(255, 255, 255, 0.16);
+
+  background-color: #05070d;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-bottom-color: transparent;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Solidify into a frosted bar with a hairline border once the hero scrolls
+   past — the translucency lets blurred content show through underneath. */
+.onDark.scrolled {
+  background-color: rgba(5, 7, 13, 0.72);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* The logo artwork is dark — invert it to white on the dark bar. */
+.onDark .logoLink img {
+  filter: brightness(0) invert(1);
+}
+
+/* Keep the CTA a solid blue pill (don't inherit the light-token retint). */
+.onDark .signupCta {
+  color: var(--colorWhite);
+}
+
+/* Every dropdown in the bar renders on a light panel: the profile menu,
+   language switcher and custom-links menu come through the shared MenuContent
+   as a <ul role="menu">, and the search typeahead renders its own panel around
+   a <ul role="listbox">. Reset the retinted tokens on both so their labels stay
+   dark — otherwise they inherit the bar's white text and vanish against the
+   panel. The typeahead needs this for its status text ("Searching…", "No
+   matches") and its borders, which read --colorGrey600 / --colorGrey100. */
+.onDark [role='menu'],
+.onDark [data-search-preview] {
+  --colorGrey700: hsl(240 3% 30%);
+  --colorGrey600: hsl(240 3% 40%);
+  --colorBlack: hsl(0 0% 0%);
+  --colorGrey100: hsl(240 3% 90%);
 }

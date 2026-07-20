@@ -72,7 +72,8 @@
   display: flex;
   width: 24px;
   align-self: stretch;
-  background-color: var(--colorWhite);
+  /* Transparent so the search blends into the frosted topbar */
+  background-color: transparent;
 }
 
 .desktopInput {
@@ -82,6 +83,10 @@
   height: var(--topbarHeightDesktop);
   line-height: unset;
   border: none;
+  /* Transparent so the search blends into the frosted topbar (overrides the
+     global input white background + radius) */
+  background-color: transparent;
+  border-radius: 0;
   padding-top: 0;
   padding-bottom: 0;
 
@@ -99,6 +104,8 @@
     outline: none;
     border: 0;
     box-shadow: none;
+    /* Keep transparent on focus (global input:focus would repaint it white) */
+    background-color: transparent;
   }
 
   &:hover::placeholder,

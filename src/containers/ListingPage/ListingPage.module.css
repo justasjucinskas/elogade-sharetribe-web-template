@@ -295,8 +295,8 @@
   }
   @media (--viewportLarge) {
     /* contentContainer's full width - (orderColumn + paddings + margin) */
-    max-width: calc(100% - 360px);
-    flex-basis: calc(100% - 360px);
+    max-width: calc(100% - 420px);
+    flex-basis: calc(100% - 420px);
     flex-shrink: 0;
     flex-grow: 1;
   }
@@ -308,7 +308,7 @@
   @media (--viewportLarge) {
     display: block;
     margin-left: 48px;
-    flex-basis: 312px;
+    flex-basis: 372px;
     flex-shrink: 0;
   }
 }
@@ -379,6 +379,11 @@
 .productOrderPanel {
   @media (--viewportLarge) {
     display: block;
+    padding: 24px;
+    border: 1px solid var(--colorGrey100);
+    border-radius: var(--borderRadiusMedium);
+    background-color: var(--colorWhite);
+    box-shadow: var(--boxShadowListingCard);
   }
   /* Note: panel height might be too much on small viewport - hence min-height */
   @media (--viewportLarge) and (min-height: 950px) {

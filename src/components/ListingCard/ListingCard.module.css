@@ -12,13 +12,13 @@
 }
 
 .aspectRatioWrapper {
-  transition: var(--transitionStyleButton);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
   background: var(--colorGrey100); /* Loading BG color */
   border-radius: var(--borderRadiusMedium);
 
   @media (--viewportMedium) {
     &:hover {
-      transform: scale(1.02);
+      transform: translateY(-4px);
       box-shadow: var(--boxShadowListingCard);
     }
   }
@@ -96,7 +96,7 @@
   /* Font */
   composes: textSmall from global;
   font-weight: var(--fontWeightBold);
-  color: var(--colorGrey700);
+  color: var(--colorGrey900);
   margin: 0;
 }
 

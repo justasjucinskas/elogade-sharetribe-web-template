@@ -22,10 +22,8 @@ import css from './TopbarDesktop.module.css';
 
 const SignupLink = () => {
   return (
-    <NamedLink id="signup-link" name="SignupPage" className={css.topbarLink}>
-      <span className={css.topbarLinkLabel}>
-        <FormattedMessage id="TopbarDesktop.signup" />
-      </span>
+    <NamedLink id="signup-link" name="SignupPage" className={css.signupCta}>
+      <FormattedMessage id="TopbarDesktop.signup" />
     </NamedLink>
   );
 };
@@ -153,6 +151,8 @@ const TopbarDesktop = props => {
     showSearchForm,
     showCreateListingsLink,
     inboxTab,
+    onDark,
+    scrolled,
   } = props;
   const [mounted, setMounted] = useState(false);
 
@@ -165,7 +165,11 @@ const TopbarDesktop = props => {
   const isAuthenticatedOrJustHydrated = isAuthenticated || !mounted;
 
   const giveSpaceForSearch = customLinks == null || customLinks?.length === 0;
-  const classes = classNames(rootClassName || css.root, className);
+  const classes = classNames(
+    rootClassName || css.root,
+    { [css.onDark]: onDark, [css.scrolled]: scrolled },
+    className
+  );
 
   const inboxLinkMaybe = authenticatedOnClientSide ? (
     <InboxLink notificationCount={notificationCount} inboxTab={inboxTab} />
@@ -224,8 +228,8 @@ const TopbarDesktop = props => {
 
       {inboxLinkMaybe}
       {profileMenuMaybe}
-      {signupLinkMaybe}
       {loginLinkMaybe}
+      {signupLinkMaybe}
       <LanguageSwitcher />
     </nav>
   );

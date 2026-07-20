@@ -135,6 +135,8 @@ const TopbarComponent = props => {
     className,
     rootClassName,
     desktopClassName,
+    onDark,
+    scrolled,
     mobileRootClassName,
     mobileClassName,
     isAuthenticated,
@@ -345,7 +347,13 @@ const TopbarComponent = props => {
         onLogout={handleLogout}
         currentPage={resolvedCurrentPage}
       />
-      <nav className={classNames(mobileRootClassName || css.container, mobileClassName)}>
+      <nav
+        className={classNames(
+          mobileRootClassName || css.container,
+          { [css.onDark]: onDark, [css.scrolled]: scrolled },
+          mobileClassName
+        )}
+      >
         <Button
           id={MOBILE_MENU_BUTTON_ID}
           rootClassName={css.menu}
@@ -369,6 +377,8 @@ const TopbarComponent = props => {
       <div className={css.desktop}>
         <TopbarDesktop
           className={desktopClassName}
+          onDark={onDark}
+          scrolled={scrolled}
           currentUserHasListings={currentUserHasListings}
           currentUser={currentUser}
           currentPage={resolvedCurrentPage}
@@ -387,10 +397,14 @@ const TopbarComponent = props => {
       </div>
       <Modal
         id="TopbarMobileMenu"
-        containerClassName={css.modalContainer}
+        className={css.menuModal}
+        scrollLayerClassName={css.menuScrollLayer}
+        containerClassName={css.menuDrawer}
+        contentClassName={css.menuContent}
         isOpen={isMobileMenuOpen}
         onClose={() => redirectToURLWithoutModalState(history, location, 'mobilemenu')}
         usePortal
+        closeOnScrimClick
         onManageDisableScrolling={onManageDisableScrolling}
         focusElementId={MOBILE_MENU_BUTTON_ID}
       >

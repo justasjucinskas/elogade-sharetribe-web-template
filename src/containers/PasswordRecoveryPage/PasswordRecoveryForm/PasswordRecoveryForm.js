@@ -111,6 +111,14 @@ class PasswordRecoveryForm extends Component {
               />
 
               <div className={css.bottomWrapper}>
+                <PrimaryButton
+                  type="submit"
+                  inProgress={submitInProgress}
+                  disabled={submitDisabled}
+                >
+                  <FormattedMessage id="PasswordRecoveryForm.sendInstructions" />
+                </PrimaryButton>
+
                 <p className={css.bottomWrapperText}>
                   <span className={css.modalHelperText}>
                     <FormattedMessage
@@ -119,14 +127,6 @@ class PasswordRecoveryForm extends Component {
                     />
                   </span>
                 </p>
-
-                <PrimaryButton
-                  type="submit"
-                  inProgress={submitInProgress}
-                  disabled={submitDisabled}
-                >
-                  <FormattedMessage id="PasswordRecoveryForm.sendInstructions" />
-                </PrimaryButton>
               </div>
             </Form>
           );

@@ -68,12 +68,14 @@
 }
 
 .selectedLink {
-  border-bottom-color: var(--colorBlack);
-  color: var(--colorBlack);
+  border-bottom-color: var(--marketplaceColor);
+  color: var(--marketplaceColor);
 
   @media (--viewportLarge) {
     width: var(--TabNav_linkWidth);
-    background-image: url("data:image/svg+xml;utf8,<svg width='4' height='32' viewBox='0 0 4 32' xmlns='http://www.w3.org/2000/svg'><path d='M0 0h4v32H0z' fill='%23000' fill-rule='evenodd'/></svg>");
+    /* Brand-blue indicator bar. NOTE: a data-URI can't reference the
+       --marketplaceColor CSS var, so this hex is hardcoded to the default brand. */
+    background-image: url("data:image/svg+xml;utf8,<svg width='4' height='32' viewBox='0 0 4 32' xmlns='http://www.w3.org/2000/svg'><path d='M0 0h4v32H0z' fill='%230071e3' fill-rule='evenodd'/></svg>");
     background-position: right center;
 
     &:hover {

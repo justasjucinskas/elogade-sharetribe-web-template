@@ -1,0 +1,793 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  position: relative;
+  background: var(--modernInk);
+  color: var(--colorWhite);
+  overflow: hidden;
+}
+
+/* Film grain — matches the hero so the dark sections share one surface. */
+.root::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--modernGrain);
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+  opacity: 0.06;
+}
+
+.inner {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 24px;
+
+  @media (--viewportMedium) {
+    padding: 112px 32px;
+  }
+}
+
+/* ================= Header ================= */
+
+.header {
+  max-width: 640px;
+  margin-bottom: 48px;
+
+  @media (--viewportMedium) {
+    margin-bottom: 88px;
+  }
+}
+
+.title {
+  margin: 0;
+  padding: 0;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--colorWhite);
+}
+
+/* ================= Rows ================= */
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+
+  @media (--viewportMedium) {
+    gap: 120px;
+  }
+}
+
+/* minmax(0, 1fr), not bare 1fr: the scenes contain nowrap chips whose
+   min-content would otherwise force the track — and the whole page — wider
+   than small phones. */
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 30px;
+  align-items: center;
+
+  @media (--viewportMedium) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 80px;
+  }
+}
+
+.rowReverse {
+  @media (--viewportMedium) {
+    direction: rtl;
+  }
+}
+
+.rowReverse .rowText,
+.rowReverse .rowVisual {
+  direction: ltr;
+}
+
+.rowText {
+  max-width: 460px;
+}
+
+.rowKicker {
+  font-family: var(--modernMono);
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--modernCyan);
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.rowTitle {
+  margin: 0 0 12px;
+  padding: 0;
+  font-size: clamp(26px, 3.6vw, 38px);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    margin-bottom: 16px;
+  }
+}
+
+.rowBody {
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.62);
+
+  @media (--viewportMedium) {
+    font-size: 17px;
+  }
+}
+
+.rowVisual {
+  position: relative;
+}
+
+/* ================= Shared scene panel ================= */
+
+.scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 15px;
+  min-height: 264px;
+  border-radius: 24px;
+  padding: 24px;
+  background: radial-gradient(ellipse 120% 100% at 80% 0%, rgba(0, 113, 227, 0.14), transparent 55%),
+    linear-gradient(165deg, rgba(28, 33, 46, 0.75), rgba(10, 12, 18, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 32px 64px -32px rgba(0, 0, 0, 0.85);
+
+  @media (--viewportMedium) {
+    min-height: 312px;
+    padding: 36px;
+    gap: 16px;
+  }
+}
+
+/* ================= Scene 1: message ================= */
+
+.sceneListing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.sceneListingArt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: radial-gradient(circle at 50% 80%, rgba(0, 113, 227, 0.4), rgba(255, 255, 255, 0.04));
+  flex-shrink: 0;
+}
+
+.sceneListingIcon {
+  width: 24px;
+  height: 24px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sceneListingMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sceneListingName {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.sceneListingSub {
+  font-family: var(--modernMono);
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.sceneListingPrice {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--colorWhite);
+}
+
+.sceneBubble {
+  max-width: 78%;
+  padding: 12px 18px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--colorWhite);
+}
+
+.sceneBubbleBuyer {
+  align-self: flex-end;
+  background: linear-gradient(120deg, var(--marketplaceColor), #0085ff);
+  border-radius: 18px 18px 4px 18px;
+  box-shadow: 0 12px 28px -12px rgba(0, 113, 227, 0.6);
+}
+
+.sceneBubbleSeller {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  align-self: flex-start;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 18px 18px 18px 4px;
+  color: var(--modernCyan);
+  font-weight: 600;
+}
+
+.sceneReplyIcon {
+  width: 15px;
+  height: 15px;
+}
+
+/* ================= Scene 2: condition grade sheet ================= */
+
+.grades {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (--viewportMedium) {
+    gap: 18px;
+  }
+}
+
+.gradesHead {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.gradesArt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: radial-gradient(circle at 50% 85%, rgba(0, 113, 227, 0.4), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gradesIcon {
+  width: 19px;
+  height: 19px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.gradesName {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--colorWhite);
+}
+
+.tiers {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+
+  @media (--viewportMedium) {
+    gap: 10px;
+  }
+}
+
+/* Spectrum rail: one continuous scale from sealed (cyan) to well-loved
+   (amber), threading through the grade dots. Spans first → last dot centre
+   (offsets track the row heights: two-line cards below viewportLarge,
+   single-line above); draws downwards on reveal. */
+.tiers::before {
+  content: '';
+  position: absolute;
+  left: 3.5px;
+  top: 28px;
+  bottom: 28px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #00d4ff, #40d0ac, #ffc46b);
+  opacity: 0.45;
+  transform-origin: top center;
+
+  @media (--viewportLarge) {
+    top: 22px;
+    bottom: 22px;
+  }
+}
+
+/* One honest scale: cyan (sealed) → amber (well-loved). */
+.tierNew {
+  --tierColor: #00d4ff;
+}
+
+.tierMid {
+  --tierColor: #40d0ac;
+}
+
+.tierUsed {
+  --tierColor: #ffc46b;
+}
+
+.tier {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tierDot {
+  position: relative;
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--tierColor);
+  box-shadow: 0 0 10px -1px var(--tierColor);
+}
+
+/* Below viewportLarge the grade label and wear note stack, so the label never
+   truncates in the longer locales; on wide columns they share one line. */
+.tierCard {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  overflow: hidden;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+
+  @media (--viewportLarge) {
+    flex-direction: row;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 14px;
+  }
+}
+
+/* Grade tint: the row's colour IS its grade — a soft wash fading out to the
+   right. Behind the row content; sweeps in via scaleX on reveal. */
+.tierBar {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(90deg, var(--tierColor), transparent);
+  opacity: 0.14;
+  transform-origin: left center;
+}
+
+.tierLabel {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  max-width: 100%;
+  font-family: var(--modernMono);
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (--viewportMedium) {
+    font-size: 11px;
+  }
+
+  @media (--viewportLarge) {
+    flex: 1;
+  }
+}
+
+/* Plain-language wear note — the honest "what you're getting" line that
+   replaced the price. */
+.tierNote {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tierNoteCheck {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  color: var(--tierColor);
+}
+
+/* ================= Scene 3: escrow vault meter ================= */
+
+.escrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+
+  @media (--viewportMedium) {
+    gap: 26px;
+  }
+}
+
+.meter {
+  position: relative;
+  width: 132px;
+  height: 132px;
+
+  @media (--viewportMedium) {
+    width: 150px;
+    height: 150px;
+  }
+}
+
+.meterRing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.meterTrack {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 4;
+}
+
+.meterProgress {
+  fill: none;
+  stroke: url(#escrowGrad);
+  stroke-width: 4;
+  stroke-linecap: round;
+  /* Circumference of r=52 ≈ 326.73; dash the whole ring and reveal by pulling
+     the offset from full (empty) to 0 (complete). Rotate so it starts at 12 o'clock. */
+  stroke-dasharray: 326.73;
+  stroke-dashoffset: 0;
+  transform: rotate(-90deg);
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.45));
+}
+
+.meterStopA {
+  stop-color: var(--marketplaceColor);
+}
+
+.meterStopB {
+  stop-color: var(--modernCyan);
+}
+
+.meterCore {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Lock (held) and lock-open (released) stack; the choreography cross-fades
+   them at delivery. */
+.meterIcon {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  color: var(--modernCyan);
+}
+
+.meterLock,
+.meterUnlock {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.meterAmount {
+  font-size: 27px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    font-size: 30px;
+  }
+}
+
+.stages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  @media (--viewportMedium) {
+    gap: 10px;
+  }
+}
+
+.stage {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  font-family: var(--modernMono);
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
+
+  @media (--viewportMedium) {
+    font-size: 11px;
+  }
+}
+
+.stageCheck {
+  width: 13px;
+  height: 13px;
+  color: var(--modernCyan);
+}
+
+.railCaption {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 15px;
+  border-radius: 100px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--modernCyan);
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid rgba(0, 212, 255, 0.28);
+}
+
+.railCaptionCheck {
+  width: 14px;
+  height: 14px;
+}
+
+/* ================= Entrance ================= */
+
+.revealReady.header {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.isRevealed.header {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.revealReady .rowText {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.revealReady .rowVisual {
+  opacity: 0;
+  transform: translateY(32px) scale(0.97);
+}
+
+.isRevealed .rowText {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.isRevealed .rowVisual {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.8s ease 0.15s, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
+}
+
+/* Scene 1 choreography: bubbles land one after another. */
+.revealReady .sceneBubble {
+  opacity: 0;
+  transform: translateY(14px) scale(0.96);
+}
+
+.isRevealed .sceneBubble {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.isRevealed .sceneBubbleBuyer {
+  transition-delay: 0.7s;
+}
+
+.isRevealed .sceneBubbleSeller {
+  transition-delay: 1.25s;
+}
+
+/* Scene 2 choreography: the grade sheet builds top-down — header, then the
+   spectrum rail draws down while each tier row settles in and its grade tint
+   sweeps out. */
+.revealReady .gradesHead {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.isRevealed .gradesHead {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.revealReady .tiers::before {
+  transform: scaleY(0);
+}
+
+.isRevealed .tiers::before {
+  transform: scaleY(1);
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s;
+}
+
+.revealReady .tier {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.isRevealed .tier {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.isRevealed .tier:nth-child(1) {
+  transition-delay: 0.15s;
+}
+
+.isRevealed .tier:nth-child(2) {
+  transition-delay: 0.3s;
+}
+
+.isRevealed .tier:nth-child(3) {
+  transition-delay: 0.45s;
+}
+
+.revealReady .tierBar {
+  transform: scaleX(0);
+}
+
+.isRevealed .tierBar {
+  transform: scaleX(1);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.isRevealed .tier:nth-child(1) .tierBar {
+  transition-delay: 0.4s;
+}
+
+.isRevealed .tier:nth-child(2) .tierBar {
+  transition-delay: 0.55s;
+}
+
+.isRevealed .tier:nth-child(3) .tierBar {
+  transition-delay: 0.7s;
+}
+
+/* Scene 3 choreography: the ring fills, each stage confirms in turn, the lock
+   springs open at delivery, then the funds-released badge lands. */
+.revealReady .meterProgress {
+  stroke-dashoffset: 326.73;
+}
+
+.isRevealed .meterProgress {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1.7s cubic-bezier(0.6, 0, 0.2, 1) 0.3s;
+}
+
+.revealReady .stageCheck {
+  opacity: 0;
+  transform: scale(0.3);
+}
+
+.isRevealed .stageCheck {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.isRevealed .stage:nth-child(1) .stageCheck {
+  transition-delay: 0.5s;
+}
+
+.isRevealed .stage:nth-child(2) .stageCheck {
+  transition-delay: 1s;
+}
+
+.isRevealed .stage:nth-child(3) .stageCheck {
+  transition-delay: 1.5s;
+}
+
+/* Held by default; the lock swaps to lock-open once the ring completes. */
+.revealReady .meterLock {
+  opacity: 1;
+}
+
+.revealReady .meterUnlock {
+  opacity: 0;
+}
+
+.isRevealed .meterLock {
+  opacity: 0;
+  transition: opacity 0.5s ease 1.9s;
+}
+
+.isRevealed .meterUnlock {
+  opacity: 1;
+  transition: opacity 0.5s ease 1.9s;
+}
+
+.revealReady .railCaption {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.isRevealed .railCaption {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.55s ease 2.1s, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) 2.1s;
+}

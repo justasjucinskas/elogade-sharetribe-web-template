@@ -3,9 +3,10 @@
 .root {
   width: 100%;
 
-  /* Top Bar's drop shadow should always be visible */
+  /* Sticky so content scrolls under the frosted bar (the blur needs something behind it) */
   z-index: var(--zIndexTopbar);
-  position: relative;
+  position: sticky;
+  top: 0;
 }
 
 /* Skip to main content link - visually hidden until focused */
@@ -49,11 +50,14 @@
   justify-content: space-between;
   align-items: center;
 
-  /* fill */
-  background-color: var(--colorWhite);
+  /* Frosted glass fill — opaque enough that dark text/logo stay legible even
+     when a dark section (e.g. the landing hero) scrolls under the sticky bar. */
+  background-color: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
 
-  /* shadows */
-  box-shadow: var(--boxShadow);
+  /* Hairline divider instead of a heavy drop shadow */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 
   @media (--viewportMedium) {
     height: var(--topbarHeightDesktop);
@@ -62,6 +66,37 @@
   @media (--viewportLarge) {
     display: none;
   }
+}
+
+/* ============ Dark overlay variant (ModernLandingPage) ============ */
+
+/* Mobile counterpart of TopbarDesktop's .onDark: opaque ink matching the
+   landing hero (#05070d == --modernInk, hardcoded since that token lives in the
+   landing subtree). The icons consume --colorGrey700, so retinting the token
+   turns them light without reaching into their class names. */
+.onDark {
+  --colorGrey700: rgba(255, 255, 255, 0.82);
+
+  background-color: #05070d;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-bottom-color: transparent;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Frosted translucent bar once the hero scrolls past — same hand-off as the
+   desktop bar. */
+.onDark.scrolled {
+  background-color: rgba(5, 7, 13, 0.72);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* The logo artwork is dark — invert it to white on the dark bar. (The logo
+   is the only <img> in the mobile bar; the menu/search icons are SVGs.) */
+.onDark img {
+  filter: brightness(0) invert(1);
 }
 
 .logoutButton {
@@ -214,6 +249,113 @@
   padding: 0;
   @media (--viewportMedium) {
     padding: var(--modalPaddingMedium);
+  }
+}
+
+/* ===== Mobile menu — left drawer ===== */
+
+.menuModal {
+  z-index: var(--zIndexModal, 100);
+}
+
+/* The dimmed backdrop. The panel is aligned to the left edge so the drawer
+   "drives" in from the left; clicking the free space closes it (closeOnScrimClick). */
+.menuScrollLayer {
+  display: flex;
+  flex-grow: 1;
+  justify-content: flex-start;
+  align-items: stretch;
+
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+  overflow: hidden;
+
+  background-color: rgba(17, 17, 19, 0.44);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+
+  animation: menuScrimIn 320ms ease both;
+}
+
+/* The sliding panel itself. */
+.menuDrawer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  width: 86vw;
+  max-width: 360px;
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+
+  padding: 0;
+
+  background-color: var(--colorWhite);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 8px 0 48px rgba(0, 0, 0, 0.22);
+
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* Drive in from the left edge */
+  transform: translateX(-100%);
+  animation: menuDriveIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @media (--viewportMedium) {
+    max-width: 400px;
+  }
+}
+
+/* Flex wrapper so the footer CTA can pin to the bottom of the drawer. */
+.menuContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: 0;
+}
+
+/* Reposition the modal's close button into the drawer's top-right corner
+   (default global style pins it to the viewport corner). */
+.menuDrawer :global(.marketplaceModalCloseStyles) {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 12px;
+  color: var(--colorGrey700);
+  border-radius: var(--borderRadiusMedium, 6px);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.menuDrawer :global(.marketplaceModalCloseStyles):enabled:hover,
+.menuDrawer :global(.marketplaceModalCloseStyles):enabled:active {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--colorBlack);
+}
+
+@keyframes menuScrimIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes menuDriveIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menuScrollLayer,
+  .menuDrawer {
+    animation: none;
+  }
+  .menuDrawer {
+    transform: none;
   }
 }
 

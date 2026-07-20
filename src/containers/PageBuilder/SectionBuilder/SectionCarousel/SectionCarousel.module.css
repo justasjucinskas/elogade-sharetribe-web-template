@@ -37,20 +37,30 @@
   padding: 0px 0 4px 0;
   margin-top: -64px;
   border-radius: 100%;
-  border: none;
+  border: 1px solid var(--colorGrey100);
 
-  background-color: lightgrey;
-  opacity: 0.9;
+  background-color: var(--colorWhite);
+  box-shadow: var(--boxShadowPopupLight);
+  opacity: 1;
   font-size: 30px;
-  color: black;
-  transition: all ease-in-out 100ms;
+  color: var(--marketplaceColor);
+  transition: all ease-in-out 150ms;
 
   &:hover {
-    opacity: 1;
     cursor: pointer;
-    background: black;
-    color: white;
+    background: var(--marketplaceColor);
+    color: var(--colorWhite);
+    border-color: var(--marketplaceColor);
+    transform: scale(1.06);
   }
+}
+
+/* Category/image cards: zoom the image on card hover (clipped by .media) */
+.block img {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.block:hover img {
+  transform: scale(1.05);
 }
 
 .carouselArrowPrev {

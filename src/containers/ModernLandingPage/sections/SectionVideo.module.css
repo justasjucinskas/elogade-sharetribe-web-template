@@ -1,0 +1,305 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  position: relative;
+  background: var(--colorWhite);
+}
+
+/* Faint brand glow so the dark video slab sits on a surface with a little
+   depth, without breaking the light → dark (Features) hand-off. */
+.root::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(1100px, 92vw);
+  height: 420px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse 60% 100% at 50% 0%, rgba(0, 113, 227, 0.06), transparent 70%);
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 24px;
+
+  @media (--viewportMedium) {
+    padding: 112px 32px;
+  }
+}
+
+.header {
+  max-width: 640px;
+  margin-bottom: 36px;
+
+  @media (--viewportMedium) {
+    margin-bottom: 56px;
+  }
+}
+
+.title {
+  margin: 0;
+  padding: 0;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--modernInk);
+}
+
+.lede {
+  margin: 14px 0 0;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--modernMutedInk);
+
+  @media (--viewportMedium) {
+    margin-top: 18px;
+    font-size: 18px;
+  }
+}
+
+/* ================= Video card ================= */
+
+/* 16:9 on every breakpoint: the poster frame is 16:9 artwork whose subjects
+   sit near the edges (a 4:3 crop slices them), and the playing embed then
+   fills the card without letterboxing. */
+.videoCard {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--modernInk);
+  box-shadow: 0 1px 2px rgba(5, 7, 13, 0.06), 0 44px 88px -40px rgba(5, 7, 13, 0.55);
+
+  @media (--viewportMedium) {
+    border-radius: 28px;
+  }
+}
+
+.videoFrame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ================= Poster (pre-play facade) ================= */
+
+/* The gradient only shows for the instant before the poster image decodes —
+   it keeps the card on-brand instead of flashing white. */
+.poster {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  appearance: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--colorWhite);
+  background: radial-gradient(90% 130% at 12% 100%, rgba(0, 113, 227, 0.55), transparent 62%),
+    radial-gradient(70% 110% at 88% -4%, rgba(0, 212, 255, 0.2), transparent 60%),
+    linear-gradient(160deg, #0d1526, var(--modernInk) 55%);
+}
+
+/* The video's title frame, bundled locally so nothing loads from YouTube
+   before play. Slow Ken-Burns zoom on hover keeps the card feeling alive. */
+.posterImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.poster:hover .posterImage {
+  transform: scale(1.04);
+}
+
+/* Legibility scrim: the frame is bright, so the title and chips need a dark
+   anchor — heavier at the bottom under the title, a whisper of ink overall. */
+.posterScrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      to top,
+      rgba(5, 7, 13, 0.68) 0%,
+      rgba(5, 7, 13, 0.18) 34%,
+      rgba(5, 7, 13, 0.02) 55%
+    ),
+    linear-gradient(to bottom, rgba(5, 7, 13, 0.28) 0%, rgba(5, 7, 13, 0) 22%);
+}
+
+/* Film grain — matches the hero/features surfaces. Lives on the poster (not
+   the card) so it never dims the playing video. */
+.poster::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--modernGrain);
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+  opacity: 0.07;
+}
+
+.poster:focus-visible {
+  outline: 2px solid var(--modernCyan);
+  outline-offset: -4px;
+}
+
+/* Dark glass (not white) so the chip stays readable over the frame's pale
+   sky. */
+.durationChip {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  font-family: var(--modernMono);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 5px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 100px;
+  background: rgba(5, 7, 13, 0.42);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  @media (--viewportMedium) {
+    top: 24px;
+    right: 26px;
+  }
+}
+
+.playButton {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: rgba(5, 7, 13, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 18px 40px -12px rgba(5, 7, 13, 0.6);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.5s ease,
+    border-color 0.5s ease, box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (--viewportMedium) {
+    width: 84px;
+    height: 84px;
+  }
+}
+
+/* Slow pulse ring radiating from the play button. */
+.playButton::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  animation: mlpVideoPulse 2.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes mlpVideoPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+.poster:hover .playButton {
+  transform: translate(-50%, -50%) scale(1.07);
+  background: var(--marketplaceColor);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 22px 48px -12px rgba(0, 113, 227, 0.7);
+}
+
+.playGlyph {
+  width: 26px;
+  height: 26px;
+  margin-left: 2px; /* optical centering: the triangle leans left of its box */
+  color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.posterTitle {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 18px;
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--colorWhite);
+  text-shadow: 0 1px 12px rgba(5, 7, 13, 0.4);
+
+  @media (--viewportMedium) {
+    left: 28px;
+    bottom: 24px;
+    font-size: 22px;
+  }
+}
+
+/* ================= Entrance ================= */
+
+.revealReady .header,
+.revealReady .videoCard {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.isRevealed .header,
+.isRevealed .videoCard {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.isRevealed .videoCard {
+  transition-delay: 0.12s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revealReady .header,
+  .revealReady .videoCard {
+    opacity: 1;
+    transform: none;
+  }
+  .playButton,
+  .posterImage {
+    transition: none;
+  }
+  .poster:hover .posterImage {
+    transform: none;
+  }
+  .playButton::before {
+    animation: none;
+  }
+}

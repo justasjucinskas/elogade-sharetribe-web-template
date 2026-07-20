@@ -65,6 +65,7 @@ class Portal extends React.Component {
  * @param {Function} props.onClose
  * @param {Function} props.onManageDisableScrolling
  * @param {boolean} props.usePortal
+ * @param {boolean} props.closeOnScrimClick close when the dimmed area outside the content is clicked (drawer-style modals)
  * @returns {JSX.Element} Modal element
  */
 export class ModalComponent extends Component {
@@ -72,6 +73,7 @@ export class ModalComponent extends Component {
     super(props);
     this.handleBodyKeyUp = this.handleBodyKeyUp.bind(this);
     this.handleClose = this.handleClose.bind(this);
+    this.handleScrimClick = this.handleScrimClick.bind(this);
     this.handleResize = this.handleResize.bind(this);
 
     this.refDiv = React.createRef();
@@ -148,6 +150,15 @@ export class ModalComponent extends Component {
     onClose(event);
   }
 
+  // When closeOnScrimClick is enabled, clicking the dimmed area outside the
+  // modal content (the scroll layer itself, not a bubbled child click) closes
+  // the modal. Used by drawer-style modals such as the mobile menu.
+  handleScrimClick(event) {
+    if (this.props.closeOnScrimClick && event.target === event.currentTarget) {
+      this.handleClose(event);
+    }
+  }
+
   handleResize() {
     this.vh = window.innerHeight * 0.01;
     window.document.documentElement.style.setProperty('--vh', `${this.vh}px`);
@@ -206,7 +217,7 @@ export class ModalComponent extends Component {
 
     return !usePortal ? (
       <div className={classes}>
-        <div className={scrollLayerClasses}>
+        <div className={scrollLayerClasses} onClick={this.handleScrimClick}>
           <div className={containerClasses}>
             {closeBtn}
             <div className={classNames(contentClassName || css.content)}>{children}</div>
@@ -216,7 +227,7 @@ export class ModalComponent extends Component {
     ) : portalRoot ? (
       <Portal portalRoot={portalRoot}>
         <div className={classes}>
-          <div className={scrollLayerClasses}>
+          <div className={scrollLayerClasses} onClick={this.handleScrimClick}>
             <div
               className={classNames(containerClasses, css.focusedDiv)}
               ref={this.refDiv}

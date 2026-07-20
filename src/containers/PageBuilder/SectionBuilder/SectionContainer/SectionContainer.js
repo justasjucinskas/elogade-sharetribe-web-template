@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 
+import { useReveal } from '../../../../hooks/useReveal';
 import Field from '../../Field';
 
 import css from './SectionContainer.module.css';
@@ -23,17 +24,35 @@ import css from './SectionContainer.module.css';
  * @param {string?} props.as tag/element name. Defaults to 'section'.
  * @param {ReactNode} props.children
  * @param {Object} props.appearance
+ * @param {boolean?} props.revealDisabled skip the scroll-reveal entrance (e.g. the hero handles its own)
  * @param {Object} props.options extra options for the section component (e.g. custom fieldComponents)
  * @param {Object<string,FieldComponentConfig>?} props.options.fieldComponents custom fields
  * @returns {JSX.Element} containing wrapper that can be used inside Block components.
  */
 const SectionContainer = props => {
-  const { className, rootClassName, id, as, children, appearance, options, ...otherProps } = props;
+  const {
+    className,
+    rootClassName,
+    id,
+    as,
+    children,
+    appearance,
+    options,
+    revealDisabled,
+    ...otherProps
+  } = props;
   const Tag = as || 'section';
   const classes = classNames(rootClassName || css.root, className);
 
+  // Fade the section content up as it enters the viewport (SSR-safe; see useReveal).
+  const { ref, enabled, revealed } = useReveal();
+  const contentClasses = classNames(css.sectionContent, {
+    [css.revealReady]: enabled && !revealDisabled,
+    [css.isRevealed]: revealed && !revealDisabled,
+  });
+
   return (
-    <Tag className={classes} id={id} {...otherProps}>
+    <Tag className={classes} id={id} ref={revealDisabled ? undefined : ref} {...otherProps}>
       {appearance?.fieldType === 'customAppearance' ? (
         <Field
           data={{ alt: `Background image for ${id}`, ...appearance }}
@@ -42,7 +61,7 @@ const SectionContainer = props => {
         />
       ) : null}
 
-      <div className={css.sectionContent}>{children}</div>
+      <div className={contentClasses}>{children}</div>
     </Tag>
   );
 };

@@ -25,14 +25,16 @@
   border-radius: 50%;
   background-color: var(--colorWhite);
   cursor: pointer;
+  box-shadow: var(--boxShadowButton);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 
-  &:hover  {
-    transform: scale(1.1);
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.3);
+  &:hover {
+    transform: scale(1.15);
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.25);
   }
 }
 
 .dragged {
-  transform: scale(1.1);
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.3);
+  transform: scale(1.15);
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.25);
 }

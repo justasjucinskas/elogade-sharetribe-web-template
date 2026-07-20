@@ -3,8 +3,11 @@
 
 .media {
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--borderRadiusMedium);
   margin-bottom: 0;
+
+  /* Clip so an inner image can zoom on hover without spilling the rounded corners */
+  overflow: hidden;
 }
 
 .text {

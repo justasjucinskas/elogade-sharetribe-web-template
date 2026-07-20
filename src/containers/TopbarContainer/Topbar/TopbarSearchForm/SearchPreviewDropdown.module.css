@@ -1,0 +1,115 @@
+@import '../../../../styles/customMediaQueries.css';
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: var(--zIndexPopup);
+
+  /* Mobile: full width of the search modal */
+  width: 100%;
+  margin-top: 8px;
+
+  background-color: var(--colorWhite);
+  border: 1px solid var(--colorGrey100);
+  border-radius: var(--borderRadiusMedium);
+  box-shadow: var(--boxShadowPopup);
+  overflow: hidden;
+
+  /* Desktop: fixed-width dropdown anchored to the topbar search */
+  @media (--viewportMedium) {
+    right: auto;
+    width: 420px;
+    max-width: calc(100vw - 48px);
+  }
+}
+
+.message {
+  padding: 16px 20px;
+  color: var(--colorGrey600);
+  font-size: 14px;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: var(--borderRadius);
+  color: var(--colorGrey900);
+  text-decoration: none;
+  transition: background-color 0.12s ease;
+
+  &:hover {
+    background-color: var(--colorGrey50);
+    text-decoration: none;
+  }
+}
+
+/* Arrow-key highlight. Focus stays on the input (aria-activedescendant
+   pattern), so this is the only visible cue for keyboard users — it has to
+   match the mouse hover treatment. */
+.rowActive {
+  background-color: var(--colorGrey50);
+}
+
+.thumb {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--borderRadius);
+  overflow: hidden;
+  background-color: var(--colorGrey100);
+}
+
+.thumbImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rowInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rowTitle {
+  font-weight: var(--fontWeightSemiBold);
+  font-size: 14px;
+  line-height: 18px;
+
+  /* truncate long titles */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowPrice {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--marketplaceColor);
+  font-weight: var(--fontWeightMedium);
+}
+
+.seeAll {
+  display: block;
+  padding: 12px 20px;
+  border-top: 1px solid var(--colorGrey100);
+  font-size: 14px;
+  font-weight: var(--fontWeightSemiBold);
+  color: var(--marketplaceColor);
+  text-decoration: none;
+
+  &:hover {
+    background-color: var(--colorGrey50);
+    text-decoration: none;
+  }
+}

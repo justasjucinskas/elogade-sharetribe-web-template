@@ -103,6 +103,14 @@
   font-size: 28px;
   margin: 15px 15px 0px 0px;
   padding: 10px 15px;
+
+  display: inline-block;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    opacity: 0.75;
+  }
 }
 
 .logoLink {
