@@ -67,7 +67,9 @@ const queryCategoryCountsPayloadCreator = (arg, { extra: sdk }) => {
   return Promise.all(
     CATEGORY_TILES.map(({ id }) =>
       sdk.listings
-        .query({ pub_categoryLevel1: id, perPage: 1 })
+        // The stock filters mirror what SearchPage always sends, so a tile's
+        // count matches what clicking through to it actually shows.
+        .query({ pub_categoryLevel1: id, perPage: 1, minStock: 1, stockMode: 'match-undefined' })
         .then(res => [id, res.data.meta.totalItems])
         .catch(() => [id, null])
     )
