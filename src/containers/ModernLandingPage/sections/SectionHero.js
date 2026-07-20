@@ -4,7 +4,6 @@ import classNames from 'classnames';
 import { useConfiguration } from '../../../context/configurationContext';
 import { useIntl } from '../../../util/reactIntl';
 import { formatMoney } from '../../../util/currency';
-import { formatListingFieldOption } from '../../../util/hostedLabels';
 import { useReveal } from '../../../hooks/useReveal';
 
 import { NamedLink, ResponsiveImage } from '../../../components';
@@ -26,25 +25,9 @@ import css from './SectionHero.module.css';
 const COLUMN_COUNT = 2;
 const CARDS_PER_COLUMN = 5;
 
-/**
- * Condition badge for a listing card: the `productcondition` enum option,
- * translated through the hostedLabels overlay with the Console label as
- * fallback.
- */
-const conditionBadge = (intl, config, listing) => {
-  const conditionKey = listing.attributes.publicData?.productcondition;
-  if (!conditionKey) {
-    return null;
-  }
-  const fieldConfig = config.listing?.listingFields?.find(f => f.key === 'productcondition');
-  const optionConfig = fieldConfig?.enumOptions?.find(o => o.option === conditionKey);
-  return formatListingFieldOption(
-    intl,
-    'productcondition',
-    conditionKey,
-    optionConfig?.label || conditionKey
-  );
-};
+// The seller credited on a listing card. Deleted/banned authors carry no
+// profile, in which case the card simply omits the name.
+const sellerName = listing => listing.author?.attributes?.profile?.displayName || null;
 
 // Round-robin the descriptors into COLUMN_COUNT columns, then cycle each column
 // up to CARDS_PER_COLUMN so every column is tall enough to loop seamlessly.
@@ -86,56 +69,57 @@ const SectionHero = props => {
       key: listing.id.uuid,
       title,
       priceText: price ? formatMoney(intl, price) : null,
-      badge: conditionBadge(intl, config, listing),
+      seller: sellerName(listing),
       image: firstImage,
       imageVariants,
     };
   });
 
   // Placeholder composition — only rendered when too few photographed listings
-  // exist. Real product names read better than "Item A".
+  // exist. Real product names read better than "Item A"; the seller names are
+  // deliberately generic first-name-plus-initial stand-ins.
   const placeholderDescriptors = [
     {
       key: 'phone',
       icon: <IconPhone className={css.cardIcon} />,
       title: 'iPhone 15 Pro · 128 GB',
       priceText: '€749',
-      badge: msg('badgePreloved'),
+      seller: 'Tomas K.',
     },
     {
       key: 'audio',
       icon: <IconHeadphones className={css.cardIcon} />,
       title: 'Sony WH-1000XM5',
       priceText: '€189',
-      badge: msg('badgeLikeNew'),
+      seller: 'Rūta M.',
     },
     {
       key: 'laptop',
       icon: <IconLaptop className={css.cardIcon} />,
       title: 'MacBook Air M2',
       priceText: '€829',
-      badge: msg('badgeLikeNew'),
+      seller: 'Andrius P.',
     },
     {
       key: 'console',
       icon: <IconController className={css.cardIcon} />,
       title: 'DualSense Edge',
       priceText: '€159',
-      badge: msg('badgeNew'),
+      seller: 'Gabija V.',
     },
     {
       key: 'watch',
       icon: <IconWatch className={css.cardIcon} />,
       title: 'Apple Watch Series 9',
       priceText: '€329',
-      badge: msg('badgeLikeNew'),
+      seller: 'Mantas B.',
     },
     {
       key: 'camera',
       icon: <IconCamera className={css.cardIcon} />,
       title: 'Canon EOS R50',
       priceText: '€679',
-      badge: msg('badgeNew'),
+      seller: 'Ieva S.',
     },
   ].map(p => ({ type: 'placeholder', ...p }));
 
@@ -163,7 +147,7 @@ const SectionHero = props => {
             <span className={css.cardName}>{d.title}</span>
             <span className={css.cardRow}>
               <span className={css.cardPrice}>{d.priceText}</span>
-              {d.badge ? <span className={css.cardBadge}>{d.badge}</span> : null}
+              {d.seller ? <span className={css.cardSeller}>{d.seller}</span> : null}
             </span>
           </div>
         </>
@@ -177,7 +161,7 @@ const SectionHero = props => {
             <span className={css.cardName}>{d.title}</span>
             <span className={css.cardRow}>
               <span className={css.cardPrice}>{d.priceText}</span>
-              <span className={css.cardBadge}>{d.badge}</span>
+              <span className={css.cardSeller}>{d.seller}</span>
             </span>
           </div>
         </>

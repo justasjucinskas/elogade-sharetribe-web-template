@@ -27,8 +27,10 @@ const queryFeaturedListingsPayloadCreator = (
       perPage: 12,
       minStock: 1,
       stockMode: 'match-undefined',
-      include: ['images'],
+      include: ['author', 'images'],
       'fields.image': [`variants.${variantPrefix}`, `variants.${variantPrefix}-2x`],
+      // The showcase cards credit the seller by name.
+      'fields.user': ['profile.displayName'],
       ...createImageVariantConfig(`${variantPrefix}`, 400, aspectRatio),
       ...createImageVariantConfig(`${variantPrefix}-2x`, 800, aspectRatio),
     })
