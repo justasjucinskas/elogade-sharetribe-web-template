@@ -14,10 +14,58 @@ way to update this template, but currently, we follow a pattern:
 
 ## Upcoming version 2026-XX-XX
 
-- [fix] Fix negotiation email templates
-  [#878](https://github.com/sharetribe/web-template/pull/878)
+- [add] Add currently available translations for DE, ES, FR.
+  [#906](https://github.com/sharetribe/web-template/pull/906)
+
+## [v12.2.0] 2026-08-13
+
+- [change] Listing images can now be re-ordered while editing/creating a listing. Default behaviour
+  uses a handle for drag-and-drop functionality, and there is also keyboard support for
+  accessibility. [#889](https://github.com/sharetribe/web-template/pull/889)
+- [fix] the default-download process was not taking into use the 1 day expiration time marked on the
+  process. [#902](https://github.com/sharetribe/web-template/pull/902)
+- [change] When access token expires, we have not shared the token store between sdk.listings.show
+  and sdk.exchangeToken calls. This has caused unnecessary retries against those API endpoints.
+  [#901](https://github.com/sharetribe/web-template/pull/901)
+- [fix] EditListingAvailabilityPlanForm: add screenreader text for delete button and make it a
+  semantic button. [#899](https://github.com/sharetribe/web-template/pull/899)
+- [change] Update moment-timezone: 0.6.2. > 0.6.3 (also dependabot were earlier updating lodash and
+  tmp) [#900](https://github.com/sharetribe/web-template/pull/900)
+- [fix] InboxSortForm does not have submit button so we warn the user about immediate change of
+  content after sort input has been changed.
+  [#892](https://github.com/sharetribe/web-template/pull/892)
+- [fix] EditListingPricingPanel: initialValues.price was not there with priceVariants.
+  [#892](https://github.com/sharetribe/web-template/pull/893)
+- [change] Update CircleCI config to v2.1.
+  [#894](https://github.com/sharetribe/web-template/pull/894)
+- [change] PaginationLinks: turn the container into a list to improve accessibility.
+  [#891](https://github.com/sharetribe/web-template/pull/891)
+- [change] Topbar/PriorityLinks: turn the container into a list to improve accessibility.
+  [#888](https://github.com/sharetribe/web-template/pull/888)
+- [fix] Harden Mapbox loading [#890](https://github.com/sharetribe/web-template/pull/890)
+
+  [v12.2.0]: https://github.com/sharetribe/web-template/compare/v12.1.0...v12.2.0
+
+## [v12.1.0] 2026-07-27
+
+- [change] Remove locales used by Moment.js. Those files were originally used by react-dates
+  dependency library, which is no longer used.
+  [#879](https://github.com/sharetribe/web-template/pull/879)
+- [change] Update sharetribe-flex-sdk to v1.24.1.
+  [#886](https://github.com/sharetribe/web-template/pull/886)
+- [add] Add currently available translations for DE, ES, FR.
+  [#885](https://github.com/sharetribe/web-template/pull/885)
+- [add] Add manual download link option to files.
+  [#883](https://github.com/sharetribe/web-template/pull/883)
+- [change] server/log.js: omit not-found listings from Sentry errors
+  [#881](https://github.com/sharetribe/web-template/pull/881)
+- [fix] Catch auth thunk rejections to avoid React development overlay.
+  [#882](https://github.com/sharetribe/web-template/pull/882)
+- [fix] Fix negotiation email templates [#878](https://github.com/sharetribe/web-template/pull/878)
 - [fix] Fix typo in a default-download email template
   [#877](https://github.com/sharetribe/web-template/pull/877)
+
+  [v12.1.0]: https://github.com/sharetribe/web-template/compare/v12.0.0...v12.1.0
 
 ## [v12.0.0] 2026-07-14
 

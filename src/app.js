@@ -2,8 +2,6 @@ import React, { useEffect } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter, StaticRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import loadable from '@loadable/component';
-import moment from 'moment';
 
 // Configs and store setup
 import defaultConfig from './config/configDefault';
@@ -101,60 +99,13 @@ const buildMessages = (locale, hostedTranslations) => {
   return locale === 'en' ? { ...merged, ...hostedTranslations } : merged;
 };
 
-// For customized apps, this dynamic loading of locale files is not necessary.
-// It helps locale change from configDefault.js file or hosted configs, but customizers should probably
-// just remove this and directly import the necessary locale on step 2.
-const MomentLocaleLoader = props => {
-  const { children, locale } = props;
-  const isAlreadyImportedLocale =
-    typeof hardCodedLocale !== 'undefined' && locale === hardCodedLocale;
-
-  // Moment's built-in locale does not need loader
-  const NoLoader = props => <>{props.children()}</>;
-
-  // The default locale is en (en-US). Here we dynamically load one of the other common locales.
-  // However, the default is to include all supported locales package from moment library.
-  const MomentLocale =
-    ['en', 'en-US'].includes(locale) || isAlreadyImportedLocale
-      ? NoLoader
-      : ['lt', 'lt-LT'].includes(locale)
-      ? loadable.lib(() => import(/* webpackChunkName: "lt" */ 'moment/locale/lt'))
-      : ['pl', 'pl-PL'].includes(locale)
-      ? loadable.lib(() => import(/* webpackChunkName: "pl" */ 'moment/locale/pl'))
-      : ['fr', 'fr-FR'].includes(locale)
-      ? loadable.lib(() => import(/* webpackChunkName: "fr" */ 'moment/locale/fr'))
-      : ['de', 'de-DE'].includes(locale)
-      ? loadable.lib(() => import(/* webpackChunkName: "de" */ 'moment/locale/de'))
-      : ['es', 'es-ES'].includes(locale)
-      ? loadable.lib(() => import(/* webpackChunkName: "es" */ 'moment/locale/es'))
-      : ['fi', 'fi-FI'].includes(locale)
-      ? loadable.lib(() => import(/* webpackChunkName: "fi" */ 'moment/locale/fi'))
-      : ['nl', 'nl-NL'].includes(locale)
-      ? loadable.lib(() => import(/* webpackChunkName: "nl" */ 'moment/locale/nl'))
-      : loadable.lib(() => import(/* webpackChunkName: "locales" */ 'moment/min/locales.min'));
-
-  return (
-    <MomentLocale>
-      {() => {
-        // Set the Moment locale globally
-        // See: http://momentjs.com/docs/#/i18n/changing-locale/
-        moment.locale(locale);
-        return children;
-      }}
-    </MomentLocale>
-  );
-};
-
 const Configurations = props => {
-  const { appConfig, intlLocale, children } = props;
+  const { appConfig, children } = props;
   const routeConfig = routeConfiguration(appConfig.layout, appConfig?.accessControl);
-  const locale = isTestEnv ? 'en' : intlLocale || appConfig.localization.locale;
 
   return (
     <ConfigurationProvider value={appConfig}>
-      <MomentLocaleLoader locale={locale}>
-        <RouteConfigurationProvider value={routeConfig}>{children}</RouteConfigurationProvider>
-      </MomentLocaleLoader>
+      <RouteConfigurationProvider value={routeConfig}>{children}</RouteConfigurationProvider>
     </ConfigurationProvider>
   );
 };
@@ -270,7 +221,7 @@ export const ClientApp = props => {
   const logLoadDataCalls = appSettings?.env !== 'test';
 
   return (
-    <Configurations appConfig={appConfig} intlLocale={intlLocale}>
+    <Configurations appConfig={appConfig}>
       <IntlProvider locale={intlLocale} messages={messages} textComponent="span">
         <Provider store={store}>
           <HelmetProvider>
@@ -321,7 +272,7 @@ export const ServerApp = props => {
   const initialPathname = new URL(url, 'http://example.com')?.pathname;
 
   return (
-    <Configurations appConfig={appConfig} intlLocale={intlLocale}>
+    <Configurations appConfig={appConfig}>
       <IntlProvider locale={intlLocale} messages={messages} textComponent="span">
         <Provider store={store}>
           <HelmetProvider context={helmetContext}>
