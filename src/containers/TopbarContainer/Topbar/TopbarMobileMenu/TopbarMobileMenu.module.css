@@ -204,3 +204,18 @@
   width: 100%;
   height: 80px;
 }
+
+/* Payout-setup reminder dot next to the "Account settings" link */
+.payoutDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 9px;
+
+  background-color: var(--colorAttention);
+}
+
+.payoutDotRestricted {
+  background-color: var(--colorFail);
+}

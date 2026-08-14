@@ -19,6 +19,11 @@ import {
   NotificationBadge,
 } from '../../../../components';
 
+import {
+  usePayoutStatus,
+  PAYOUT_STATUS_RESTRICTED,
+} from '../PayoutStatusBanner/PayoutStatusBanner';
+
 import css from './TopbarMobileMenu.module.css';
 
 const CustomLinkComponent = ({ linkConfig, currentPage }) => {
@@ -88,6 +93,7 @@ const TopbarMobileMenu = props => {
   } = props;
 
   const user = ensureCurrentUser(currentUser);
+  const payoutStatus = usePayoutStatus();
 
   const extraLinks = customLinks.map((linkConfig, index) => {
     return (
@@ -195,6 +201,13 @@ const TopbarMobileMenu = props => {
           <li className={classNames(css.navigationLink, currentPageClass('AccountSettingsPage'))}>
             <NamedLink name="AccountSettingsPage">
               <FormattedMessage id="TopbarMobileMenu.accountSettingsLink" />
+              {payoutStatus ? (
+                <span
+                  className={classNames(css.payoutDot, {
+                    [css.payoutDotRestricted]: payoutStatus === PAYOUT_STATUS_RESTRICTED,
+                  })}
+                />
+              ) : null}
             </NamedLink>
           </li>
         </ul>

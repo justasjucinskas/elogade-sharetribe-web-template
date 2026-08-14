@@ -16,6 +16,10 @@ import {
 } from '../../../../components';
 
 import TopbarSearchForm from '../TopbarSearchForm/TopbarSearchForm';
+import {
+  usePayoutStatus,
+  PAYOUT_STATUS_RESTRICTED,
+} from '../PayoutStatusBanner/PayoutStatusBanner';
 import CustomLinksMenu from './CustomLinksMenu/CustomLinksMenu';
 
 import css from './TopbarDesktop.module.css';
@@ -55,12 +59,31 @@ const InboxLink = ({ notificationCount, inboxTab }) => {
   );
 };
 
-const ProfileMenu = ({ currentPage, currentUser, onLogout, showManageListingsLink, intl }) => {
+const ProfileMenu = ({
+  currentPage,
+  currentUser,
+  onLogout,
+  showManageListingsLink,
+  intl,
+  payoutStatus,
+}) => {
   const currentPageClass = page => {
     const isAccountSettingsPage =
       page === 'AccountSettingsPage' && ACCOUNT_SETTINGS_PAGES.includes(currentPage);
     return currentPage === page || isAccountSettingsPage ? css.currentPage : null;
   };
+
+  const payoutDotClasses = classNames(css.payoutDot, {
+    [css.payoutDotRestricted]: payoutStatus === PAYOUT_STATUS_RESTRICTED,
+  });
+  const avatarPayoutDotMaybe = payoutStatus ? <span className={payoutDotClasses} /> : null;
+  const menuItemPayoutDotMaybe = payoutStatus ? (
+    <span
+      className={classNames(css.menuItemPayoutDot, {
+        [css.payoutDotRestricted]: payoutStatus === PAYOUT_STATUS_RESTRICTED,
+      })}
+    />
+  ) : null;
 
   return (
     <Menu skipFocusOnNavigation={true}>
@@ -70,7 +93,10 @@ const ProfileMenu = ({ currentPage, currentUser, onLogout, showManageListingsLin
         isOpenClassName={css.profileMenuIsOpen}
         ariaLabel={intl.formatMessage({ id: 'TopbarDesktop.screenreader.profileMenu' })}
       >
-        <Avatar className={css.avatar} user={currentUser} disableProfileLink />
+        <span className={css.avatarWrapper}>
+          <Avatar className={css.avatar} user={currentUser} disableProfileLink />
+          {avatarPayoutDotMaybe}
+        </span>
       </MenuLabel>
       <MenuContent className={css.profileMenuContent}>
         {showManageListingsLink ? (
@@ -100,6 +126,7 @@ const ProfileMenu = ({ currentPage, currentUser, onLogout, showManageListingsLin
           >
             <span className={css.menuItemBorder} />
             <FormattedMessage id="TopbarDesktop.accountSettingsLink" />
+            {menuItemPayoutDotMaybe}
           </NamedLink>
         </MenuItem>
         <MenuItem key="logout">
@@ -155,6 +182,7 @@ const TopbarDesktop = props => {
     scrolled,
   } = props;
   const [mounted, setMounted] = useState(false);
+  const payoutStatus = usePayoutStatus();
 
   useEffect(() => {
     setMounted(true);
@@ -182,6 +210,7 @@ const TopbarDesktop = props => {
       onLogout={onLogout}
       showManageListingsLink={showCreateListingsLink}
       intl={intl}
+      payoutStatus={payoutStatus}
     />
   ) : null;
 

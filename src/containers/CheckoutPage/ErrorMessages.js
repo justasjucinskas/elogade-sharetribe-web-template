@@ -87,7 +87,10 @@ export const getErrorMessages = (
   // We want to show one error at a time for speculateTransition
   if (isTransactionInitiateMissingStripeAccountError(speculateTransactionError)) {
     speculateErrorMessage = (
-      <FormattedMessage id="CheckoutPage.providerStripeAccountMissingError" />
+      <FormattedMessage
+        id="CheckoutPage.providerStripeAccountMissingError"
+        values={{ listingLink }}
+      />
     );
   } else if (isTransactionInitiateBookingTimeNotAvailableError(speculateTransactionError)) {
     speculateErrorMessage = <FormattedMessage id="CheckoutPage.bookingTimeNotAvailableMessage" />;

@@ -219,6 +219,40 @@
   margin: 16px 0;
 }
 
+.avatarWrapper {
+  position: relative;
+  display: flex;
+}
+
+/* Payout-setup reminder dot over the avatar */
+.payoutDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+
+  position: absolute;
+  top: 14px;
+  right: -1px;
+
+  background-color: var(--colorAttention);
+  border: 2px solid var(--colorWhite);
+}
+
+.payoutDotRestricted {
+  background-color: var(--colorFail);
+}
+
+/* Inline variant used next to the "Account settings" menu item */
+.menuItemPayoutDot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-left: 9px;
+
+  background-color: var(--colorAttention);
+}
+
 .profileMenuContent {
   min-width: 276px;
   padding-top: 20px;

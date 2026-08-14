@@ -1,0 +1,72 @@
+.root {
+  /* Layout: message + action link (+ dismiss) on one line, wrapping on narrow screens */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  column-gap: 18px;
+  row-gap: 6px;
+
+  width: 100%;
+  padding: 12px 24px;
+
+  /* Tier 1 (missing payout details): calm attention palette */
+  background-color: var(--colorAttentionSubtle);
+  color: var(--colorAttentionDark);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Tier 2 (restricted Stripe account): payouts are actually blocked */
+.restricted {
+  background-color: var(--colorFailSubtle);
+  color: var(--colorFailDark);
+}
+
+.text {
+  margin: 0;
+  padding: 0;
+
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: var(--fontWeightMedium);
+}
+
+.actionLink {
+  flex-shrink: 0;
+
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: var(--fontWeightSemiBold);
+  color: inherit;
+  text-decoration: underline;
+
+  &:hover {
+    color: inherit;
+    text-decoration: underline;
+    opacity: 0.8;
+  }
+}
+
+.dismissButton {
+  /* Comfortable tap target without inflating the banner height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: -9px 0;
+  padding: 0;
+
+  border: none;
+  background-color: transparent;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.dismissIcon {
+  stroke: currentColor;
+}
