@@ -6,6 +6,7 @@ import { FormattedMessage, useIntl } from '../../../../util/reactIntl';
 import { ensureCurrentUser } from '../../../../util/data';
 import { isUserAuthorized } from '../../../../util/userHelpers';
 import { fetchStripeAccountThunk } from '../../../../ducks/stripeConnectAccount.duck';
+import { fetchCurrentUserHasListingsThunk } from '../../../../ducks/user.duck';
 
 import { NamedLink } from '../../../../components';
 
@@ -20,6 +21,13 @@ const SESSION_STORAGE_KEY = 'PayoutStatusBanner.dismissed';
 // the stripeAccount relationship included in the currentUser payload doesn't
 // carry stripeAccountData, which is needed to detect a restricted account.
 let stripeAccountRequested = false;
+
+// currentUserHasListings is not reliably populated on every entry path: page
+// ducks that fetch the user with updateHasListings:false can win the
+// one-second dedup race in user.duck against the index.js bootstrap fetch,
+// leaving the flag false for the whole SPA session. Re-request it once per
+// page load when it's still unresolved.
+let hasListingsRequested = false;
 
 // Check if there's requirements on selected type: 'past_due', 'currently_due' etc.
 const hasRequirements = (stripeAccountData, requirementType) =>
@@ -79,6 +87,7 @@ const PayoutStatusBanner = props => {
 
   const currentUser = useSelector(state => state.user.currentUser);
   const currentUserHasListings = useSelector(state => state.user.currentUserHasListings);
+  const currentUserHasListingsError = useSelector(state => state.user.currentUserHasListingsError);
   const stripeAccount = useSelector(state => state.stripeConnectAccount.stripeAccount);
   const status = usePayoutStatus();
 
@@ -91,6 +100,16 @@ const PayoutStatusBanner = props => {
   }, []);
 
   const user = ensureCurrentUser(currentUser);
+  const shouldFetchHasListings =
+    !!user.id && isUserAuthorized(user) && !currentUserHasListings && !currentUserHasListingsError;
+
+  useEffect(() => {
+    if (mounted && shouldFetchHasListings && !hasListingsRequested) {
+      hasListingsRequested = true;
+      dispatch(fetchCurrentUserHasListingsThunk());
+    }
+  }, [mounted, shouldFetchHasListings, dispatch]);
+
   const shouldFetchStripeAccount =
     !!user.id &&
     isUserAuthorized(user) &&
