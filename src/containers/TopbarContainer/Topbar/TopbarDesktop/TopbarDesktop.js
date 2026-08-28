@@ -13,6 +13,7 @@ import {
   MenuContent,
   MenuItem,
   NamedLink,
+  NotificationBadge,
 } from '../../../../components';
 
 import TopbarSearchForm from '../TopbarSearchForm/TopbarSearchForm';
@@ -42,8 +43,17 @@ const LoginLink = () => {
   );
 };
 
-const InboxLink = ({ notificationCount, inboxTab }) => {
-  const notificationDot = notificationCount > 0 ? <div className={css.notificationDot} /> : null;
+const InboxLink = ({ notificationCount, unreadMessageCount, inboxTab }) => {
+  // Unread messages are shown as an exact count. Transactions needing action
+  // keep the plain dot — they aren't countable in the same units, so they only
+  // surface when there is no message count occupying the same spot.
+  const hasUnreadMessages = unreadMessageCount > 0;
+  const messageBadgeMaybe = hasUnreadMessages ? (
+    <NotificationBadge rootClassName={css.inboxMessageBadge} count={unreadMessageCount} />
+  ) : null;
+  const notificationDotMaybe =
+    !hasUnreadMessages && notificationCount > 0 ? <div className={css.notificationDot} /> : null;
+
   return (
     <NamedLink
       id="inbox-link"
@@ -53,7 +63,8 @@ const InboxLink = ({ notificationCount, inboxTab }) => {
     >
       <span className={css.topbarLinkLabel}>
         <FormattedMessage id="TopbarDesktop.inbox" />
-        {notificationDot}
+        {messageBadgeMaybe}
+        {notificationDotMaybe}
       </span>
     </NamedLink>
   );
@@ -66,6 +77,7 @@ const ProfileMenu = ({
   showManageListingsLink,
   intl,
   payoutStatus,
+  unreadMessageCount,
 }) => {
   const currentPageClass = page => {
     const isAccountSettingsPage =
@@ -77,6 +89,10 @@ const ProfileMenu = ({
     [css.payoutDotRestricted]: payoutStatus === PAYOUT_STATUS_RESTRICTED,
   });
   const avatarPayoutDotMaybe = payoutStatus ? <span className={payoutDotClasses} /> : null;
+  const avatarMessageBadgeMaybe =
+    unreadMessageCount > 0 ? (
+      <NotificationBadge rootClassName={css.messageBadge} count={unreadMessageCount} />
+    ) : null;
   const menuItemPayoutDotMaybe = payoutStatus ? (
     <span
       className={classNames(css.menuItemPayoutDot, {
@@ -95,6 +111,7 @@ const ProfileMenu = ({
       >
         <span className={css.avatarWrapper}>
           <Avatar className={css.avatar} user={currentUser} disableProfileLink />
+          {avatarMessageBadgeMaybe}
           {avatarPayoutDotMaybe}
         </span>
       </MenuLabel>
@@ -151,6 +168,7 @@ const ProfileMenu = ({
  * @param {string?} props.currentPage
  * @param {boolean} props.isAuthenticated
  * @param {number} props.notificationCount
+ * @param {number} props.unreadMessageCount number of unread messages across conversations
  * @param {Function} props.onLogout
  * @param {Function} props.onSearchSubmit
  * @param {Object?} props.initialSearchFormValues
@@ -170,6 +188,7 @@ const TopbarDesktop = props => {
     currentPage,
     rootClassName,
     notificationCount = 0,
+    unreadMessageCount = 0,
     intl,
     isAuthenticated,
     onLogout,
@@ -200,7 +219,11 @@ const TopbarDesktop = props => {
   );
 
   const inboxLinkMaybe = authenticatedOnClientSide ? (
-    <InboxLink notificationCount={notificationCount} inboxTab={inboxTab} />
+    <InboxLink
+      notificationCount={notificationCount}
+      unreadMessageCount={unreadMessageCount}
+      inboxTab={inboxTab}
+    />
   ) : null;
 
   const profileMenuMaybe = authenticatedOnClientSide ? (
@@ -211,6 +234,7 @@ const TopbarDesktop = props => {
       showManageListingsLink={showCreateListingsLink}
       intl={intl}
       payoutStatus={payoutStatus}
+      unreadMessageCount={unreadMessageCount}
     />
   ) : null;
 

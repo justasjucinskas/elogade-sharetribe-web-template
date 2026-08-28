@@ -76,6 +76,7 @@ const CustomLinkComponent = ({ linkConfig, currentPage }) => {
  * @param {boolean} props.currentUserHasListings
  * @param {Object?} props.currentUser API entity
  * @param {number} props.notificationCount
+ * @param {number} props.unreadMessageCount number of unread messages across conversations
  * @param {Array<Object>} props.customLinks Contains object like { group, text, type, href, route }
  * @param {Function} props.onLogout
  * @returns {JSX.Element} search icon
@@ -87,6 +88,7 @@ const TopbarMobileMenu = props => {
     inboxTab,
     currentUser,
     notificationCount = 0,
+    unreadMessageCount = 0,
     customLinks,
     onLogout,
     showCreateListingsLink,
@@ -153,9 +155,13 @@ const TopbarMobileMenu = props => {
     );
   }
 
+  // Transactions needing action and unread messages, combined into one inbox
+  // badge. The two are different units, but the badge answers "how many things
+  // are waiting for you in the inbox", so summing them is what a reader expects.
+  const inboxBadgeCount = notificationCount + unreadMessageCount;
   const notificationCountBadge =
-    notificationCount > 0 ? (
-      <NotificationBadge className={css.notificationBadge} count={notificationCount} />
+    inboxBadgeCount > 0 ? (
+      <NotificationBadge className={css.notificationBadge} count={inboxBadgeCount} />
     ) : null;
 
   const displayName = user.attributes.profile.firstName;

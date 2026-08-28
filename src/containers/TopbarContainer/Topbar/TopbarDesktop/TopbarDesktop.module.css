@@ -224,6 +224,63 @@
   display: flex;
 }
 
+/* Shared shape for the exact unread-message count, in both the places it
+   appears. Pops in like .notificationDot, which it stands in for. */
+.messageCountBadge {
+  /* Font */
+  color: var(--colorWhite);
+  font-size: 10px;
+  font-weight: var(--fontWeightSemiBold);
+  line-height: 1;
+
+  /* Layout: a pill, so a two- or three-digit count grows sideways. Centered
+     with flex rather than line-height, since box-sizing is border-box and only
+     one of the two variants below carries a border. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  padding: 0 4px;
+
+  background-color: var(--colorFail);
+
+  animation-name: notificationPop;
+  animation-duration: 0.1s;
+  animation-delay: 0.1s;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in;
+  opacity: 0;
+  transform: scale(0);
+}
+
+/* Over the avatar, at its top-right corner. .avatarWrapper is the full 72px
+   topbar height and .avatar carries a 16px top margin, so the avatar's own top
+   edge sits at y=16 — the same offset .payoutDot below accounts for. */
+.messageBadge {
+  composes: messageCountBadge;
+
+  position: absolute;
+  top: 11px;
+  right: -5px;
+
+  /* Ring separating the badge from the avatar underneath */
+  border: 1px solid var(--colorWhite);
+}
+
+/* Next to the Inbox link. Inline rather than absolutely positioned like
+   .notificationDot, so a multi-digit count widens the link instead of
+   overlapping the one after it. */
+.inboxMessageBadge {
+  composes: messageCountBadge;
+
+  margin-left: 6px;
+
+  position: relative;
+  top: -1px;
+}
+
 /* Payout-setup reminder dot over the avatar */
 .payoutDot {
   width: 9px;

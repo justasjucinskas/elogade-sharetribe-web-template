@@ -149,6 +149,7 @@ const TopbarComponent = props => {
     currentUserHasOrders,
     currentPage,
     notificationCount = 0,
+    unreadMessageCount = 0,
     intl,
     history,
     location,
@@ -241,7 +242,10 @@ const TopbarComponent = props => {
   const customLinks = getResolvedCustomLinks(sortedCustomLinks, routeConfiguration);
   const resolvedCurrentPage = currentPage || getResolvedCurrentPage(location, routeConfiguration);
 
-  const notificationDot = notificationCount > 0 ? <div className={css.notificationDot} /> : null;
+  const notificationDot =
+    notificationCount > 0 || unreadMessageCount > 0 ? (
+      <div className={css.notificationDot} />
+    ) : null;
 
   const hasMatchMedia = typeof window !== 'undefined' && window?.matchMedia;
   const isMobileLayout = hasMatchMedia
@@ -256,6 +260,7 @@ const TopbarComponent = props => {
       currentUser={currentUser}
       onLogout={handleLogout}
       notificationCount={notificationCount}
+      unreadMessageCount={unreadMessageCount}
       currentPage={resolvedCurrentPage}
       customLinks={customLinks}
       showCreateListingsLink={showCreateListingsLink}
@@ -387,6 +392,7 @@ const TopbarComponent = props => {
           intl={intl}
           isAuthenticated={isAuthenticated}
           notificationCount={notificationCount}
+          unreadMessageCount={unreadMessageCount}
           onLogout={handleLogout}
           onSearchSubmit={handleSubmit}
           config={config}
@@ -468,6 +474,7 @@ const TopbarComponent = props => {
  * @param {boolean} props.currentUserHasOrders
  * @param {string} props.currentPage
  * @param {number} props.notificationCount
+ * @param {number} props.unreadMessageCount number of unread messages across conversations
  * @param {Function} props.onLogout
  * @param {Function} props.onManageDisableScrolling
  * @param {Function} props.onResendVerificationEmail

@@ -27,7 +27,7 @@ import {
 import { messageHasPendingFiles, executeFileUpload } from '../../util/fileHelpers';
 
 import { addMarketplaceEntities } from '../../ducks/marketplaceData.duck';
-import { fetchCurrentUserNotifications } from '../../ducks/user.duck';
+import { fetchCurrentUserNotifications, markTransactionMessagesRead } from '../../ducks/user.duck';
 
 const { UUID } = sdkTypes;
 
@@ -457,6 +457,27 @@ const fetchMessagesPayloadCreator = (
       messagesWithPendingFiles.forEach(m =>
         dispatch(pollForMessageFileVerification(m.id.uuid, txId))
       );
+
+      // Viewing the latest page of the conversation marks it as read for the
+      // topbar unread-message indicator. This is a write to currentUser's
+      // profile, so it must not run while server-rendering a GET — loadData
+      // dispatches this thunk, and a crawler or prefetch would otherwise mark
+      // the conversation read without anyone having seen it.
+      //
+      // The whole page is marked read up to its newest message regardless of
+      // sender: the user is looking at it. Depending on the message's own
+      // sender would silently skip conversations whose counterparty no longer
+      // denormalises (deleted or banned users), leaving them lit forever.
+      if (page === 1 && typeof window !== 'undefined') {
+        const newestMessageAt = messages.reduce(
+          (latest, m) =>
+            !latest || m.attributes.createdAt > latest ? m.attributes.createdAt : latest,
+          null
+        );
+        if (newestMessageAt) {
+          dispatch(markTransactionMessagesRead(txId, newestMessageAt));
+        }
+      }
 
       return { messages, pagination };
     })
