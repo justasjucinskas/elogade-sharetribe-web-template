@@ -3,6 +3,7 @@ import classNames from 'classnames';
 
 import { FormattedMessage } from '../../../../util/reactIntl';
 import { ACCOUNT_SETTINGS_PAGES } from '../../../../routing/routeConfiguration';
+import { showCreateListingLinkForUser } from '../../../../util/userHelpers';
 import {
   Avatar,
   InlineTextButton,
@@ -211,6 +212,12 @@ const TopbarDesktop = props => {
   const authenticatedOnClientSide = mounted && isAuthenticated;
   const isAuthenticatedOrJustHydrated = isAuthenticated || !mounted;
 
+  // Create-listing visibility depends on currentUser. Until mount, use the anonymous rule on
+  // both SSR and the first client render so PriorityLinks markup matches (avoids React #418/#425).
+  const showCreateListingsLinkHydrationSafe = mounted
+    ? showCreateListingsLink
+    : showCreateListingLinkForUser(config, null);
+
   const giveSpaceForSearch = customLinks == null || customLinks?.length === 0;
   const classes = classNames(
     rootClassName || css.root,
@@ -276,7 +283,7 @@ const TopbarDesktop = props => {
         customLinks={customLinks}
         intl={intl}
         hasClientSideContentReady={authenticatedOnClientSide || !isAuthenticatedOrJustHydrated}
-        showCreateListingsLink={showCreateListingsLink}
+        showCreateListingsLink={showCreateListingsLinkHydrationSafe}
       />
 
       {inboxLinkMaybe}

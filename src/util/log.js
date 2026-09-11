@@ -73,7 +73,18 @@ const printAPIErrorsAsConsoleTable = apiErrors => {
 };
 
 const responseAPIErrors = error => {
-  return error && error.data && error.data.errors ? error.data.errors : [];
+  if (!error) {
+    return [];
+  }
+  // SDK / Axios errors attach Marketplace API errors under data.errors
+  if (error?.data?.errors) {
+    return error.data.errors;
+  }
+  // storableError() plain objects use apiErrors (see util/errors.js)
+  if (error.apiErrors) {
+    return error.apiErrors;
+  }
+  return [];
 };
 
 const responseApiErrorInfo = err =>
@@ -85,6 +96,25 @@ const responseApiErrorInfo = err =>
   }));
 
 /**
+ * Sentry truncates nested plain objects in extra.__serialized__ (normalizeDepth),
+ * which turns apiErrors into useless "[Object]" strings. Always capture a real Error.
+ */
+const toCapturableError = e => {
+  if (e instanceof Error) {
+    return e;
+  }
+  const err = new Error(e?.message || 'Unknown error');
+  err.name = e?.name || 'Error';
+  if (e?.status != null) {
+    err.status = e.status;
+  }
+  if (e?.statusText != null) {
+    err.statusText = e.statusText;
+  }
+  return err;
+};
+
+/**
  * Logs an exception. If Sentry is configured
  * sends the error information there. Otherwise
  * prints the error to the console.
@@ -92,10 +122,13 @@ const responseApiErrorInfo = err =>
  * @param {Error} e Error that occurred
  * @param {String} code Error code
  * @param {Object} data Additional data to be sent to Sentry
+ * @param {Object} [options]
+ * @param {boolean} [options.skipSentry] If true, skip Sentry and only log to console
  */
-export const error = (e, code, data) => {
+export const error = (e, code, data, options = {}) => {
+  const { skipSentry = false } = options;
   const apiErrors = responseApiErrorInfo(e);
-  if (appSettings.sentryDsn) {
+  if (appSettings.sentryDsn && !skipSentry) {
     const extra = { ...data, apiErrorData: apiErrors };
 
     Sentry.withScope(scope => {
@@ -103,7 +136,7 @@ export const error = (e, code, data) => {
       Object.keys(extra).forEach(key => {
         scope.setExtra(key, extra[key]);
       });
-      Sentry.captureException(e);
+      Sentry.captureException(toCapturableError(e));
     });
 
     printAPIErrorsAsConsoleTable(apiErrors);
@@ -131,8 +164,9 @@ const setCause = (error, cause) => {
   setCauseIfNoExistingCause(error, cause);
 };
 
-export const onRecoverableError = (e, componentStack) => {
-  let data = {};
+export const onRecoverableError = (e, errorInfo) => {
+  const data = {};
+  const componentStack = errorInfo?.componentStack;
 
   if (componentStack) {
     // Generating this synthetic error allows monitoring services to apply sourcemaps
@@ -147,6 +181,5 @@ export const onRecoverableError = (e, componentStack) => {
     data.componentStack = componentStack;
   }
 
-  // Replace with your error monitoring service.
-  error(error, 'recoverable-error', data);
+  error(e, 'recoverable-error', data);
 };
