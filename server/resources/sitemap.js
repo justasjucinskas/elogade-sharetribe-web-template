@@ -78,8 +78,7 @@ const defaultPublicPaths = {
   landingPage: '/',
   termsOfService: '/terms-of-service',
   privacyPolicy: '/privacy-policy',
-  signup: '/signup',
-  login: '/login',
+  // /signup and /login are `noindex,follow` (AuthenticationPage) and must not be submitted.
   search: '/s',
 };
 

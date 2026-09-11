@@ -11,7 +11,7 @@ import {
   constructQueryParamName,
 } from '../../util/search';
 import { showCreateListingLinkForUser } from '../../util/userHelpers';
-import { createSlug, parse, stringify } from '../../util/urlHelpers';
+import { parse, stringify } from '../../util/urlHelpers';
 import {
   getStartOf,
   parseDateFromISO8601,
@@ -20,6 +20,14 @@ import {
   stringifyDateToISO8601,
 } from '../../util/dates';
 import { isFieldForCategory, isFieldForListingType } from '../../util/fieldHelpers';
+import { DEFAULT_LOCALE } from '../../config/configLocale';
+
+import {
+  getCanonicalSearch,
+  getSearchPageSeo,
+  getSelectedCategoryPath,
+  isCleanCategoryUrl,
+} from './SearchPage.seo';
 
 const validURLParamForCategoryData = (prefix, categories, level, params) => {
   const levelKey = constructQueryParamName(`${prefix}${level}`, 'public');
@@ -420,6 +428,7 @@ export const searchParamsPicker = (
     urlQueryParams: queryParamsFromURL,
     searchParamsInURL,
     searchParamsAreInSync,
+    page,
   };
 };
 
@@ -480,61 +489,6 @@ export const groupListingFieldConfigs = (configs, activeListingTypes) =>
     [[], []]
   );
 
-export const createSearchResultSchema = (
-  listings,
-  mainSearchData,
-  intl,
-  routeConfiguration,
-  config,
-  pageHeading
-) => {
-  // Schema for search engines (helps them to understand what this page is about)
-  // http://schema.org
-  // We are using JSON-LD format
-  const marketplaceName = config.marketplaceName;
-  const { address, keywords } = mainSearchData;
-  const keywordsMaybe = keywords ? `"${keywords}"` : null;
-  const searchTitle =
-    address || keywordsMaybe || intl.formatMessage({ id: 'SearchPage.schemaForSearch' });
-  const schemaDescription = intl.formatMessage({ id: 'SearchPage.schemaDescription' });
-  const schemaTitle = intl.formatMessage(
-    { id: 'SearchPage.schemaTitle' },
-    { searchTitle, marketplaceName, h1: pageHeading }
-  );
-
-  const schemaListings = listings.map((l, i) => {
-    const title = l.attributes.title;
-    const pathToItem = createResourceLocatorString('ListingPage', routeConfiguration, {
-      id: l.id.uuid,
-      slug: createSlug(title),
-    });
-    return {
-      '@type': 'ListItem',
-      position: i,
-      url: `${config.marketplaceRootURL}${pathToItem}`,
-      name: title,
-    };
-  });
-
-  const schemaMainEntity = JSON.stringify({
-    '@type': 'ItemList',
-    name: searchTitle,
-    itemListOrder: 'http://schema.org/ItemListOrderAscending',
-    itemListElement: schemaListings,
-  });
-  return {
-    title: schemaTitle,
-    description: schemaDescription,
-    schema: {
-      '@context': 'http://schema.org',
-      '@type': 'SearchResultsPage',
-      description: schemaDescription,
-      name: schemaTitle,
-      mainEntity: [schemaMainEntity],
-    },
-  };
-};
-
 const getSelectedSecondaryFiltersCount = (
   validQueryParams,
   filterConfigs,
@@ -583,6 +537,7 @@ export const getDerivedRenderData = ({
   searchInProgress,
   currentPathParams = {},
   currentUser,
+  currentLocale = DEFAULT_LOCALE,
 }) => {
   const { listingType: listingTypePathParam } = currentPathParams;
 
@@ -613,7 +568,7 @@ export const getDerivedRenderData = ({
     mainSearch,
   };
 
-  const { searchParamsAreInSync, urlQueryParams, searchParamsInURL } = searchParamsPicker(
+  const { searchParamsAreInSync, urlQueryParams, searchParamsInURL, page } = searchParamsPicker(
     location.search,
     searchParams,
     filterConfigs,
@@ -686,18 +641,28 @@ export const getDerivedRenderData = ({
 
   const showCreateListingsLink = showCreateListingLinkForUser(config, currentUser);
 
-  const pageHeading = searchInProgress
-    ? intl.formatMessage({ id: 'MainPanelHeader.loadingResults' })
-    : intl.formatMessage({ id: 'MainPanelHeader.foundResults' }, { count: totalItems });
-
-  const { title, description, schema } = createSearchResultSchema(
-    listings,
-    searchParamsInURL || {},
+  // SEO: canonical query string, robots directive, <title>/description/<h1>, JSON-LD.
+  // See SearchPage.seo.js for the rules. `location.pathname` is already locale-free (React
+  // Router basename) and is what <Page> uses for the canonical, so JSON-LD URLs match it.
+  const categoryPath = getSelectedCategoryPath(searchParamsInURL, categoryConfiguration, intl);
+  const canonicalSearch = getCanonicalSearch({ categoryPath, page });
+  const isCleanUrl = isCleanCategoryUrl(location.search, canonicalSearch);
+  const { title, description, h1, noIndex, schema } = getSearchPageSeo({
     intl,
-    routeConfiguration,
     config,
-    pageHeading
-  );
+    routeConfiguration,
+    currentLocale,
+    searchPath: location.pathname,
+    searchParamsInURL: searchParamsInURL || {},
+    categoryPath,
+    canonicalSearch,
+    isCleanUrl,
+    page,
+    totalItems,
+    totalPages: pagination?.totalPages,
+    listingsAreLoaded,
+    listings,
+  });
 
   return {
     listingTypePathParam,
@@ -718,6 +683,9 @@ export const getDerivedRenderData = ({
     showCreateListingsLink,
     title,
     description,
+    h1,
+    noIndex,
+    canonicalSearch,
     schema,
     marketplaceCurrency,
     listingCategories,

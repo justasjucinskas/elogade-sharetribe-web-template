@@ -7,16 +7,38 @@
 .searchOptions {
   display: flex;
   flex-direction: row;
+  align-items: flex-start;
   margin-bottom: 8px;
 }
 
-.searchResultSummary {
+.headingWrapper {
+  display: flex;
+  flex-direction: column;
+  margin-right: 8px;
+  min-width: 0;
+}
+
+.heading {
+  composes: h3 from global;
+
+  /* h3 margins are 18px/12px; tighten so heading + summary stay on the 6px baseline */
+  margin-top: 6px;
+  margin-bottom: 0;
+
+  @media (--viewportMedium) {
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
+}
+
+.headingSummary {
   composes: textSmall from global;
 
-  margin-top: 10px;
-  margin-bottom: 11px;
-  margin-left: 0px;
-  margin-right: 8px;
+  margin: 0 8px 6px 0;
+
+  @media (--viewportMedium) {
+    margin-bottom: 8px;
+  }
 }
 
 .loadingResults {

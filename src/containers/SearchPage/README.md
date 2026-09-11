@@ -88,5 +88,8 @@ components for those search schema types. (I.e. you need to build them yourself)
 
 ### SeachPage schema / SEO
 
-Schema is created inside `createSearchResultSchema` in _SearchPage.helpers.js_. It needs listings
-and address to make meaningful JSON-LD presentation for search engines.
+Title, meta description, `<h1>`, canonical query string, robots directive and the JSON-LD graph
+(CollectionPage + ItemList + BreadcrumbList) are computed in _SearchPage.seo.js_ (pure, unit-tested)
+and wired in through `getDerivedRenderData` in _SearchPage.shared.js_. The category threshold and
+the canonical serialiser live in _src/util/categorySeo.js_ so the server-side sitemap can share
+them.

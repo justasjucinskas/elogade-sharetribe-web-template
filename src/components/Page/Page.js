@@ -12,6 +12,7 @@ import { getCustomCSSPropertiesFromConfig } from '../../util/style';
 import { useIntl, intlShape } from '../../util/reactIntl';
 import { metaTagProps } from '../../util/seo';
 import { canonicalRoutePath } from '../../util/routes';
+import { prependLocale } from '../../util/locale';
 import { propTypes } from '../../util/types';
 import { apiBaseUrl } from '../../util/api';
 
@@ -117,6 +118,7 @@ class PageComponent extends Component {
       twitterImages,
       updated,
       noIndex,
+      canonicalSearch = '',
       config,
       routeConfiguration,
       currentLocale,
@@ -136,11 +138,13 @@ class PageComponent extends Component {
     // path-only stops every query-param permutation (faceted SearchPage filters,
     // pagination, tracking params) from publishing its own canonical/hreflang set.
     // For listings the dynamic slug is dropped too, leaving `/l/<id>`.
+    // A page that has query parameters which identify a distinct, indexable document
+    // (SearchPage category facets + pagination) passes them back in via `canonicalSearch`
+    // (a string starting with '?'); they are appended to the canonical and to every
+    // hreflang alternate so the cluster stays self-consistent.
     const canonicalPath = canonicalRoutePath(routeConfiguration, location, true);
-    const prefixWithLocale = (locale, path) => {
-      if (!path || path === '/') return `/${locale}`;
-      return `/${locale}${path.startsWith('/') ? '' : '/'}${path}`;
-    };
+    const prefixWithLocale = (locale, path) =>
+      `${prependLocale(path, locale)}${canonicalSearch || ''}`;
     const canonicalUrl = `${marketplaceRootURL}${prefixWithLocale(currentLocale, canonicalPath)}`;
     // hreflang alternates: one per supported locale plus `x-default` → DEFAULT_LOCALE,
     // all built from the same locale-free canonical path so each entry (including the
@@ -226,13 +230,20 @@ class PageComponent extends Component {
     // E.g. Product, Place, Video
     const hasSchema = schema != null;
     const schemaFromProps = hasSchema && Array.isArray(schema) ? schema : hasSchema ? [schema] : [];
+    // `@context` is declared once at the graph root (https, which is the form Google's
+    // documentation and validator use). Nodes passed in through the `schema` prop may still
+    // carry their own legacy `http://schema.org` context; strip it so the graph has one
+    // context rather than a mix.
+    const withoutContext = node => {
+      const { '@context': _omit, ...rest } = node || {};
+      return rest;
+    };
     const addressMaybe = config.address?.streetAddress ? { address: config.address } : {};
     const schemaArrayJSONString = JSON.stringify({
-      '@context': 'http://schema.org',
+      '@context': 'https://schema.org',
       '@graph': [
-        ...schemaFromProps,
+        ...schemaFromProps.map(withoutContext),
         {
-          '@context': 'http://schema.org',
           '@type': 'Organization',
           '@id': `${marketplaceRootURL}#organization`,
           url: marketplaceRootURL,
@@ -242,8 +253,8 @@ class PageComponent extends Component {
           ...addressMaybe,
         },
         {
-          '@context': 'http://schema.org',
           '@type': 'WebSite',
+          '@id': `${marketplaceRootURL}#website`,
           url: marketplaceRootURL,
           description: schemaDescription,
           name: schemaTitle,
@@ -366,6 +377,9 @@ class PageComponent extends Component {
  * @param {string} props.title - The page title
  * @param {string} props.twitterHandle - The twitter handle
  * @param {string} props.updated - The updated date article:modified_time
+ * @param {boolean} [props.noIndex] - Emit `robots: noindex,follow` and skip hreflang alternates
+ * @param {string} [props.canonicalSearch] - Query string (starting with '?') appended to the
+ *   canonical URL and every hreflang alternate; '' or undefined keeps the path-only canonical
  * @returns {JSX.Element} Page component that handles SEO and social sharing
  */
 const Page = props => {

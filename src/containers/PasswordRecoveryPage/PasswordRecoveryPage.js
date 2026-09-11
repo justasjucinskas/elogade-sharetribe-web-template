@@ -194,6 +194,7 @@ export const PasswordRecoveryPageComponent = props => {
         id: 'PasswordRecoveryPage.title',
       })}
       scrollingDisabled={scrollingDisabled}
+      noIndex
     >
       <LayoutSingleColumn topbar={<TopbarContainer />} footer={<FooterContainer />}>
         <section className={css.root}>

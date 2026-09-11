@@ -154,7 +154,8 @@ export const metaTagProps = (tagData, config) => {
   ];
 
   if (tagData.noIndex) {
-    defaultMeta.push({ name: 'robots', content: 'noindex' });
+    // `follow` keeps the links on noindex pages (e.g. listings on a profile page) crawlable.
+    defaultMeta.push({ name: 'robots', content: 'noindex,follow' });
   }
 
   const openGraphMeta = openGraphMetaProps({
