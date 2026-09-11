@@ -1,4 +1,8 @@
-const { localeMiddleware } = require('./localeMiddleware');
+const {
+  localeMiddleware,
+  stripLocaleFromResourcePath,
+  rewriteLegacySearchParams,
+} = require('./localeMiddleware');
 
 const buildReq = ({ url = '/', cookies = {}, headers = {} } = {}) => {
   // req.path is the pathname portion of req.url, set by Express. Mirror that.
@@ -8,12 +12,17 @@ const buildReq = ({ url = '/', cookies = {}, headers = {} } = {}) => {
 
 const buildRes = () => {
   const cookies = {};
+  const headers = {};
   return {
     cookie: jest.fn((name, value) => {
       cookies[name] = value;
     }),
     redirect: jest.fn(),
+    set: jest.fn((name, value) => {
+      headers[name] = value;
+    }),
     cookies,
+    headers,
   };
 };
 
@@ -64,15 +73,28 @@ describe('localeMiddleware', () => {
   });
 
   describe('without a locale in the path', () => {
-    it('redirects to /<cookie-locale><originalUrl>', () => {
+    it('redirects permanently to /<cookie-locale><originalUrl> without letting browsers cache it', () => {
       const req = buildReq({ url: '/s?keywords=bike', cookies: { locale: 'lt' } });
       const res = buildRes();
 
       localeMiddleware(req, res, jest.fn());
 
-      expect(res.redirect).toHaveBeenCalledWith(302, '/lt/s?keywords=bike');
+      expect(res.redirect).toHaveBeenCalledWith(301, '/lt/s?keywords=bike');
+      expect(res.headers['Cache-Control']).toBe('no-store');
       expect(res.cookie).toHaveBeenCalledWith('locale', 'lt', expect.any(Object));
     });
+
+    it.each(['/', '/p/used-laptops', '/l/6a6c7bfd-630f-44a8-a519-2c2559fcd2d7', '/u/abc'])(
+      'redirects content path %s in a single hop',
+      url => {
+        const req = buildReq({ url, cookies: { locale: 'en' } });
+        const res = buildRes();
+
+        localeMiddleware(req, res, jest.fn());
+
+        expect(res.redirect).toHaveBeenCalledWith(301, url === '/' ? '/en' : `/en${url}`);
+      }
+    );
 
     it('falls back to Accept-Language when no cookie is set', () => {
       const req = buildReq({
@@ -83,7 +105,7 @@ describe('localeMiddleware', () => {
 
       localeMiddleware(req, res, jest.fn());
 
-      expect(res.redirect).toHaveBeenCalledWith(302, '/lt');
+      expect(res.redirect).toHaveBeenCalledWith(301, '/lt');
     });
 
     it('falls back to default locale when nothing else matches', () => {
@@ -92,7 +114,7 @@ describe('localeMiddleware', () => {
 
       localeMiddleware(req, res, jest.fn());
 
-      expect(res.redirect).toHaveBeenCalledWith(302, '/en');
+      expect(res.redirect).toHaveBeenCalledWith(301, '/en');
     });
 
     it('cookie wins over Accept-Language', () => {
@@ -105,7 +127,63 @@ describe('localeMiddleware', () => {
 
       localeMiddleware(req, res, jest.fn());
 
-      expect(res.redirect).toHaveBeenCalledWith(302, '/en/listings');
+      expect(res.redirect).toHaveBeenCalledWith(301, '/en/listings');
+    });
+  });
+
+  describe('legacy search params', () => {
+    it('maps a known legacy value and drops the legacy key', () => {
+      expect(rewriteLegacySearchParams('?pub_category=laptops')).toBe(
+        '?pub_categoryLevel1=computerstablets'
+      );
+    });
+
+    it('keeps other params and an explicit current param', () => {
+      expect(rewriteLegacySearchParams('?pub_category=laptops&keywords=hp&page=2')).toBe(
+        '?keywords=hp&page=2&pub_categoryLevel1=computerstablets'
+      );
+      expect(
+        rewriteLegacySearchParams('?pub_category=laptops&pub_categoryLevel1=phonesaccessories')
+      ).toBe('?pub_categoryLevel1=phonesaccessories');
+    });
+
+    it('returns null when no known legacy value is present', () => {
+      expect(rewriteLegacySearchParams('')).toBeNull();
+      expect(rewriteLegacySearchParams('?keywords=hp')).toBeNull();
+      expect(rewriteLegacySearchParams('?pub_category=unknown')).toBeNull();
+    });
+
+    it('lands a bare legacy search URL on the mapped locale URL in one hop', () => {
+      const req = buildReq({ url: '/s?pub_category=laptops', cookies: { locale: 'lt' } });
+      const res = buildRes();
+
+      localeMiddleware(req, res, jest.fn());
+
+      expect(res.redirect).toHaveBeenCalledWith(301, '/lt/s?pub_categoryLevel1=computerstablets');
+      expect(res.headers['Cache-Control']).toBe('no-store');
+    });
+
+    it('also redirects a locale-prefixed legacy search URL within the same locale', () => {
+      const req = buildReq({ url: '/pl/s?pub_category=laptops', cookies: { locale: 'pl' } });
+      const res = buildRes();
+      const next = jest.fn();
+
+      localeMiddleware(req, res, next);
+
+      expect(res.redirect).toHaveBeenCalledWith(301, '/pl/s?pub_categoryLevel1=computerstablets');
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('does not touch legacy-looking params on other paths', () => {
+      const req = buildReq({ url: '/lt/l/abc?pub_category=laptops', cookies: { locale: 'lt' } });
+      const res = buildRes();
+      const next = jest.fn();
+
+      localeMiddleware(req, res, next);
+
+      expect(res.redirect).not.toHaveBeenCalled();
+      expect(req.url).toBe('/l/abc?pub_category=laptops');
+      expect(next).toHaveBeenCalled();
     });
   });
 
@@ -117,6 +195,7 @@ describe('localeMiddleware', () => {
       '/_status.json',
       '/favicon.ico',
       '/robots.txt',
+      '/sitemap.xml',
       '/sitemap-index.xml',
       '/site.webmanifest',
       '/.well-known/openid-configuration',
@@ -132,4 +211,34 @@ describe('localeMiddleware', () => {
       expect(req.locale).toBeUndefined();
     });
   });
+});
+
+describe('stripLocaleFromResourcePath', () => {
+  it.each([
+    ['/en/sitemap-index.xml', '/sitemap-index.xml'],
+    ['/lt/sitemap-categories.xml', '/sitemap-categories.xml'],
+    ['/pl/sitemap.xml', '/sitemap.xml'],
+    ['/lt/robots.txt', '/robots.txt'],
+  ])('rewrites %s to %s', (url, expected) => {
+    const req = buildReq({ url });
+    const next = jest.fn();
+
+    stripLocaleFromResourcePath(req, buildRes(), next);
+
+    expect(req.url).toBe(expected);
+    expect(next).toHaveBeenCalled();
+  });
+
+  it.each(['/sitemap-index.xml', '/en/s', '/en/sitemap-index.xml/extra', '/enabled/robots.txt'])(
+    'leaves %s alone',
+    url => {
+      const req = buildReq({ url });
+      const next = jest.fn();
+
+      stripLocaleFromResourcePath(req, buildRes(), next);
+
+      expect(req.url).toBe(url);
+      expect(next).toHaveBeenCalled();
+    }
+  );
 });
