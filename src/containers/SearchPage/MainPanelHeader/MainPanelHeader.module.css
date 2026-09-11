@@ -31,20 +31,14 @@
   }
 }
 
-.searchResultSummary {
+.headingSummary {
   composes: textSmall from global;
 
-  margin-top: 10px;
-  margin-bottom: 11px;
-  margin-left: 0px;
-  margin-right: 8px;
-}
+  margin: 0 8px 6px 0;
 
-.headingSummary {
-  composes: searchResultSummary;
-
-  margin-top: 0;
-  margin-bottom: 8px;
+  @media (--viewportMedium) {
+    margin-bottom: 8px;
+  }
 }
 
 .loadingResults {

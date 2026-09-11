@@ -1,5 +1,12 @@
 import { constructQueryParamName } from '../../util/search';
 import { formatCategoryName } from '../../util/hostedLabels';
+import { pathByRouteName } from '../../util/routes';
+import { prependLocale } from '../../util/locale';
+import {
+  MIN_LISTINGS_FOR_INDEXING,
+  buildCategorySearch,
+  parsePageNumber,
+} from '../../util/categorySeo';
 
 /**
  * SEO data for SearchPage: canonical query string, robots directive, <title>, meta
@@ -11,16 +18,17 @@ import { formatCategoryName } from '../../util/hostedLabels';
  *    parameters. Every other parameter is stripped from the canonical, so a stacked-facet URL
  *    rolls up to the clean category URL.
  *  - A category with fewer than MIN_LISTINGS_FOR_INDEXING live listings is `noindex,follow`.
- *    That directive is only emitted on the clean category URL: a stacked-facet URL already
- *    canonicals to the clean one and must not also carry noindex.
+ *    So is any page whose result set could not be verified (search API error during SSR) or
+ *    whose `page` is beyond the last page. The directive is only emitted on the clean URL:
+ *    a stacked-facet URL already canonicals to the clean one and must not also carry noindex.
  *  - Per-category copy lives in `SearchPage.category.<level1 id>.h1` / `.description`
  *    translation keys. Categories without bespoke copy fall back to the localised category
- *    label plus a generic description template.
+ *    label plus a generic description template. NOTE: `src/app.js` merges en.json into every
+ *    locale, so a key that exists only in en.json would be picked up on /lt and /pl as well;
+ *    SearchPage.seo.test.js enforces en/lt/pl parity for `SearchPage.*` keys.
  */
 
-export const MIN_LISTINGS_FOR_INDEXING = 5;
-
-const PAGE_PARAM = 'page';
+export { MIN_LISTINGS_FOR_INDEXING };
 
 const queryParamNameForLevel = levelKey => constructQueryParamName(levelKey, 'public');
 
@@ -74,24 +82,16 @@ export const getSelectedCategoryPath = (searchParams, categoryConfiguration, int
 };
 
 /**
- * Build the canonical query string for a search page: the validated category chain (in level
- * order) followed by `page` when it is greater than 1. Returns '' when nothing is kept.
+ * Canonical query string for a search page: the validated category chain (in level order)
+ * followed by `page` when it is greater than 1. Returns '' when nothing is kept.
  *
  * @param {Object} params
  * @param {Array} params.categoryPath result of getSelectedCategoryPath
  * @param {number|string} [params.page]
  * @returns {string} '' or a string starting with '?'
  */
-export const getCanonicalSearch = ({ categoryPath = [], page } = {}) => {
-  const params = new URLSearchParams();
-  categoryPath.forEach(c => params.append(c.paramKey, c.id));
-  const pageNumber = Number(page);
-  if (Number.isInteger(pageNumber) && pageNumber > 1) {
-    params.append(PAGE_PARAM, `${pageNumber}`);
-  }
-  const serialized = params.toString();
-  return serialized ? `?${serialized}` : '';
-};
+export const getCanonicalSearch = ({ categoryPath = [], page } = {}) =>
+  buildCategorySearch({ categoryIds: categoryPath.map(c => c.id), page });
 
 /**
  * True when the URL's query string carries nothing beyond what the canonical keeps.
@@ -101,21 +101,23 @@ export const isCleanCategoryUrl = (search, canonicalSearch) =>
 
 const hasMessage = (intl, id) => !!intl?.messages?.[id];
 
-const listingCanonicalUrl = (localeBase, listing) => `${localeBase}/l/${listing.id.uuid}`;
-
 /**
  * Compute everything SearchPage needs for <Page> and the visible heading.
  *
  * @param {Object} params
  * @param {Object} params.intl
  * @param {Object} params.config merged app config (marketplaceName, marketplaceRootURL)
+ * @param {Array} params.routeConfiguration route config, for listing canonical URLs
  * @param {string} params.currentLocale URL locale ('en' | 'lt' | 'pl')
- * @param {string} [params.searchPath='/s'] locale-free pathname of the search route
+ * @param {string} [params.searchPath='/s'] locale-free pathname of the search route, as in
+ *   `location.pathname`, so JSON-LD URLs match the canonical byte for byte
  * @param {Object} [params.searchParamsInURL] parsed URL params (keywords/address read from here)
  * @param {Array} params.categoryPath result of getSelectedCategoryPath
  * @param {string} params.canonicalSearch result of getCanonicalSearch
  * @param {boolean} params.isCleanUrl result of isCleanCategoryUrl
+ * @param {number|string} [params.page] `page` query param of the current URL
  * @param {number} params.totalItems live result count for the current query
+ * @param {number} [params.totalPages] page count from pagination meta
  * @param {boolean} params.listingsAreLoaded whether totalItems reflects the current query
  * @param {Array} [params.listings] listings on the current page (for the ItemList)
  * @returns {{ title: string, description: string, h1: string, noIndex: boolean, schema: Array }}
@@ -123,26 +125,31 @@ const listingCanonicalUrl = (localeBase, listing) => `${localeBase}/l/${listing.
 export const getSearchPageSeo = ({
   intl,
   config,
+  routeConfiguration,
   currentLocale,
   searchPath = '/s',
   searchParamsInURL = {},
   categoryPath = [],
   canonicalSearch = '',
   isCleanUrl = true,
+  page,
   totalItems = 0,
+  totalPages,
   listingsAreLoaded = false,
   listings = [],
 }) => {
   const marketplaceName = config.marketplaceName;
-  const localeBase = `${config.marketplaceRootURL}/${currentLocale}`;
-  const searchBase = `${localeBase}${searchPath}`;
+  const root = config.marketplaceRootURL;
+  const localeBase = `${root}${prependLocale('/', currentLocale)}`;
+  const searchBase = `${root}${prependLocale(searchPath, currentLocale)}`;
   const pageUrl = `${searchBase}${canonicalSearch}`;
   const count = totalItems;
 
   const hasCategory = categoryPath.length > 0;
   const deepest = hasCategory ? categoryPath[categoryPath.length - 1] : null;
   const { keywords, address } = searchParamsInURL || {};
-  const query = keywords || address;
+  // `parse()` coerces numeric-looking values, so `?keywords=0` arrives as the number 0.
+  const query = keywords != null && keywords !== '' ? `${keywords}` : address;
 
   let h1;
   let title;
@@ -182,13 +189,23 @@ export const getSearchPageSeo = ({
     );
   }
 
-  const noIndex =
-    hasCategory && isCleanUrl && listingsAreLoaded && totalItems < MIN_LISTINGS_FOR_INDEXING;
+  // Fail closed: a page whose result set is unknown (API error during SSR) must not be
+  // published as an indexable "0 listings" document.
+  const isUnverified = !listingsAreLoaded;
+  const pageNumber = parsePageNumber(page) || 1;
+  const isOutOfRangePage =
+    listingsAreLoaded && totalPages != null && pageNumber > Math.max(totalPages, 1);
+  const isThinCategory = hasCategory && listingsAreLoaded && totalItems < MIN_LISTINGS_FOR_INDEXING;
+  const noIndex = isCleanUrl && (isUnverified || isOutOfRangePage || isThinCategory);
 
   const itemListElement = listings.map((l, i) => ({
     '@type': 'ListItem',
     position: i + 1,
-    url: listingCanonicalUrl(localeBase, l),
+    // Must equal the listing page's own canonical (`/l/<id>`, slug dropped).
+    url: `${root}${prependLocale(
+      pathByRouteName('ListingPageCanonical', routeConfiguration, { id: l.id.uuid }),
+      currentLocale
+    )}`,
     name: l.attributes.title,
   }));
 

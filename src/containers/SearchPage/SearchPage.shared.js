@@ -428,6 +428,7 @@ export const searchParamsPicker = (
     urlQueryParams: queryParamsFromURL,
     searchParamsInURL,
     searchParamsAreInSync,
+    page,
   };
 };
 
@@ -567,7 +568,7 @@ export const getDerivedRenderData = ({
     mainSearch,
   };
 
-  const { searchParamsAreInSync, urlQueryParams, searchParamsInURL } = searchParamsPicker(
+  const { searchParamsAreInSync, urlQueryParams, searchParamsInURL, page } = searchParamsPicker(
     location.search,
     searchParams,
     filterConfigs,
@@ -641,27 +642,24 @@ export const getDerivedRenderData = ({
   const showCreateListingsLink = showCreateListingLinkForUser(config, currentUser);
 
   // SEO: canonical query string, robots directive, <title>/description/<h1>, JSON-LD.
-  // See SearchPage.seo.js for the rules. The search route path is resolved through the
-  // route configuration so a listing-type route (`/s/:listingType`) keeps its own URLs.
-  const { routeName, pathParams } = getSearchPageResourceLocatorStringParams(
-    routeConfiguration,
-    location
-  );
-  const searchPath = createResourceLocatorString(routeName, routeConfiguration, pathParams, {});
-  const { page } = parse(location.search);
+  // See SearchPage.seo.js for the rules. `location.pathname` is already locale-free (React
+  // Router basename) and is what <Page> uses for the canonical, so JSON-LD URLs match it.
   const categoryPath = getSelectedCategoryPath(searchParamsInURL, categoryConfiguration, intl);
   const canonicalSearch = getCanonicalSearch({ categoryPath, page });
   const isCleanUrl = isCleanCategoryUrl(location.search, canonicalSearch);
   const { title, description, h1, noIndex, schema } = getSearchPageSeo({
     intl,
     config,
+    routeConfiguration,
     currentLocale,
-    searchPath,
+    searchPath: location.pathname,
     searchParamsInURL: searchParamsInURL || {},
     categoryPath,
     canonicalSearch,
     isCleanUrl,
+    page,
     totalItems,
+    totalPages: pagination?.totalPages,
     listingsAreLoaded,
     listings,
   });

@@ -5,6 +5,11 @@ import {
   isCleanCategoryUrl,
   getSearchPageSeo,
 } from './SearchPage.seo';
+import { buildCategorySearch, parsePageNumber } from '../../util/categorySeo';
+
+import en from '../../translations/en.json';
+import lt from '../../translations/lt.json';
+import pl from '../../translations/pl.json';
 
 // Minimal react-intl stand-in: resolves `messages[id]`, then `defaultMessage`, then the id,
 // and substitutes simple `{var}` placeholders. ICU plurals are not needed for these tests.
@@ -56,9 +61,63 @@ const config = {
   marketplaceRootURL: 'https://www.elogade.com',
 };
 
+const routeConfiguration = [
+  { name: 'ListingPage', path: '/l/:slug/:id' },
+  { name: 'ListingPageCanonical', path: '/l/:id' },
+];
+
 const listing = (uuid, title) => ({ id: { uuid }, attributes: { title } });
 
+const loaded = { listingsAreLoaded: true, totalPages: 1 };
+
+describe('util/categorySeo', () => {
+  it('parses only plain positive integers as page numbers', () => {
+    expect(parsePageNumber(2)).toBe(2);
+    expect(parsePageNumber('7')).toBe(7);
+    expect(parsePageNumber('0')).toBeNull();
+    expect(parsePageNumber('1e2')).toBeNull();
+    expect(parsePageNumber('0x10')).toBeNull();
+    expect(parsePageNumber('2.0')).toBeNull();
+    expect(parsePageNumber(undefined)).toBeNull();
+  });
+
+  it('builds the category chain in level order and appends page > 1', () => {
+    expect(buildCategorySearch({})).toBe('');
+    expect(buildCategorySearch({ categoryIds: ['a'] })).toBe('?pub_categoryLevel1=a');
+    expect(buildCategorySearch({ categoryIds: ['a', 'b'], page: 2 })).toBe(
+      '?pub_categoryLevel1=a&pub_categoryLevel2=b&page=2'
+    );
+    expect(buildCategorySearch({ categoryIds: ['a'], page: 1 })).toBe('?pub_categoryLevel1=a');
+    expect(buildCategorySearch({ page: '1e2' })).toBe('');
+  });
+});
+
 describe('SearchPage.seo', () => {
+  describe('translation parity', () => {
+    // src/app.js merges en.json into every locale, so an en-only SearchPage key would be
+    // rendered in English on /lt and /pl. Keep the three files in lockstep.
+    it('has the same SearchPage.* keys in en, lt and pl', () => {
+      const searchKeys = messages =>
+        Object.keys(messages)
+          .filter(k => k.startsWith('SearchPage.'))
+          .sort();
+      expect(searchKeys(lt)).toEqual(searchKeys(en));
+      expect(searchKeys(pl)).toEqual(searchKeys(en));
+    });
+
+    it('does not ship the removed schema placeholder keys', () => {
+      [
+        'SearchPage.schemaTitle',
+        'SearchPage.schemaDescription',
+        'SearchPage.schemaForSearch',
+      ].forEach(key => {
+        expect(en[key]).toBeUndefined();
+        expect(lt[key]).toBeUndefined();
+        expect(pl[key]).toBeUndefined();
+      });
+    });
+  });
+
   describe('getSelectedCategoryPath', () => {
     it('returns an empty path without category params', () => {
       expect(getSelectedCategoryPath({}, categoryConfiguration, createIntl())).toEqual([]);
@@ -175,6 +234,7 @@ describe('SearchPage.seo', () => {
   describe('getSearchPageSeo', () => {
     const intl = createIntl(baseMessages);
     const listings = [listing('uuid-1', 'First'), listing('uuid-2', 'Second')];
+    const common = { intl, config, routeConfiguration };
 
     it('uses bespoke copy for a level-1 category that has it', () => {
       const categoryPath = getSelectedCategoryPath(
@@ -183,15 +243,14 @@ describe('SearchPage.seo', () => {
         intl
       );
       const seo = getSearchPageSeo({
-        intl,
-        config,
+        ...common,
         currentLocale: 'lt',
         searchParamsInURL: { pub_categoryLevel1: 'phonesaccessories' },
         categoryPath,
         canonicalSearch: '?pub_categoryLevel1=phonesaccessories',
         isCleanUrl: true,
         totalItems: 34,
-        listingsAreLoaded: true,
+        ...loaded,
         listings,
       });
       expect(seo.h1).toBe('Used Phones & Accessories');
@@ -207,13 +266,12 @@ describe('SearchPage.seo', () => {
         intl
       );
       const seo = getSearchPageSeo({
-        intl,
-        config,
+        ...common,
         currentLocale: 'en',
         categoryPath,
         canonicalSearch: '?pub_categoryLevel1=camerasvideo',
         totalItems: 7,
-        listingsAreLoaded: true,
+        ...loaded,
       });
       expect(seo.h1).toBe('Cameras, Video & Drones (localised)');
       expect(seo.title).toBe('Cameras, Video & Drones (localised) | Elogade');
@@ -221,84 +279,116 @@ describe('SearchPage.seo', () => {
     });
 
     it('uses the deepest category name when a subcategory is selected', () => {
-      const categoryPath = getSelectedCategoryPath(
-        { pub_categoryLevel1: 'phonesaccessories' },
-        {
-          ...categoryConfiguration,
-          categories: [
-            {
-              id: 'phonesaccessories',
-              name: 'Phones',
-              subcategories: [{ id: 'cases', name: 'Cases' }],
-            },
-          ],
-        },
-        intl
-      );
+      const nestedConfig = {
+        ...categoryConfiguration,
+        categories: [
+          {
+            id: 'phonesaccessories',
+            name: 'Phones',
+            subcategories: [{ id: 'cases', name: 'Cases' }],
+          },
+        ],
+      };
       const nested = getSelectedCategoryPath(
         { pub_categoryLevel1: 'phonesaccessories', pub_categoryLevel2: 'cases' },
-        {
-          ...categoryConfiguration,
-          categories: [
-            {
-              id: 'phonesaccessories',
-              name: 'Phones',
-              subcategories: [{ id: 'cases', name: 'Cases' }],
-            },
-          ],
-        },
+        nestedConfig,
         intl
       );
-      expect(categoryPath).toHaveLength(1);
       const seo = getSearchPageSeo({
-        intl,
-        config,
+        ...common,
         currentLocale: 'en',
         categoryPath: nested,
         canonicalSearch: '?pub_categoryLevel1=phonesaccessories&pub_categoryLevel2=cases',
         totalItems: 12,
-        listingsAreLoaded: true,
+        ...loaded,
       });
       // Bespoke level-1 copy must not leak onto the subcategory page.
       expect(seo.h1).toBe('Cases');
       expect(seo.description).toBe('Cases: 12 listings on Elogade.');
     });
 
-    it('applies noindex only on a clean, loaded, thin category page', () => {
+    describe('noIndex', () => {
       const categoryPath = getSelectedCategoryPath(
         { pub_categoryLevel1: 'camerasvideo' },
         categoryConfiguration,
         intl
       );
       const base = {
-        intl,
-        config,
+        ...common,
         currentLocale: 'en',
         categoryPath,
         canonicalSearch: '?pub_categoryLevel1=camerasvideo',
         isCleanUrl: true,
         totalItems: MIN_LISTINGS_FOR_INDEXING - 1,
-        listingsAreLoaded: true,
+        ...loaded,
       };
-      expect(getSearchPageSeo(base).noIndex).toBe(true);
-      expect(getSearchPageSeo({ ...base, totalItems: MIN_LISTINGS_FOR_INDEXING }).noIndex).toBe(
-        false
-      );
-      expect(getSearchPageSeo({ ...base, isCleanUrl: false }).noIndex).toBe(false);
-      expect(getSearchPageSeo({ ...base, listingsAreLoaded: false }).noIndex).toBe(false);
-      // The bare search page is never noindexed by the threshold.
-      expect(
-        getSearchPageSeo({ ...base, categoryPath: [], canonicalSearch: '', totalItems: 0 }).noIndex
-      ).toBe(false);
+
+      it('applies to a clean, loaded, thin category page', () => {
+        expect(getSearchPageSeo(base).noIndex).toBe(true);
+        expect(getSearchPageSeo({ ...base, totalItems: MIN_LISTINGS_FOR_INDEXING }).noIndex).toBe(
+          false
+        );
+      });
+
+      it('is never applied to a stacked-facet URL (it canonicals to the clean one)', () => {
+        expect(getSearchPageSeo({ ...base, isCleanUrl: false }).noIndex).toBe(false);
+        expect(
+          getSearchPageSeo({ ...base, isCleanUrl: false, listingsAreLoaded: false }).noIndex
+        ).toBe(false);
+      });
+
+      it('fails closed when the result set could not be loaded', () => {
+        expect(
+          getSearchPageSeo({ ...base, totalItems: 100, listingsAreLoaded: false }).noIndex
+        ).toBe(true);
+        expect(
+          getSearchPageSeo({
+            ...base,
+            categoryPath: [],
+            canonicalSearch: '',
+            listingsAreLoaded: false,
+          }).noIndex
+        ).toBe(true);
+      });
+
+      it('applies to a page beyond the last page, on category and bare search alike', () => {
+        const paged = { ...base, totalItems: 30, totalPages: 2 };
+        expect(getSearchPageSeo({ ...paged, page: 2 }).noIndex).toBe(false);
+        expect(getSearchPageSeo({ ...paged, page: 3 }).noIndex).toBe(true);
+        expect(getSearchPageSeo({ ...paged, page: '500' }).noIndex).toBe(true);
+        expect(
+          getSearchPageSeo({ ...paged, categoryPath: [], canonicalSearch: '?page=500', page: 500 })
+            .noIndex
+        ).toBe(true);
+        // Empty result set: totalPages 0 still allows page 1.
+        expect(getSearchPageSeo({ ...paged, totalItems: 0, totalPages: 0, page: 1 }).noIndex).toBe(
+          true // thin category, not out-of-range
+        );
+        expect(
+          getSearchPageSeo({
+            ...paged,
+            categoryPath: [],
+            canonicalSearch: '',
+            totalItems: 0,
+            totalPages: 0,
+          }).noIndex
+        ).toBe(false);
+      });
+
+      it('does not apply the threshold to the bare search page', () => {
+        expect(
+          getSearchPageSeo({ ...base, categoryPath: [], canonicalSearch: '', totalItems: 0 })
+            .noIndex
+        ).toBe(false);
+      });
     });
 
     it('builds the bare search page copy and breadcrumb', () => {
       const seo = getSearchPageSeo({
-        intl,
-        config,
+        ...common,
         currentLocale: 'pl',
         totalItems: 86,
-        listingsAreLoaded: true,
+        ...loaded,
         listings,
       });
       expect(seo.h1).toBe('All listings');
@@ -319,16 +409,26 @@ describe('SearchPage.seo', () => {
 
     it('uses keyword copy for a keyword search without category', () => {
       const seo = getSearchPageSeo({
-        intl,
-        config,
+        ...common,
         currentLocale: 'en',
         searchParamsInURL: { keywords: 'airpods' },
         totalItems: 3,
-        listingsAreLoaded: true,
+        ...loaded,
       });
       expect(seo.h1).toBe('Search results for “airpods”');
       expect(seo.title).toBe('Search results for “airpods” | Elogade');
       expect(seo.noIndex).toBe(false);
+    });
+
+    it('treats a numeric keyword (coerced by parse) as a keyword search', () => {
+      const seo = getSearchPageSeo({
+        ...common,
+        currentLocale: 'en',
+        searchParamsInURL: { keywords: 0 },
+        totalItems: 1,
+        ...loaded,
+      });
+      expect(seo.h1).toBe('Search results for “0”');
     });
 
     it('emits a CollectionPage with a nested ItemList, 1-based positions and canonical listing URLs', () => {
@@ -339,12 +439,13 @@ describe('SearchPage.seo', () => {
       );
       const canonicalSearch = getCanonicalSearch({ categoryPath, page: 2 });
       const seo = getSearchPageSeo({
-        intl,
-        config,
+        ...common,
         currentLocale: 'lt',
         categoryPath,
         canonicalSearch,
+        page: 2,
         totalItems: 40,
+        totalPages: 2,
         listingsAreLoaded: true,
         listings,
       });
@@ -352,6 +453,7 @@ describe('SearchPage.seo', () => {
       const pageUrl =
         'https://www.elogade.com/lt/s?pub_categoryLevel1=camerasvideo&pub_categoryLevel2=drones&page=2';
 
+      expect(seo.noIndex).toBe(false);
       expect(collectionPage['@type']).toBe('CollectionPage');
       expect(collectionPage['@id']).toBe(`${pageUrl}#page`);
       expect(collectionPage.url).toBe(pageUrl);
@@ -402,14 +504,13 @@ describe('SearchPage.seo', () => {
       });
     });
 
-    it('honours a listing-type search path', () => {
+    it('uses the request pathname verbatim so JSON-LD URLs match the canonical', () => {
       const seo = getSearchPageSeo({
-        intl,
-        config,
+        ...common,
         currentLocale: 'en',
         searchPath: '/s/usedproducts',
         totalItems: 1,
-        listingsAreLoaded: true,
+        ...loaded,
       });
       expect(seo.schema[0].url).toBe('https://www.elogade.com/en/s/usedproducts');
     });

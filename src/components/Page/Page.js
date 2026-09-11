@@ -12,6 +12,7 @@ import { getCustomCSSPropertiesFromConfig } from '../../util/style';
 import { useIntl, intlShape } from '../../util/reactIntl';
 import { metaTagProps } from '../../util/seo';
 import { canonicalRoutePath } from '../../util/routes';
+import { prependLocale } from '../../util/locale';
 import { propTypes } from '../../util/types';
 import { apiBaseUrl } from '../../util/api';
 
@@ -142,13 +143,8 @@ class PageComponent extends Component {
     // (a string starting with '?'); they are appended to the canonical and to every
     // hreflang alternate so the cluster stays self-consistent.
     const canonicalPath = canonicalRoutePath(routeConfiguration, location, true);
-    const prefixWithLocale = (locale, path) => {
-      const localizedPath =
-        !path || path === '/'
-          ? `/${locale}`
-          : `/${locale}${path.startsWith('/') ? '' : '/'}${path}`;
-      return `${localizedPath}${canonicalSearch || ''}`;
-    };
+    const prefixWithLocale = (locale, path) =>
+      `${prependLocale(path, locale)}${canonicalSearch || ''}`;
     const canonicalUrl = `${marketplaceRootURL}${prefixWithLocale(currentLocale, canonicalPath)}`;
     // hreflang alternates: one per supported locale plus `x-default` → DEFAULT_LOCALE,
     // all built from the same locale-free canonical path so each entry (including the

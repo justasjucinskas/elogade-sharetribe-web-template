@@ -582,6 +582,7 @@ describe('SearchPage.helpers', () => {
         searchParamsAreInSync: true,
         searchParamsInURL: { pub_generalMultienum: 'towels,bathroom', pub_generalParam: 'one' },
         urlQueryParams: { pub_generalMultienum: 'towels,bathroom', pub_generalParam: 'one' },
+        page: 2,
       });
     });
 

@@ -17,7 +17,7 @@ import css from './MainPanelHeader.module.css';
  * @param {string} [props.className] - Custom class that extends the default class for the root element
  * @param {string} [props.rootClassName] - Custom class that overrides the default class for the root element
  * @param {React.Node} props.children - The children
- * @param {string} [props.heading] - The <h1> text. When omitted, the result count is rendered as the heading.
+ * @param {string} props.heading - The <h1> text (see SearchPage.seo.js)
  * @param {React.Node} props.sortByComponent - The sort by component
  * @param {boolean} props.isSortByActive - Whether the sort by is active
  * @param {boolean} props.listingsAreLoaded - Whether the listings are loaded
@@ -55,14 +55,10 @@ const MainPanelHeader = props => {
   return (
     <div className={classes}>
       <div className={css.searchOptions}>
-        {heading ? (
-          <div className={css.headingWrapper}>
-            <h1 className={css.heading}>{heading}</h1>
-            <p className={css.headingSummary}>{resultsSummary}</p>
-          </div>
-        ) : (
-          <h1 className={css.searchResultSummary}>{resultsSummary}</h1>
-        )}
+        <div className={css.headingWrapper}>
+          <h1 className={css.heading}>{heading}</h1>
+          <p className={css.headingSummary}>{resultsSummary}</p>
+        </div>
         {isSortByActive ? (
           <div className={css.sortyByWrapper}>
             <span className={css.sortyBy}>
