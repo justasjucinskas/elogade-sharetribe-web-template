@@ -7,7 +7,28 @@
 .searchOptions {
   display: flex;
   flex-direction: row;
+  align-items: flex-start;
   margin-bottom: 8px;
+}
+
+.headingWrapper {
+  display: flex;
+  flex-direction: column;
+  margin-right: 8px;
+  min-width: 0;
+}
+
+.heading {
+  composes: h3 from global;
+
+  /* h3 margins are 18px/12px; tighten so heading + summary stay on the 6px baseline */
+  margin-top: 6px;
+  margin-bottom: 0;
+
+  @media (--viewportMedium) {
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
 }
 
 .searchResultSummary {
@@ -17,6 +38,13 @@
   margin-bottom: 11px;
   margin-left: 0px;
   margin-right: 8px;
+}
+
+.headingSummary {
+  composes: searchResultSummary;
+
+  margin-top: 0;
+  margin-bottom: 8px;
 }
 
 .loadingResults {

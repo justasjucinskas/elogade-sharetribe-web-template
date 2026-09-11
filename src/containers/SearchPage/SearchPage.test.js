@@ -396,8 +396,10 @@ describe('SearchPage', () => {
     expect(queryByText('Poodle')).not.toBeInTheDocument();
     expect(getByText('Cats')).toBeInTheDocument();
     expect(queryByText('Burmese')).not.toBeInTheDocument();
+    // The selected category becomes the page <h1>; the filter option is still rendered too
+    expect(getByRole('heading', { level: 1 })).toHaveTextContent('Fish');
+    expect(getAllByText('Fish')).toHaveLength(2);
     // Subcategories of Fish should be visible
-    expect(getByText('Fish')).toBeInTheDocument();
     expect(getByText('Freshwater')).toBeInTheDocument();
     expect(getByText('Saltwater')).toBeInTheDocument();
   });
@@ -544,7 +546,9 @@ describe('SearchPage', () => {
 
     expect(getByText('Dogs')).toBeInTheDocument();
     expect(queryByText('Poodle')).not.toBeInTheDocument();
-    expect(getByText('Cats')).toBeInTheDocument();
+    // The selected category becomes the page <h1>; the filter option is still rendered too
+    expect(getByRole('heading', { level: 1 })).toHaveTextContent('Cats');
+    expect(getAllByText('Cats')).toHaveLength(2);
     // Subcategories of Cats should be visible
     expect(queryByText('Burmese')).toBeInTheDocument();
     expect(queryByText('Egyptian mau')).toBeInTheDocument();

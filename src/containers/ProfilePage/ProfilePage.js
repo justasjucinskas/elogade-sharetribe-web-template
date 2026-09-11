@@ -455,6 +455,7 @@ export const ProfilePageComponent = props => {
     <Page
       scrollingDisabled={scrollingDisabled}
       title={schemaTitle}
+      noIndex
       schema={{
         '@context': 'http://schema.org',
         '@type': 'ProfilePage',

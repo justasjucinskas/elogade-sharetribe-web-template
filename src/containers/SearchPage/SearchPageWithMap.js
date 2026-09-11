@@ -5,6 +5,7 @@ import classNames from 'classnames';
 
 import { isOriginInUse } from '../../util/search';
 import { parse } from '../../util/urlHelpers';
+import { DEFAULT_LOCALE } from '../../config/configLocale';
 import { createResourceLocatorString, pathByRouteName } from '../../util/routes';
 import { makeGetListingsByIdSelector } from '../../ducks/marketplaceData.duck';
 import { manageDisableScrolling, isScrollingDisabled } from '../../ducks/ui.duck';
@@ -226,6 +227,7 @@ export class SearchPageComponent extends Component {
       config,
       params: currentPathParams = {},
       currentUser,
+      currentLocale,
     } = this.props;
 
     const {
@@ -247,6 +249,9 @@ export class SearchPageComponent extends Component {
       showCreateListingsLink,
       title,
       description,
+      h1,
+      noIndex,
+      canonicalSearch,
       schema,
       marketplaceCurrency,
       listingCategories,
@@ -261,6 +266,7 @@ export class SearchPageComponent extends Component {
       searchInProgress,
       currentPathParams,
       currentUser,
+      currentLocale,
     });
 
     const isWindowDefined = typeof window !== 'undefined';
@@ -320,6 +326,8 @@ export class SearchPageComponent extends Component {
         description={description}
         title={title}
         schema={schema}
+        noIndex={noIndex}
+        canonicalSearch={canonicalSearch}
       >
         <TopbarContainer rootClassName={topbarClasses} currentSearchParams={validQueryParams} />
         <div id="main-content" className={css.container} role="main">
@@ -368,6 +376,7 @@ export class SearchPageComponent extends Component {
             </SearchFiltersMobile>
             <MainPanelHeader
               className={css.mainPanelMapVariant}
+              heading={h1}
               sortByComponent={sortBy('desktop')}
               isSortByActive={sortConfig.active}
               listingsAreLoaded={listingsAreLoaded}
@@ -514,6 +523,7 @@ const SearchPage = props => {
     selectListingsById(state, state.SearchPage.currentPageResultIds)
   );
   const scrollingDisabled = useSelector(state => isScrollingDisabled(state));
+  const currentLocale = useSelector(state => state.locale?.current || DEFAULT_LOCALE);
 
   const onManageDisableScrolling = useCallback(
     (componentId, disableScrolling) =>
@@ -529,6 +539,7 @@ const SearchPage = props => {
       {...props}
       PageComponent={SearchPageComponent}
       currentUser={currentUser}
+      currentLocale={currentLocale}
       listings={listings}
       pagination={pagination}
       scrollingDisabled={scrollingDisabled}
