@@ -4,6 +4,7 @@ import { useDispatch, useSelector, useStore } from 'react-redux';
 import classNames from 'classnames';
 
 // Utils
+import { DEFAULT_LOCALE } from '../../config/configLocale';
 import { FormattedMessage } from '../../util/reactIntl';
 import { LISTING_STATE_CLOSED, propTypes } from '../../util/types';
 import { OFFER, REQUEST } from '../../transactions/transaction';
@@ -45,7 +46,6 @@ import {
   handleNavigateToMakeOfferPage,
   handleNavigateToRequestQuotePage,
   handleSubmit,
-  priceForSchemaMaybe,
   getDerivedRenderData,
 } from './ListingPage.shared';
 import SectionHero from './SectionHero';
@@ -93,6 +93,7 @@ export const ListingPageComponent = props => {
     onInitializeCardPaymentData,
     config,
     routeConfiguration,
+    currentLocale,
     showOwnListingsOnly,
     ...restOfProps
   } = props;
@@ -104,8 +105,9 @@ export const ListingPageComponent = props => {
     showOwnListingsOnly,
     currentUser,
     config,
+    routeConfiguration,
+    currentLocale,
     intl,
-    location,
     longWordMinLength: MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE,
     longWordClassName: css.longWord,
     payoutDetailsWarningClassName: css.payoutDetailsWarning,
@@ -121,7 +123,6 @@ export const ListingPageComponent = props => {
     listingTab,
     description,
     geolocation,
-    price,
     title,
     publicData,
     metadata,
@@ -137,9 +138,8 @@ export const ListingPageComponent = props => {
     schemaTitle,
     facebookImages,
     twitterImages,
-    schemaImages,
-    productURL,
-    availabilityMaybe,
+    metaDescription,
+    listingSchema,
     noIndexMaybe,
     hasInvalidListingData,
   } = derivedData;
@@ -245,23 +245,11 @@ export const ListingPageComponent = props => {
       title={schemaTitle}
       scrollingDisabled={scrollingDisabled}
       author={authorDisplayName}
-      description={description}
+      description={metaDescription}
       facebookImages={facebookImages}
       twitterImages={twitterImages}
       {...noIndexMaybe}
-      schema={{
-        '@context': 'http://schema.org',
-        '@type': 'Product',
-        description: description,
-        name: schemaTitle,
-        image: schemaImages,
-        offers: {
-          '@type': 'Offer',
-          url: productURL,
-          ...priceForSchemaMaybe(price),
-          ...availabilityMaybe,
-        },
-      }}
+      schema={listingSchema}
     >
       <LayoutSingleColumn className={css.pageRoot} topbar={topbar} footer={<FooterContainer />}>
         {showListingImage ? (
@@ -423,6 +411,7 @@ const ListingPage = props => {
   } = useSelector(state => state.ListingPage);
   const currentUser = useSelector(state => state.user?.currentUser);
   const scrollingDisabled = useSelector(state => isScrollingDisabled(state));
+  const currentLocale = useSelector(state => state.locale?.current || DEFAULT_LOCALE);
 
   const getListing = useCallback(
     id => {
@@ -478,6 +467,7 @@ const ListingPage = props => {
       getListing={getListing}
       getOwnListing={getOwnListing}
       scrollingDisabled={scrollingDisabled}
+      currentLocale={currentLocale}
       inquiryModalOpenForListingId={inquiryModalOpenForListingId}
       showListingError={showListingError}
       reviews={reviews}

@@ -35,6 +35,8 @@ import {
 import { Page, LayoutSingleColumn, NamedLink } from '../../components';
 import FooterContainer from '../../containers/FooterContainer/FooterContainer';
 
+import { getListingMetaDescription, getListingSchema } from './ListingPage.schema';
+
 import css from './ListingPage.module.css';
 
 /**
@@ -127,8 +129,9 @@ export const listingImages = (listing, variantName) =>
  * @param {boolean} props.showOwnListingsOnly - Whether to show only own listings
  * @param {Object} props.currentUser - The current user
  * @param {Object} props.config - The configuration
+ * @param {Array} props.routeConfiguration - Route configuration (for canonical listing URLs)
+ * @param {string} props.currentLocale - URL locale ('en' | 'lt' | 'pl')
  * @param {Object} props.intl - The internationalization object
- * @param {Object} props.location - The location object
  * @param {number} props.longWordMinLength - The minimum length for a long word
  * @param {string} props.longWordClassName - The class name for the long word
  * @param {string} props.payoutDetailsWarningClassName - The class name for the payout details warning
@@ -141,8 +144,9 @@ export const getDerivedRenderData = ({
   showOwnListingsOnly,
   currentUser,
   config,
+  routeConfiguration,
+  currentLocale,
   intl,
-  location,
   longWordMinLength,
   longWordClassName,
   payoutDetailsWarningClassName,
@@ -239,7 +243,6 @@ export const getDerivedRenderData = ({
     { title, price: formattedPrice, marketplaceName }
   );
 
-  const productURL = `${config.marketplaceRootURL}${location.pathname}${location.search}${location.hash}`;
   const currentStock = currentListing.currentStock?.attributes?.quantity || 0;
   const schemaAvailability = !currentListing.currentStock
     ? null
@@ -250,6 +253,39 @@ export const getDerivedRenderData = ({
   const availabilityMaybe = schemaAvailability ? { availability: schemaAvailability } : {};
   const noIndexMaybe =
     currentListing.attributes.state === LISTING_STATE_CLOSED ? { noIndex: true } : {};
+
+  // SEO: <meta name="description"> and the Product + BreadcrumbList JSON-LD. See
+  // ListingPage.schema.js for the rules. Only built for a loaded listing on the public
+  // route: before the listing is in the store there is no id to build URLs from (the page
+  // renders LoadingPage / NotFoundPage instead), and on the owner-only draft / pending
+  // variant routes rel=canonical is the variant path, which the schema's canonical listing
+  // URL would contradict. Elsewhere every URL in the graph is the locale-prefixed listing
+  // canonical, so the schema never disagrees with rel=canonical.
+  const shouldBuildSeo = !!currentListing.id && !isVariant;
+  const metaDescription = shouldBuildSeo
+    ? getListingMetaDescription({
+        intl,
+        config,
+        listingFields: listingConfig.listingFields,
+        title,
+        publicData,
+        // priceData() returns an "(XYZ)" placeholder for a foreign currency; never publish it.
+        formattedPrice: price?.currency === config.currency ? formattedPrice : null,
+      })
+    : description;
+  const listingSchema = shouldBuildSeo
+    ? getListingSchema({
+        intl,
+        config,
+        routeConfiguration,
+        currentLocale,
+        listing: currentListing,
+        authorDisplayName,
+        images: schemaImages,
+        priceMaybe: priceForSchemaMaybe(price),
+        availabilityMaybe,
+      })
+    : null;
 
   return {
     listingConfig,
@@ -278,10 +314,9 @@ export const getDerivedRenderData = ({
     schemaTitle,
     facebookImages,
     twitterImages,
-    schemaImages,
-    productURL,
-    availabilityMaybe,
     noIndexMaybe,
+    metaDescription,
+    listingSchema,
     hasInvalidListingData,
   };
 };
