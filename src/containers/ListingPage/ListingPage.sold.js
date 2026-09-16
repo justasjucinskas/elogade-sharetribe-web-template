@@ -8,6 +8,11 @@ import { createImageVariantConfig } from '../../util/sdkLoader';
  * queries); the Offer advertises `SoldOut`, a badge says so, and a "similar listings"
  * module points the residual traffic at live inventory in the same category and price
  * band. Everything here is pure so the duck and the view can be tested separately.
+ *
+ * Note that `isSoldOut` means "no available stock right now": `currentStock.quantity` is
+ * net of pending reservations, so it also reads 0 during a buyer's checkout window and
+ * until the seller restocks after a declined order. Do not build archive or analytics
+ * rules on it — it is a presentation signal, not a record of a completed sale.
  */
 
 const SCHEMA_AVAILABILITY = {
@@ -51,9 +56,9 @@ export const getSchemaAvailability = listing => {
  * Query params for the "similar listings" module: same level-1 category, price within
  * ±40 % (marketplace currency only), in stock, newest first (API default). One extra
  * result is requested because the current listing matches its own filters and is dropped
- * afterwards. `fields.listing` is limited to what ListingCard renders; `include` stays
- * unrestricted for users because entities are shallow-merged in the store and a sparse
- * author would clobber the profile already loaded for the current listing.
+ * afterwards (`pickSimilarListings`). The listing fields and image variants are limited to
+ * what ListingCard renders; the result is kept page-local (see the duck), never merged
+ * into the shared entity store.
  *
  * @param {Object} params
  * @param {Object} params.listing listing entity (raw API or denormalised)
@@ -102,45 +107,15 @@ export const getSimilarListingsQueryParams = ({ listing, config }) => {
 };
 
 /**
- * Drop the current listing (and the image resources it references) from a
- * `listings.query` response before the response is merged into the store. The merge is a
- * shallow per-entity merge, so letting the sparse copy through would replace the loaded
- * listing's image variants and relationships (e.g. `limit.images: 1`) with the card-sized
- * subset and break the gallery.
+ * The listings to show in the module: everything in the query result except the listing
+ * being viewed, capped at the module size.
  *
- * @param {Object} response SDK response of `sdk.listings.query`
+ * @param {Array<Object>} listings denormalised listings from `sdk.listings.query`
  * @param {UUID|string} listingId id of the listing being viewed
- * @returns {Object} response of the same shape without the current listing
- */
-export const excludeListingFromResponse = (response, listingId) => {
-  const uuid = listingId?.uuid || listingId;
-  const { data = [], included = [], ...rest } = response?.data || {};
-  const excluded = data.find(l => l?.id?.uuid === uuid);
-  if (!excluded) {
-    return response;
-  }
-  const excludedImageIds = (excluded.relationships?.images?.data || []).map(img => img.id.uuid);
-  return {
-    ...response,
-    data: {
-      ...rest,
-      data: data.filter(l => l !== excluded),
-      included: included.filter(
-        res => !(res.type === 'image' && excludedImageIds.includes(res.id?.uuid))
-      ),
-    },
-  };
-};
-
-/**
- * Entity references (`{ id, type }`) for the listings of a (filtered) query response,
- * capped at the module size.
- *
- * @param {Object} response SDK response (after `excludeListingFromResponse`)
  * @param {number} [count]
- * @returns {Array<{ id: UUID, type: string }>}
+ * @returns {Array<Object>}
  */
-export const pickSimilarListingRefs = (response, count = SIMILAR_LISTINGS_COUNT) => {
-  const data = response?.data?.data || [];
-  return data.slice(0, count).map(({ id, type }) => ({ id, type }));
+export const pickSimilarListings = (listings, listingId, count = SIMILAR_LISTINGS_COUNT) => {
+  const uuid = listingId?.uuid || listingId;
+  return (listings || []).filter(l => l?.id?.uuid !== uuid).slice(0, count);
 };

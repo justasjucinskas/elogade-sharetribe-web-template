@@ -2,11 +2,10 @@ import { types as sdkTypes } from '../../util/sdkLoader';
 
 import {
   SIMILAR_LISTINGS_COUNT,
-  excludeListingFromResponse,
   getSchemaAvailability,
   getSimilarListingsQueryParams,
   isSoldOut,
-  pickSimilarListingRefs,
+  pickSimilarListings,
 } from './ListingPage.sold';
 
 const { UUID, Money } = sdkTypes;
@@ -112,61 +111,26 @@ describe('ListingPage.sold', () => {
     });
   });
 
-  describe('excludeListingFromResponse / pickSimilarListingRefs', () => {
-    const image = id => ({ id: new UUID(id), type: 'image', attributes: { variants: {} } });
-    const user = id => ({ id: new UUID(id), type: 'user', attributes: {} });
-    const listing = (id, imageIds, authorId) => ({
-      id: new UUID(id),
-      type: 'listing',
-      attributes: { title: id },
-      relationships: {
-        author: { data: { id: new UUID(authorId), type: 'user' } },
-        images: { data: imageIds.map(i => ({ id: new UUID(i), type: 'image' })) },
-      },
-    });
-    const response = {
-      status: 200,
-      data: {
-        data: [
-          listing('current', ['img-current'], 'seller'),
-          listing('other', ['img-other'], 'seller'),
-        ],
-        included: [image('img-current'), image('img-other'), user('seller')],
-        meta: { totalItems: 2 },
-      },
-    };
+  describe('pickSimilarListings', () => {
+    const listing = id => ({ id: new UUID(id), type: 'listing', attributes: { title: id } });
 
-    it('drops the current listing and its images but keeps shared authors', () => {
-      const filtered = excludeListingFromResponse(response, new UUID('current'));
-      expect(filtered.data.data.map(l => l.id.uuid)).toEqual(['other']);
-      expect(filtered.data.included.map(r => r.id.uuid)).toEqual(['img-other', 'seller']);
-      expect(filtered.data.meta).toEqual({ totalItems: 2 });
-      expect(filtered.status).toBe(200);
-      // input untouched
-      expect(response.data.data).toHaveLength(2);
-      expect(response.data.included).toHaveLength(3);
+    it('drops the listing being viewed and caps the result', () => {
+      const listings = [
+        listing('current'),
+        ...Array.from({ length: SIMILAR_LISTINGS_COUNT + 2 }, (_, i) => listing(`l${i}`)),
+      ];
+      const picked = pickSimilarListings(listings, new UUID('current'));
+      expect(picked).toHaveLength(SIMILAR_LISTINGS_COUNT);
+      expect(picked.map(l => l.id.uuid)).not.toContain('current');
+      expect(picked[0].id.uuid).toBe('l0');
     });
 
-    it('accepts a plain uuid string and returns the response as is when absent', () => {
-      expect(excludeListingFromResponse(response, 'current').data.data).toHaveLength(1);
-      expect(excludeListingFromResponse(response, new UUID('missing'))).toBe(response);
-    });
-
-    it('picks entity refs capped at the module size', () => {
-      const many = {
-        data: {
-          data: Array.from({ length: SIMILAR_LISTINGS_COUNT + 3 }, (_, i) =>
-            listing(`l${i}`, [], 'a')
-          ),
-          included: [],
-        },
-      };
-      const refs = pickSimilarListingRefs(many);
-      expect(refs).toHaveLength(SIMILAR_LISTINGS_COUNT);
-      expect(refs[0]).toEqual({ id: new UUID('l0'), type: 'listing' });
-      expect(Object.keys(refs[0])).toEqual(['id', 'type']);
-      expect(pickSimilarListingRefs({ data: { data: [] } })).toEqual([]);
-      expect(pickSimilarListingRefs(undefined)).toEqual([]);
+    it('accepts a plain uuid string and tolerates empty input', () => {
+      expect(
+        pickSimilarListings([listing('current'), listing('x')], 'current').map(l => l.id.uuid)
+      ).toEqual(['x']);
+      expect(pickSimilarListings([], 'current')).toEqual([]);
+      expect(pickSimilarListings(undefined, 'current')).toEqual([]);
     });
   });
 });

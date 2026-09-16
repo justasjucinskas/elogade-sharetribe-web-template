@@ -190,8 +190,7 @@ const initialState = {
     sendInquiryInProgress: false,
     sendInquiryError: null,
     inquiryModalOpenForListingId: null,
-    similarListingRefs: [],
-    querySimilarListingsInProgress: false,
+    similarListings: [],
     querySimilarListingsError: null,
   },
   marketplaceData: {
@@ -404,15 +403,9 @@ describe('ListingPage sold state', () => {
       const ListingPage = routeConfiguration.find(conf => conf.name === 'ListingPage').component;
       const state = {
         ...initialState,
-        ListingPage: {
-          ...initialState.ListingPage,
-          similarListingRefs: [{ id: similarListing.id, type: 'listing' }],
-        },
+        ListingPage: { ...initialState.ListingPage, similarListings: [similarListing] },
         marketplaceData: {
-          entities: {
-            listing: { listing1: soldListing, listing2: similarListing },
-            ownListing: { listing1: listing1Own },
-          },
+          entities: { listing: { listing1: soldListing }, ownListing: { listing1: listing1Own } },
         },
       };
 
@@ -490,8 +483,7 @@ describe('Duck', () => {
         sendInquiryInProgress: false,
         sendInquiryError: null,
         inquiryModalOpenForListingId: null,
-        similarListingRefs: [],
-        querySimilarListingsInProgress: false,
+        similarListings: [],
         querySimilarListingsError: null,
       });
     });
@@ -542,6 +534,27 @@ describe('Duck', () => {
 
       // Should apply the payload
       expect(state.inquiryModalOpenForListingId).toBe('test-id');
+    });
+
+    it('ignores a similar-listings response that arrives for a previous listing', () => {
+      let state = reducer(undefined, { type: '@@INIT' });
+      state = reducer(state, {
+        type: 'ListingPage/showListing/pending',
+        meta: { arg: { listingId: new UUID('listing-b') } },
+      });
+      const stale = reducer(state, {
+        type: 'ListingPage/querySimilarListings/fulfilled',
+        meta: { arg: { listing: { id: new UUID('listing-a') } } },
+        payload: [createListing('neighbour-of-a')],
+      });
+      expect(stale.similarListings).toEqual([]);
+
+      const fresh = reducer(state, {
+        type: 'ListingPage/querySimilarListings/fulfilled',
+        meta: { arg: { listing: { id: new UUID('listing-b') } } },
+        payload: [createListing('neighbour-of-b')],
+      });
+      expect(fresh.similarListings.map(l => l.id.uuid)).toEqual(['neighbour-of-b']);
     });
 
     it('should handle showListingThunk.pending', () => {
@@ -733,26 +746,35 @@ describe('Duck', () => {
         action => !action.type.startsWith('user/fetchCurrentUser/')
       );
       expect(relevantActions[0]).toEqual(
-        setInitialValues({ inquiryModalOpenForListingId: null, lineItems: null })
+        setInitialValues({
+          inquiryModalOpenForListingId: null,
+          lineItems: null,
+          similarListings: [],
+        })
       );
       expect(relevantActions[1].type).toBe('ListingPage/showListing/pending');
       expect(relevantActions[2].type).toBe('ListingPage/fetchReviews/pending');
       expect(relevantActions[3]).toEqual(
         addMarketplaceEntities(fakeResponse(listing1), sanitizeConfig)
       );
-      expect(relevantActions[4].type).toBe('auth/authInfo/pending');
-      expect(relevantActions[5].type).toBe('ListingPage/showListing/fulfilled');
-      expect(relevantActions[6].type).toBe('ListingPage/fetchReviews/fulfilled');
 
-      // The similar-listings query runs once the listing (category + price) is known and
-      // is awaited by loadData. authInfo/fulfilled interleaves with it, so it is filtered out.
-      const tail = relevantActions.slice(7).filter(action => !action.type.startsWith('auth/'));
-      expect(tail.map(a => a.type)).toEqual([
-        'ListingPage/querySimilarListings/pending',
-        'marketplaceData/addEntities',
+      // The similar-listings query is chained off the listing fetch (it needs the category
+      // and price) and overlaps the reviews fetch, so only its relative order is fixed.
+      // authInfo/* comes from fetchCurrentUser and interleaves freely.
+      const tail = relevantActions.slice(4).filter(action => !action.type.startsWith('auth/'));
+      const types = tail.map(a => a.type);
+      expect([...types].sort()).toEqual([
+        'ListingPage/fetchReviews/fulfilled',
         'ListingPage/querySimilarListings/fulfilled',
+        'ListingPage/querySimilarListings/pending',
+        'ListingPage/showListing/fulfilled',
       ]);
-      expect(tail[2].payload).toEqual({ listingRefs: [] });
+      expect(types.indexOf('ListingPage/querySimilarListings/pending')).toBeGreaterThan(
+        types.indexOf('ListingPage/showListing/fulfilled')
+      );
+      expect(
+        tail.find(a => a.type === 'ListingPage/querySimilarListings/fulfilled').payload
+      ).toEqual([]);
       expect(sdk.listings.query).toHaveBeenCalledTimes(1);
       expect(sdk.listings.query).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -765,7 +787,7 @@ describe('Duck', () => {
           'limit.images': 1,
         })
       );
-      expect(getState().ListingPage.similarListingRefs).toEqual([]);
+      expect(getState().ListingPage.similarListings).toEqual([]);
     });
   });
 
@@ -818,7 +840,11 @@ describe('Duck', () => {
         action => !action.type.startsWith('user/fetchCurrentUser/')
       );
       expect(relevantActions[0]).toEqual(
-        setInitialValues({ inquiryModalOpenForListingId: null, lineItems: null })
+        setInitialValues({
+          inquiryModalOpenForListingId: null,
+          lineItems: null,
+          similarListings: [],
+        })
       );
       expect(relevantActions[2].type).toBe('auth/authInfo/pending');
       expect(relevantActions[3].type).toBe('ListingPage/showListing/rejected');
@@ -863,7 +889,11 @@ describe('Duck', () => {
         action => !action.type.startsWith('user/fetchCurrentUser/')
       );
       expect(relevantActions[0]).toEqual(
-        setInitialValues({ inquiryModalOpenForListingId: null, lineItems: null })
+        setInitialValues({
+          inquiryModalOpenForListingId: null,
+          lineItems: null,
+          similarListings: [],
+        })
       );
       expect(relevantActions[1].type).toBe('ListingPage/showListing/pending');
       expect(relevantActions[2]).toEqual(

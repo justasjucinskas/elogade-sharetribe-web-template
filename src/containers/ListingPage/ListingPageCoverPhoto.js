@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import classNames from 'classnames';
 
@@ -10,10 +10,7 @@ import { LISTING_STATE_CLOSED, propTypes } from '../../util/types';
 import { OFFER, REQUEST } from '../../transactions/transaction';
 
 // Global ducks (for Redux actions and thunks)
-import {
-  getMarketplaceEntities,
-  makeGetListingsByIdSelector,
-} from '../../ducks/marketplaceData.duck';
+import { getMarketplaceEntities } from '../../ducks/marketplaceData.duck';
 import { manageDisableScrolling, isScrollingDisabled } from '../../ducks/ui.duck';
 import { initializeCardPaymentData } from '../../ducks/stripe.duck.js';
 
@@ -420,13 +417,8 @@ const ListingPage = props => {
     fetchLineItemsInProgress,
     fetchLineItemsError,
     inquiryModalOpenForListingId,
-    similarListingRefs,
+    similarListings,
   } = useSelector(state => state.ListingPage);
-  const getListingsByIdSelector = useMemo(makeGetListingsByIdSelector, []);
-  const similarListingIds = useMemo(() => similarListingRefs.map(ref => ref.id), [
-    similarListingRefs,
-  ]);
-  const similarListings = useSelector(state => getListingsByIdSelector(state, similarListingIds));
   const currentUser = useSelector(state => state.user?.currentUser);
   const scrollingDisabled = useSelector(state => isScrollingDisabled(state));
   const currentLocale = useSelector(state => state.locale?.current || DEFAULT_LOCALE);
