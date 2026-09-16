@@ -325,6 +325,49 @@ describe('ListingPage variants', () => {
       expect(getByRole('button', { name: 'UserCard.contactUser' })).toBeInTheDocument();
     });
   });
+
+  // The SEO schema/meta description are built from the listing entity; they must not throw
+  // before the loading / not-found early returns (a throw during SSR turns a 404 into a 500).
+  ['carousel', 'coverPhoto'].forEach(variantType => {
+    it(`renders the loading page for a listing not yet in the store (${variantType})`, async () => {
+      const config = getConfig(variantType);
+      const routeConfiguration = getRouteConfiguration(config.layout);
+      const ListingPage = routeConfiguration.find(conf => conf.name === 'ListingPage').component;
+      const stateWithoutListing = {
+        ...initialState,
+        marketplaceData: { entities: { listing: {}, ownListing: {} } },
+      };
+
+      render(<ListingPage {...commonProps} />, {
+        initialState: stateWithoutListing,
+        config,
+        routeConfiguration,
+      });
+      await waitFor(() => {
+        expect(screen.getByText('ListingPage.loadingListingMessage')).toBeInTheDocument();
+      });
+    });
+
+    it(`renders the not-found page for a 404 listing error (${variantType})`, async () => {
+      const config = getConfig(variantType);
+      const routeConfiguration = getRouteConfiguration(config.layout);
+      const ListingPage = routeConfiguration.find(conf => conf.name === 'ListingPage').component;
+      const stateWith404 = {
+        ...initialState,
+        ListingPage: { ...initialState.ListingPage, showListingError: { status: 404 } },
+        marketplaceData: { entities: { listing: {}, ownListing: {} } },
+      };
+
+      render(<ListingPage {...commonProps} />, {
+        initialState: stateWith404,
+        config,
+        routeConfiguration,
+      });
+      await waitFor(() => {
+        expect(screen.getByText('NotFoundPage.heading')).toBeInTheDocument();
+      });
+    });
+  });
 });
 
 describe('Duck', () => {

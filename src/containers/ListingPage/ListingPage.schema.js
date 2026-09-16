@@ -40,12 +40,6 @@ const CONDITION_TO_SCHEMA = {
   fairforparts: SCHEMA_CONDITION.DAMAGED,
 };
 
-export const CONDITION_FIELD_KEY = 'productcondition';
-export const WARRANTY_FIELD_KEY = 'warrantystatus';
-export const NO_WARRANTY_VALUE = 'nowarranty';
-export const BRAND_OTHER_VALUE = 'other';
-export const BRAND_OTHER_TEXT_KEY = 'brandother';
-
 // Console defines one brand enum field per level-1 category (SEO-INPUTS.md §4).
 export const BRAND_FIELD_BY_CATEGORY = {
   phonesaccessories: 'brand',
@@ -66,6 +60,12 @@ export const PRICE_VALID_DAYS = 60;
 
 export const META_DESCRIPTION_MAX_LENGTH = 155;
 
+const CONDITION_FIELD_KEY = 'productcondition';
+const WARRANTY_FIELD_KEY = 'warrantystatus';
+const NO_WARRANTY_VALUE = 'nowarranty';
+const BRAND_OTHER_VALUE = 'other';
+const BRAND_OTHER_TEXT_KEY = 'brandother';
+
 const asString = value => (value == null ? '' : `${value}`.trim());
 const lower = value => asString(value).toLowerCase();
 
@@ -77,15 +77,21 @@ export const getItemCondition = productcondition =>
   CONDITION_TO_SCHEMA[lower(productcondition)] || SCHEMA_CONDITION.USED;
 
 /**
- * Find the enum option of a listing field whose key matches `value` case-insensitively.
+ * Find the enum option of a listing field for `value`: an exact key match first, then a
+ * case-insensitive one. Exact wins because Console enums can carry keys that differ only
+ * in case with different labels (the phones `brand` field has both `Belkin` and `belkin`).
  * Returns `{ option, label }` from the field config, or null when the field or option is
  * unknown to the config.
  */
 const findEnumOption = (listingFields, fieldKey, value) => {
   const field = (listingFields || []).find(f => f.key === fieldKey);
-  const wanted = lower(value);
-  if (!field || !wanted) return null;
-  return (field.enumOptions || []).find(o => lower(o.option) === wanted) || null;
+  const raw = asString(value);
+  if (!field || !raw) return null;
+  const options = field.enumOptions || [];
+  const wanted = lower(raw);
+  return (
+    options.find(o => o.option === raw) || options.find(o => lower(o.option) === wanted) || null
+  );
 };
 
 /**
@@ -104,22 +110,18 @@ export const getEnumOptionLabel = (intl, listingFields, fieldKey, value) => {
 };
 
 /**
- * Resolve the listing's brand name (SEO-INPUTS.md §4). Looks at the brand field of the
- * listing's level-1 category first, then at any other brand field that happens to carry a
- * value. `other` → `brandother` text, or null.
+ * Resolve the listing's brand name (SEO-INPUTS.md §4) from the brand field of the listing's
+ * level-1 category. Brand fields of other categories are ignored even when populated: the
+ * page does not render them either, and Console only ever shows one brand field per
+ * category, so a stray value there is data noise. `other` → `brandother` text, or null.
  *
  * @returns {string|null}
  */
 export const getBrandName = ({ intl, listingFields, publicData = {} }) => {
-  const categoryField = BRAND_FIELD_BY_CATEGORY[publicData.categoryLevel1];
-  const candidates = [
-    ...(categoryField ? [categoryField] : []),
-    ...Object.values(BRAND_FIELD_BY_CATEGORY).filter(k => k !== categoryField),
-  ];
-  const fieldKey = candidates.find(k => asString(publicData[k]) !== '');
-  if (!fieldKey) return null;
+  const fieldKey = BRAND_FIELD_BY_CATEGORY[publicData.categoryLevel1];
+  const value = fieldKey ? asString(publicData[fieldKey]) : '';
+  if (!value) return null;
 
-  const value = asString(publicData[fieldKey]);
   if (lower(value) === BRAND_OTHER_VALUE) {
     const otherText = asString(publicData[BRAND_OTHER_TEXT_KEY]);
     return otherText || null;
@@ -149,13 +151,16 @@ const toISODate = date => date.toISOString().slice(0, 10);
  * PRICE_VALID_DAYS after `now`.
  */
 export const getPriceValidUntil = (createdAt, now = new Date()) => {
+  const addValidityWindow = date => {
+    const until = new Date(date.getTime());
+    until.setUTCDate(until.getUTCDate() + PRICE_VALID_DAYS);
+    return until;
+  };
   const created = createdAt instanceof Date ? createdAt : createdAt ? new Date(createdAt) : null;
-  const base =
-    created && !Number.isNaN(created.getTime()) && created.getTime() > now.getTime()
-      ? created
-      : now;
-  const until = new Date(base.getTime());
-  until.setUTCDate(until.getUTCDate() + PRICE_VALID_DAYS);
+  const fromCreated =
+    created && !Number.isNaN(created.getTime()) ? addValidityWindow(created) : null;
+  const until =
+    fromCreated && fromCreated.getTime() >= now.getTime() ? fromCreated : addValidityWindow(now);
   return toISODate(until);
 };
 
@@ -168,8 +173,11 @@ export const truncateDescription = (text, maxLength = META_DESCRIPTION_MAX_LENGT
   const ellipsis = '…';
   const cut = str.slice(0, maxLength - ellipsis.length);
   const lastSpace = cut.lastIndexOf(' ');
-  const head = lastSpace > maxLength / 2 ? cut.slice(0, lastSpace) : cut;
-  return `${head.replace(/[\s,;:–-]+$/, '')}${ellipsis}`;
+  const head = (lastSpace > maxLength / 2 ? cut.slice(0, lastSpace) : cut).replace(
+    /[\s,;:–-]+$/,
+    ''
+  );
+  return `${head || cut}${ellipsis}`;
 };
 
 /**
@@ -232,7 +240,7 @@ export const getListingMetaDescription = ({
  * @param {Object} [params.priceMaybe] `{ price, priceCurrency }` or `{}`
  * @param {Object} [params.availabilityMaybe] `{ availability }` or `{}`
  * @param {Date} [params.now] injectable clock for priceValidUntil
- * @returns {{ url: string, categoryPath: Array, schema: Array }}
+ * @returns {Array} JSON-LD nodes for the `schema` prop of <Page>
  */
 export const getListingSchema = ({
   intl,
@@ -304,5 +312,5 @@ export const getListingSchema = ({
     ].map((entry, i) => ({ '@type': 'ListItem', position: i + 1, ...entry })),
   };
 
-  return { url, categoryPath, schema: [product, breadcrumbList] };
+  return [product, breadcrumbList];
 };

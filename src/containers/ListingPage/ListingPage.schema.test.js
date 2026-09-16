@@ -60,6 +60,9 @@ const listingFields = [
     enumOptions: [
       { option: 'apple', label: 'Apple' },
       { option: 'Honor', label: 'Honor' },
+      // Console really has both of these on the phones brand field.
+      { option: 'Belkin', label: 'Baseus' },
+      { option: 'belkin', label: 'Belkin' },
       { option: 'other', label: 'Other' },
     ],
   },
@@ -187,6 +190,18 @@ describe('ListingPage.schema', () => {
       expect(getEnumOptionLabel(intl, listingFields, 'brand', 'HONOR')).toBe('Honor (LT)');
     });
 
+    it('prefers an exact key match when option keys differ only in case', () => {
+      const intl = createIntl();
+      expect(getEnumOptionLabel(intl, listingFields, 'brand', 'Belkin')).toBe('Baseus');
+      expect(getEnumOptionLabel(intl, listingFields, 'brand', 'belkin')).toBe('Belkin');
+      const ltIntl = createIntl({
+        'listingField.brand.option.Belkin': 'Baseus (LT)',
+        'listingField.brand.option.belkin': 'Belkin (LT)',
+      });
+      expect(getEnumOptionLabel(ltIntl, listingFields, 'brand', 'Belkin')).toBe('Baseus (LT)');
+      expect(getEnumOptionLabel(ltIntl, listingFields, 'brand', 'belkin')).toBe('Belkin (LT)');
+    });
+
     it('falls back to the raw value for unknown options and to empty for missing values', () => {
       expect(getEnumOptionLabel(createIntl(), listingFields, 'brand', 'nothing')).toBe('nothing');
       expect(getEnumOptionLabel(createIntl(), [], 'brand', 'apple')).toBe('apple');
@@ -231,15 +246,22 @@ describe('ListingPage.schema', () => {
       ).toBe('Sony (LT)');
     });
 
-    it('falls back to any populated brand field when the category one is empty', () => {
+    it('ignores brand fields of other categories and listings without a category', () => {
       expect(
         getBrandName({
           intl,
           listingFields,
           publicData: { categoryLevel1: 'phonesaccessories', brand3: 'sony' },
         })
-      ).toBe('Sony');
-      expect(getBrandName({ intl, listingFields, publicData: { brand: 'apple' } })).toBe('Apple');
+      ).toBeNull();
+      expect(getBrandName({ intl, listingFields, publicData: { brand: 'apple' } })).toBeNull();
+      expect(
+        getBrandName({
+          intl,
+          listingFields,
+          publicData: { categoryLevel1: 'unknown', brand: 'apple' },
+        })
+      ).toBeNull();
     });
 
     it('uses brandother text for `other`, otherwise omits the brand', () => {
@@ -297,16 +319,20 @@ describe('ListingPage.schema', () => {
   });
 
   describe('getPriceValidUntil', () => {
-    it(`is ${PRICE_VALID_DAYS} days after a future or recent publish date`, () => {
-      expect(getPriceValidUntil(new Date('2026-08-22T12:00:00.000Z'), now)).toBe('2026-11-15');
-      // The ticket's example: published 2026-08-22, computed on that day.
-      expect(
-        getPriceValidUntil(new Date('2026-08-22T12:00:00.000Z'), new Date('2026-08-22T13:00:00Z'))
-      ).toBe('2026-10-21');
+    it(`is ${PRICE_VALID_DAYS} days after the publish date while that is still ahead`, () => {
+      // The ticket's example: published 2026-08-22 → 2026-10-21, whenever it is rendered
+      // before that date.
+      const created = new Date('2026-08-22T12:00:00.000Z');
+      expect(getPriceValidUntil(created, new Date('2026-08-22T13:00:00Z'))).toBe('2026-10-21');
+      expect(getPriceValidUntil(created, now)).toBe('2026-10-21');
+      expect(getPriceValidUntil(created, new Date('2026-10-21T00:00:00Z'))).toBe('2026-10-21');
     });
 
-    it('never returns a date in the past for an old listing', () => {
+    it('re-bases on now once the publish-date window has passed', () => {
       expect(getPriceValidUntil(new Date('2025-01-01T00:00:00.000Z'), now)).toBe('2026-11-15');
+      expect(
+        getPriceValidUntil(new Date('2026-08-22T12:00:00.000Z'), new Date('2026-10-22T00:00:00Z'))
+      ).toBe('2026-12-21');
     });
 
     it('handles missing or invalid createdAt', () => {
@@ -327,6 +353,14 @@ describe('ListingPage.schema', () => {
       expect(out.endsWith('…')).toBe(true);
       expect(out).not.toMatch(/[,\s–-]…$/);
       expect(long.startsWith(out.slice(0, -1))).toBe(true);
+    });
+
+    it('still returns text when there is no word boundary to cut at', () => {
+      const out = truncateDescription('-'.repeat(200));
+      expect(out.length).toBe(META_DESCRIPTION_MAX_LENGTH);
+      expect(out).toBe(`${'-'.repeat(META_DESCRIPTION_MAX_LENGTH - 1)}…`);
+      const noSpaces = `iPhone13${'X'.repeat(200)}`;
+      expect(truncateDescription(noSpaces).length).toBe(META_DESCRIPTION_MAX_LENGTH);
     });
   });
 
@@ -427,9 +461,7 @@ describe('ListingPage.schema', () => {
 
   describe('getListingSchema', () => {
     it('builds the Product node per the ticket 4 target', () => {
-      const { url, schema } = getListingSchema(baseParams);
-      const [product] = schema;
-      expect(url).toBe(`https://www.elogade.com/lt/l/${uuid}`);
+      const [product] = getListingSchema(baseParams);
       expect(product).toEqual({
         '@type': 'Product',
         '@id': `https://www.elogade.com/lt/l/${uuid}#product`,
@@ -448,14 +480,14 @@ describe('ListingPage.schema', () => {
           priceCurrency: 'EUR',
           availability: 'https://schema.org/InStock',
           itemCondition: 'https://schema.org/UsedCondition',
-          priceValidUntil: '2026-11-15',
+          priceValidUntil: '2026-10-21',
           seller: { '@type': 'Person', name: 'Jonas J' },
         },
       });
     });
 
     it('does not carry a per-node @context, ratings, reviews or the IMEI field', () => {
-      const json = JSON.stringify(getListingSchema(baseParams).schema);
+      const json = JSON.stringify(getListingSchema(baseParams));
       expect(json).not.toContain('@context');
       expect(json).not.toContain('aggregateRating');
       expect(json).not.toContain('"review"');
@@ -464,12 +496,11 @@ describe('ListingPage.schema', () => {
     });
 
     it('builds a locale-prefixed BreadcrumbList through the category chain', () => {
-      const { schema } = getListingSchema({
+      const [, breadcrumbs] = getListingSchema({
         ...baseParams,
         intl: createIntl({ ...enMessages, ...ltOverlay }),
         listing: listing({ publicData: { categoryLevel2: 'speakers' } }),
       });
-      const [, breadcrumbs] = schema;
       expect(breadcrumbs).toEqual({
         '@type': 'BreadcrumbList',
         itemListElement: [
@@ -498,15 +529,14 @@ describe('ListingPage.schema', () => {
     });
 
     it('uses the requested locale in every URL', () => {
-      const { schema } = getListingSchema({ ...baseParams, currentLocale: 'en' });
-      const json = JSON.stringify(schema);
+      const json = JSON.stringify(getListingSchema({ ...baseParams, currentLocale: 'en' }));
       expect(json).toContain(`https://www.elogade.com/en/l/${uuid}`);
       expect(json).toContain('https://www.elogade.com/en/s?pub_categoryLevel1=audiodevices');
       expect(json).not.toContain('/lt/');
     });
 
     it('omits optional nodes when the data is missing', () => {
-      const { schema } = getListingSchema({
+      const [product, breadcrumbs] = getListingSchema({
         ...baseParams,
         listing: listing({
           publicData: {
@@ -523,7 +553,6 @@ describe('ListingPage.schema', () => {
         priceMaybe: {},
         availabilityMaybe: {},
       });
-      const [product, breadcrumbs] = schema;
       expect(product).toEqual({
         '@type': 'Product',
         '@id': `https://www.elogade.com/lt/l/${uuid}#product`,

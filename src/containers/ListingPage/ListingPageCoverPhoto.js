@@ -123,7 +123,6 @@ export const ListingPageComponent = props => {
     listingTab,
     description,
     geolocation,
-    price,
     title,
     publicData,
     metadata,

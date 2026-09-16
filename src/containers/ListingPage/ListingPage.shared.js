@@ -255,27 +255,37 @@ export const getDerivedRenderData = ({
     currentListing.attributes.state === LISTING_STATE_CLOSED ? { noIndex: true } : {};
 
   // SEO: <meta name="description"> and the Product + BreadcrumbList JSON-LD. See
-  // ListingPage.schema.js for the rules. Every URL in the graph is the locale-prefixed
-  // listing canonical, so the schema never disagrees with rel=canonical.
-  const metaDescription = getListingMetaDescription({
-    intl,
-    config,
-    listingFields: listingConfig.listingFields,
-    title,
-    publicData,
-    formattedPrice,
-  });
-  const { schema: listingSchema } = getListingSchema({
-    intl,
-    config,
-    routeConfiguration,
-    currentLocale,
-    listing: currentListing,
-    authorDisplayName,
-    images: schemaImages,
-    priceMaybe: priceForSchemaMaybe(price),
-    availabilityMaybe,
-  });
+  // ListingPage.schema.js for the rules. Only built for a loaded listing on the public
+  // route: before the listing is in the store there is no id to build URLs from (the page
+  // renders LoadingPage / NotFoundPage instead), and on the owner-only draft / pending
+  // variant routes rel=canonical is the variant path, which the schema's canonical listing
+  // URL would contradict. Elsewhere every URL in the graph is the locale-prefixed listing
+  // canonical, so the schema never disagrees with rel=canonical.
+  const shouldBuildSeo = !!currentListing.id && !isVariant;
+  const metaDescription = shouldBuildSeo
+    ? getListingMetaDescription({
+        intl,
+        config,
+        listingFields: listingConfig.listingFields,
+        title,
+        publicData,
+        // priceData() returns an "(XYZ)" placeholder for a foreign currency; never publish it.
+        formattedPrice: price?.currency === config.currency ? formattedPrice : null,
+      })
+    : description;
+  const listingSchema = shouldBuildSeo
+    ? getListingSchema({
+        intl,
+        config,
+        routeConfiguration,
+        currentLocale,
+        listing: currentListing,
+        authorDisplayName,
+        images: schemaImages,
+        priceMaybe: priceForSchemaMaybe(price),
+        availabilityMaybe,
+      })
+    : null;
 
   return {
     listingConfig,
@@ -304,8 +314,6 @@ export const getDerivedRenderData = ({
     schemaTitle,
     facebookImages,
     twitterImages,
-    schemaImages,
-    availabilityMaybe,
     noIndexMaybe,
     metaDescription,
     listingSchema,
