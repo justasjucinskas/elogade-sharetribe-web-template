@@ -249,9 +249,28 @@ const renderSitemapIndex = (rootUrl, sitemapPaths) => {
   return streamToPromise(smiStream);
 };
 
+// Renders in progress, by cache key. Requests that miss the cache while a render
+// is already running await that render instead of starting another fan-out of
+// API queries (relevant every hour when the TTL expires under crawler traffic).
+const inFlight = new Map();
+
+const renderOnce = (cacheKey, render) => {
+  if (inFlight.has(cacheKey)) return inFlight.get(cacheKey);
+  const pending = Promise.resolve()
+    .then(render)
+    .then(xml => {
+      cache[cacheKey] = xml;
+      return xml;
+    })
+    .finally(() => inFlight.delete(cacheKey));
+  inFlight.set(cacheKey, pending);
+  return pending;
+};
+
 /**
  * Send the cached document for `cacheKey`, or build it with `render`, cache it and
- * send it. Failures log and return 500 without caching.
+ * send it. Concurrent misses share one render. Failures log and return 500 without
+ * caching.
  */
 const sendSitemap = (res, cacheKey, render, logKey) => {
   res.set({
@@ -267,10 +286,8 @@ const sendSitemap = (res, cacheKey, render, logKey) => {
     return Promise.resolve();
   }
 
-  return Promise.resolve()
-    .then(render)
+  return renderOnce(cacheKey, render)
     .then(xml => {
-      cache[cacheKey] = xml;
       res.send(xml);
     })
     .catch(e => {

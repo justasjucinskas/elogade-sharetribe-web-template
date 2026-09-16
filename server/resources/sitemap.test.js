@@ -7,6 +7,7 @@ const {
   sitemapDefault,
   sitemapCategories,
   sitemapListings,
+  sitemapPages,
   sitemapXmlRedirect,
   withLocaleAlternates,
   LIVE_LISTING_FILTERS,
@@ -276,6 +277,21 @@ describe('sitemap handlers', () => {
     expect(res.body).toContain(`<loc>${ROOT}/sitemap-recent-pages.xml</loc>`);
   });
 
+  it('index omits the categories and listings sitemaps for a private marketplace', async () => {
+    let fresh;
+    jest.isolateModules(() => {
+      fresh = require('./sitemap');
+    });
+    const res = buildRes();
+    await fresh.sitemapIndex({}, res, ROOT, true);
+
+    expect(countMatches(res.body, '<loc>')).toBe(2);
+    expect(res.body).toContain(`<loc>${ROOT}/sitemap-default.xml</loc>`);
+    expect(res.body).toContain(`<loc>${ROOT}/sitemap-recent-pages.xml</loc>`);
+    expect(res.body).not.toContain('sitemap-categories');
+    expect(res.body).not.toContain('sitemap-recent-listings');
+  });
+
   it('default sitemap contains landing, terms and privacy only — no login, signup or bare search', async () => {
     const res = buildRes();
     await sitemapDefault({}, res, ROOT);
@@ -318,6 +334,62 @@ describe('sitemap handlers', () => {
     expect(res.status).not.toHaveBeenCalledWith(500);
     expect(res.body).toContain('<urlset');
     expect(res.body).not.toContain('<url>');
+  });
+
+  it('pages sitemap lists CMS pages, skipping fixed-route and locale-suffixed slugs', async () => {
+    const asset = assetPath => ({ attributes: { assetPath } });
+    const sdk = {
+      sitemapData: {
+        queryAssets: jest.fn(() =>
+          Promise.resolve({
+            data: {
+              data: [
+                asset('/content/pages/about.json'),
+                asset('/content/pages/about-lt.json'),
+                asset('/content/pages/about-pl.json'),
+                asset('/content/pages/about-lte.json'),
+                asset('/content/pages/landing-page.json'),
+                asset('/content/pages/terms-of-service.json'),
+                asset('/content/pages/privacy-policy.json'),
+                { attributes: {} },
+              ],
+            },
+          })
+        ),
+      },
+    };
+    const res = buildRes();
+    await sitemapPages({}, res, ROOT, sdk);
+
+    expect(sdk.sitemapData.queryAssets).toHaveBeenCalledWith({ pathPrefix: '/content/pages/' });
+    const locs = (res.body.match(/<loc>[^<]*<\/loc>/g) || []).map(l => l.slice(5, -6));
+    expect(locs).toEqual([
+      `${ROOT}/en/p/about`,
+      `${ROOT}/lt/p/about`,
+      `${ROOT}/pl/p/about`,
+      `${ROOT}/en/p/about-lte`,
+      `${ROOT}/lt/p/about-lte`,
+      `${ROOT}/pl/p/about-lte`,
+    ]);
+  });
+
+  it('shares one render between concurrent cache misses', async () => {
+    let fresh;
+    jest.isolateModules(() => {
+      fresh = require('./sitemap');
+    });
+    const sdk = buildCategorySdk({ phones: 20 });
+    const resA = buildRes();
+    const resB = buildRes();
+    await Promise.all([
+      fresh.sitemapCategories({}, resA, ROOT, sdk),
+      fresh.sitemapCategories({}, resB, ROOT, sdk),
+    ]);
+
+    expect(sdk.assetsByAlias).toHaveBeenCalledTimes(1);
+    expect(sdk.listings.query).toHaveBeenCalledTimes(5);
+    expect(resA.body).toBe(resB.body);
+    expect(resA.body).toContain('pub_categoryLevel1=phones');
   });
 
   it('responds 500 and does not cache when generation fails', async () => {
