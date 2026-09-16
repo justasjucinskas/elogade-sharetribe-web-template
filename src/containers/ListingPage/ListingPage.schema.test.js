@@ -1,5 +1,6 @@
 import {
   BRAND_FIELD_BY_CATEGORY,
+  MAX_BRAND_NAME_LENGTH,
   META_DESCRIPTION_MAX_LENGTH,
   PRICE_VALID_DAYS,
   getBrandName,
@@ -290,6 +291,38 @@ describe('ListingPage.schema', () => {
           publicData: { categoryLevel1: 'phonesaccessories', brand: 'other' },
         })
       ).toBeNull();
+    });
+
+    it('drops brandother text that does not look like a brand name', () => {
+      const base = { intl, listingFields };
+      const pitch =
+        'BENG Parduodu garso molonėlias BENG su stiprintuvu NIKO.Stiprintuvas su radijo imtuvu FM-AM.';
+      expect(
+        getBrandName({
+          ...base,
+          publicData: { categoryLevel1: 'phonesaccessories', brand: 'other', brandother: pitch },
+        })
+      ).toBeNull();
+      expect(
+        getBrandName({
+          ...base,
+          publicData: {
+            categoryLevel1: 'phonesaccessories',
+            brand: 'other',
+            brandother: 'Fair\nphone',
+          },
+        })
+      ).toBeNull();
+      expect(
+        getBrandName({
+          ...base,
+          publicData: {
+            categoryLevel1: 'phonesaccessories',
+            brand: 'other',
+            brandother: 'x'.repeat(MAX_BRAND_NAME_LENGTH),
+          },
+        })
+      ).toBe('x'.repeat(MAX_BRAND_NAME_LENGTH));
     });
 
     it('returns null without any brand data', () => {
