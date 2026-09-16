@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import classNames from 'classnames';
 
@@ -10,7 +10,10 @@ import { LISTING_STATE_CLOSED, propTypes } from '../../util/types';
 import { OFFER, REQUEST } from '../../transactions/transaction';
 
 // Global ducks (for Redux actions and thunks)
-import { getMarketplaceEntities } from '../../ducks/marketplaceData.duck';
+import {
+  getMarketplaceEntities,
+  makeGetListingsByIdSelector,
+} from '../../ducks/marketplaceData.duck';
 import { manageDisableScrolling, isScrollingDisabled } from '../../ducks/ui.duck';
 import { initializeCardPaymentData } from '../../ducks/stripe.duck.js';
 
@@ -51,6 +54,8 @@ import {
 import Notifications from './Notifications/Notifications';
 import SectionReviews from './SectionReviews';
 import SectionAuthorMaybe from './SectionAuthorMaybe';
+import SectionSimilarListings from './SectionSimilarListings';
+import SoldBadge from './SoldBadge';
 import SectionMapMaybe from './SectionMapMaybe';
 import SectionGallery from './SectionGallery';
 import CustomListingFields from './CustomListingFields';
@@ -93,6 +98,7 @@ export const ListingPageComponent = props => {
     routeConfiguration,
     currentLocale,
     showOwnListingsOnly,
+    similarListings,
     ...restOfProps
   } = props;
 
@@ -139,6 +145,7 @@ export const ListingPageComponent = props => {
     metaDescription,
     listingSchema,
     noIndexMaybe,
+    isSold,
     hasInvalidListingData,
   } = derivedData;
 
@@ -249,6 +256,7 @@ export const ListingPageComponent = props => {
             <div
               className={showListingImage ? css.mobileHeading : css.noListingImageHeadingProduct}
             >
+              {isSold ? <SoldBadge /> : null}
               {showListingImage ? (
                 <H2 as="h1" className={css.orderPanelTitle}>
                   <FormattedMessage id="ListingPage.orderTitle" values={{ title: richTitle }} />
@@ -310,9 +318,12 @@ export const ListingPageComponent = props => {
               }
               title={<FormattedMessage id="ListingPage.orderTitle" values={{ title: richTitle }} />}
               titleDesktop={
-                <H4 as="h1" className={css.orderPanelTitle}>
-                  <FormattedMessage id="ListingPage.orderTitle" values={{ title: richTitle }} />
-                </H4>
+                <>
+                  {isSold ? <SoldBadge /> : null}
+                  <H4 as="h1" className={css.orderPanelTitle}>
+                    <FormattedMessage id="ListingPage.orderTitle" values={{ title: richTitle }} />
+                  </H4>
+                </>
               }
               sectionHeadingAs="h2"
               payoutDetailsWarning={payoutDetailsWarning}
@@ -328,6 +339,7 @@ export const ListingPageComponent = props => {
             />
           </div>
         </div>
+        <SectionSimilarListings listings={similarListings} />
       </LayoutSingleColumn>
     </Page>
   );
@@ -383,7 +395,13 @@ const ListingPage = props => {
     fetchLineItemsInProgress,
     fetchLineItemsError,
     inquiryModalOpenForListingId,
+    similarListingRefs,
   } = useSelector(state => state.ListingPage);
+  const getListingsByIdSelector = useMemo(makeGetListingsByIdSelector, []);
+  const similarListingIds = useMemo(() => similarListingRefs.map(ref => ref.id), [
+    similarListingRefs,
+  ]);
+  const similarListings = useSelector(state => getListingsByIdSelector(state, similarListingIds));
   const currentUser = useSelector(state => state.user?.currentUser);
   const scrollingDisabled = useSelector(state => isScrollingDisabled(state));
   const currentLocale = useSelector(state => state.locale?.current || DEFAULT_LOCALE);
@@ -443,6 +461,7 @@ const ListingPage = props => {
       getOwnListing={getOwnListing}
       scrollingDisabled={scrollingDisabled}
       currentLocale={currentLocale}
+      similarListings={similarListings}
       inquiryModalOpenForListingId={inquiryModalOpenForListingId}
       showListingError={showListingError}
       reviews={reviews}

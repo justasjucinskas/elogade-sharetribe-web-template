@@ -30,6 +30,12 @@ import {
 } from '../../transactions/transaction';
 import { fetchCurrentUser, setCurrentUserHasOrders } from '../../ducks/user.duck';
 
+import {
+  excludeListingFromResponse,
+  getSimilarListingsQueryParams,
+  pickSimilarListingRefs,
+} from './ListingPage.sold';
+
 const { UUID } = sdkTypes;
 const MINUTE_IN_MS = 1000 * 60;
 
@@ -273,6 +279,31 @@ export const sendInquiry = (listing, message) => (dispatch, getState, sdk) => {
   return dispatch(sendInquiryThunk({ listing, message })).unwrap();
 };
 
+/////////////////////////////
+// Fetch Similar Listings  //
+/////////////////////////////
+const querySimilarListingsPayloadCreator = (
+  { listing, config },
+  { dispatch, rejectWithValue, extra: sdk }
+) => {
+  const params = getSimilarListingsQueryParams({ listing, config });
+  return sdk.listings
+    .query(params)
+    .then(response => {
+      // Never merge the sparse copy of the listing being viewed back into the store.
+      const filtered = excludeListingFromResponse(response, listing.id);
+      const listingFields = config?.listing?.listingFields;
+      dispatch(addMarketplaceEntities(filtered, { listingFields }));
+      return { listingRefs: pickSimilarListingRefs(filtered) };
+    })
+    .catch(e => rejectWithValue(storableError(e)));
+};
+
+export const querySimilarListingsThunk = createAsyncThunk(
+  'ListingPage/querySimilarListings',
+  querySimilarListingsPayloadCreator
+);
+
 // Helper function for loadData call.
 // Note: listing could be ownListing entity too
 const fetchMonthlyTimeSlots = (dispatch, listing) => {
@@ -399,6 +430,9 @@ const initialState = {
   sendInquiryInProgress: false,
   sendInquiryError: null,
   inquiryModalOpenForListingId: null,
+  similarListingRefs: [],
+  querySimilarListingsInProgress: false,
+  querySimilarListingsError: null,
 };
 
 const listingPageSlice = createSlice({
@@ -518,6 +552,18 @@ const listingPageSlice = createSlice({
       .addCase(fetchTransactionLineItemsThunk.rejected, (state, action) => {
         state.fetchLineItemsInProgress = false;
         state.fetchLineItemsError = action.payload;
+      })
+      .addCase(querySimilarListingsThunk.pending, state => {
+        state.querySimilarListingsInProgress = true;
+        state.querySimilarListingsError = null;
+      })
+      .addCase(querySimilarListingsThunk.fulfilled, (state, action) => {
+        state.querySimilarListingsInProgress = false;
+        state.similarListingRefs = action.payload.listingRefs;
+      })
+      .addCase(querySimilarListingsThunk.rejected, (state, action) => {
+        state.querySimilarListingsInProgress = false;
+        state.querySimilarListingsError = action.payload;
       });
   },
 });
@@ -570,6 +616,13 @@ export const loadData = (params, search, config) => (dispatch, getState, sdk) =>
       // We are not interested to return them from loadData call.
       fetchMonthlyTimeSlots(dispatch, listing);
     }
-    return response;
+
+    // The "similar listings" module needs the loaded listing's category and price, so it
+    // is queried after it — and awaited, so the server-rendered HTML carries the internal
+    // links to live inventory. A failure only empties the module; it never fails the page.
+    const shouldQuerySimilar = !!listing?.id && !hasNoViewingRights;
+    return shouldQuerySimilar
+      ? dispatch(querySimilarListingsThunk({ listing, config })).then(() => response)
+      : response;
   });
 };

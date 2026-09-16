@@ -649,6 +649,8 @@
   "ListingPage.reviewsError": "Nie udało się załadować recenzji.",
   "ListingPage.reviewsTitle": "Opinie ({count})",
   "ListingPage.schemaTitle": "{title} | {marketplaceName}",
+  "ListingPage.similarListingsHeading": "Podobne ogłoszenia",
+  "ListingPage.soldBadge": "Sprzedane",
   "ListingPage.viewImagesButton": "Zobacz zdjęcia ({count})",
   "LoadableComponentErrorBoundaryPage.description": "Wygląda na to, że aplikacja wymaga aktualizacji! Odśwież stronę lub wróć do sekcji {link}.",
   "LoadableComponentErrorBoundaryPage.heading": "Ups, nie udało nam się pobrać strony.",

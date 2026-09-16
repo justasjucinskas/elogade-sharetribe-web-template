@@ -9,6 +9,7 @@ import {
   createListing,
   createOwnListing,
   createReview,
+  createStock,
 } from '../../util/testData';
 import {
   renderWithProviders as render,
@@ -189,6 +190,9 @@ const initialState = {
     sendInquiryInProgress: false,
     sendInquiryError: null,
     inquiryModalOpenForListingId: null,
+    similarListingRefs: [],
+    querySimilarListingsInProgress: false,
+    querySimilarListingsError: null,
   },
   marketplaceData: {
     entities: {
@@ -370,6 +374,89 @@ describe('ListingPage variants', () => {
   });
 });
 
+describe('ListingPage sold state', () => {
+  const commonProps = {
+    params: { id, slug },
+    scrollingDisabled: false,
+    onManageDisableScrolling: noop,
+    callSetInitialValues: noop,
+    setInitialValues: noop,
+    onFetchTransactionLineItems: noop,
+    onSendInquiry: noop,
+    onInitializeCardPaymentData: noop,
+    onFetchTimeSlots: noop,
+  };
+  const soldListing = createListing(
+    id,
+    { publicData },
+    { author: createUser('user-1'), currentStock: createStock('stock-1', { quantity: 0 }) }
+  );
+  const similarListing = createListing(
+    'listing2',
+    { publicData },
+    { author: createUser('user-2'), currentStock: createStock('stock-2', { quantity: 1 }) }
+  );
+
+  ['carousel', 'coverPhoto'].forEach(variantType => {
+    it(`shows the sold badge and the similar listings module (${variantType})`, async () => {
+      const config = getConfig(variantType);
+      const routeConfiguration = getRouteConfiguration(config.layout);
+      const ListingPage = routeConfiguration.find(conf => conf.name === 'ListingPage').component;
+      const state = {
+        ...initialState,
+        ListingPage: {
+          ...initialState.ListingPage,
+          similarListingRefs: [{ id: similarListing.id, type: 'listing' }],
+        },
+        marketplaceData: {
+          entities: {
+            listing: { listing1: soldListing, listing2: similarListing },
+            ownListing: { listing1: listing1Own },
+          },
+        },
+      };
+
+      render(<ListingPage {...commonProps} />, { initialState: state, config, routeConfiguration });
+
+      await waitFor(() => {
+        // Mobile heading + desktop order panel title both carry the badge
+        expect(screen.getAllByText('ListingPage.soldBadge').length).toBeGreaterThan(0);
+        expect(
+          screen.getByRole('heading', { name: 'ListingPage.similarListingsHeading' })
+        ).toBeInTheDocument();
+        const section = within(screen.getByTestId('similar-listings'));
+        expect(section.getByText('listing2 title')).toBeInTheDocument();
+        expect(section.queryByText('listing1 title')).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  it('shows neither the badge nor the module for an in-stock listing without similar listings', async () => {
+    const config = getConfig('carousel');
+    const routeConfiguration = getRouteConfiguration(config.layout);
+    const ListingPage = routeConfiguration.find(conf => conf.name === 'ListingPage').component;
+    const inStock = createListing(
+      id,
+      { publicData },
+      { author: createUser('user-1'), currentStock: createStock('stock-1', { quantity: 1 }) }
+    );
+    const state = {
+      ...initialState,
+      marketplaceData: {
+        entities: { listing: { listing1: inStock }, ownListing: { listing1: listing1Own } },
+      },
+    };
+
+    render(<ListingPage {...commonProps} />, { initialState: state, config, routeConfiguration });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'ListingPage.detailsTitle' })).toBeInTheDocument();
+    });
+    expect(screen.queryByText('ListingPage.soldBadge')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('similar-listings')).not.toBeInTheDocument();
+  });
+});
+
 describe('Duck', () => {
   const listingFields = [];
   const config = {
@@ -384,6 +471,7 @@ describe('Duck', () => {
       listingFields,
     },
     accessControl: { marketplace: { private: true } },
+    currency: 'USD',
   };
 
   describe('reducer', () => {
@@ -402,6 +490,9 @@ describe('Duck', () => {
         sendInquiryInProgress: false,
         sendInquiryError: null,
         inquiryModalOpenForListingId: null,
+        similarListingRefs: [],
+        querySimilarListingsInProgress: false,
+        querySimilarListingsError: null,
       });
     });
 
@@ -616,7 +707,10 @@ describe('Duck', () => {
     // For users with full viewing rights, ListingPage.showListing
     // uses listings.show endpoint
     const sdk = {
-      listings: { show: sdkFn(fakeResponse(listing1)) },
+      listings: {
+        show: sdkFn(fakeResponse(listing1)),
+        query: sdkFn({ data: { data: [], included: [], meta: { totalItems: 0 } } }),
+      },
       currentUser: { show: sdkFn(fakeResponse(currentUser)) },
       authInfo: sdkFn({}),
       reviews: { query: sdkFn(fakeResponse(review)) },
@@ -649,7 +743,29 @@ describe('Duck', () => {
       expect(relevantActions[4].type).toBe('auth/authInfo/pending');
       expect(relevantActions[5].type).toBe('ListingPage/showListing/fulfilled');
       expect(relevantActions[6].type).toBe('ListingPage/fetchReviews/fulfilled');
-      expect(relevantActions[7].type).toBe('auth/authInfo/fulfilled');
+
+      // The similar-listings query runs once the listing (category + price) is known and
+      // is awaited by loadData. authInfo/fulfilled interleaves with it, so it is filtered out.
+      const tail = relevantActions.slice(7).filter(action => !action.type.startsWith('auth/'));
+      expect(tail.map(a => a.type)).toEqual([
+        'ListingPage/querySimilarListings/pending',
+        'marketplaceData/addEntities',
+        'ListingPage/querySimilarListings/fulfilled',
+      ]);
+      expect(tail[2].payload).toEqual({ listingRefs: [] });
+      expect(sdk.listings.query).toHaveBeenCalledTimes(1);
+      expect(sdk.listings.query).toHaveBeenCalledWith(
+        expect.objectContaining({
+          pub_categoryLevel1: 'cats',
+          // listing1 costs 5500 minor units: 60 % … 140 % (+1, exclusive upper bound)
+          price: '3300,7701',
+          minStock: 1,
+          stockMode: 'match-undefined',
+          perPage: 9,
+          'limit.images': 1,
+        })
+      );
+      expect(getState().ListingPage.similarListingRefs).toEqual([]);
     });
   });
 
