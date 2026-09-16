@@ -60,6 +60,11 @@ export const PRICE_VALID_DAYS = 60;
 
 export const META_DESCRIPTION_MAX_LENGTH = 155;
 
+// `brandother` is free text. Sellers sometimes paste a whole sales pitch into it (seen live:
+// a 150-character paragraph), which must not be published as a Brand name. Anything longer
+// than this, or spanning lines, is treated as "no brand".
+export const MAX_BRAND_NAME_LENGTH = 50;
+
 const CONDITION_FIELD_KEY = 'productcondition';
 const WARRANTY_FIELD_KEY = 'warrantystatus';
 const NO_WARRANTY_VALUE = 'nowarranty';
@@ -124,7 +129,8 @@ export const getBrandName = ({ intl, listingFields, publicData = {} }) => {
 
   if (lower(value) === BRAND_OTHER_VALUE) {
     const otherText = asString(publicData[BRAND_OTHER_TEXT_KEY]);
-    return otherText || null;
+    const looksLikeName = otherText.length <= MAX_BRAND_NAME_LENGTH && !/[\r\n]/.test(otherText);
+    return otherText && looksLikeName ? otherText : null;
   }
   return getEnumOptionLabel(intl, listingFields, fieldKey, value) || null;
 };
