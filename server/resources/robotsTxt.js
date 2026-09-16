@@ -38,23 +38,22 @@ const cache = createTTLCache(ttl);
 // Fallback data if something failes with streams
 const fallbackRobotsTxt = `
 User-agent: *
-Disallow: /profile-settings
-Disallow: /l/new
-Disallow: /l/*/checkout
-Disallow: /l/*/draft
-Disallow: /l/*/pending-approval
-Disallow: /l/*/new
-Disallow: /l/*/edit
-Disallow: /inbox
-Disallow: /order
-Disallow: /sale
-Disallow: /listings
-Disallow: /account
-Disallow: /reset-password
-Disallow: /verify-email
-Disallow: /preview
-Disallow: /styleguide
-Crawl-Delay: 5
+Disallow: /*/profile-settings
+Disallow: /*/l/new
+Disallow: /*/l/*/checkout
+Disallow: /*/l/*/draft
+Disallow: /*/l/*/pending-approval
+Disallow: /*/l/*/new
+Disallow: /*/l/*/edit
+Disallow: /*/inbox
+Disallow: /*/order
+Disallow: /*/sale
+Disallow: /*/listings
+Disallow: /*/account
+Disallow: /*/reset-password
+Disallow: /*/verify-email
+Disallow: /*/preview
+Disallow: /*/styleguide
 `;
 
 /**

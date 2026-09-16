@@ -40,6 +40,8 @@ exports.createTTLCache = (ttl = 60) => {
       const timestamp = Date.now();
       const expiresAt = timestamp + ttl * 1000;
       target[property] = { data: value, timestamp, expiresAt };
+      // A falsish return throws in strict-mode callers (e.g. babel-transformed tests).
+      return true;
     },
   });
 };
