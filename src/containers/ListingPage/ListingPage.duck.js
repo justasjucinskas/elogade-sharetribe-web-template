@@ -5,7 +5,11 @@ import { storableError } from '../../util/errors';
 import { addMarketplaceEntities } from '../../ducks/marketplaceData.duck';
 import { transactionLineItems } from '../../util/api';
 import * as log from '../../util/log';
-import { denormalisedResponseEntities } from '../../util/data';
+import {
+  denormalisedEntities,
+  denormalisedResponseEntities,
+  updatedEntities,
+} from '../../util/data';
 import {
   bookingTimeUnits,
   findNextBoundary,
@@ -29,6 +33,8 @@ import {
   OFFER,
 } from '../../transactions/transaction';
 import { fetchCurrentUser, setCurrentUserHasOrders } from '../../ducks/user.duck';
+
+import { getSimilarListingsQueryParams, pickSimilarListings } from './ListingPage.sold';
 
 const { UUID } = sdkTypes;
 const MINUTE_IN_MS = 1000 * 60;
@@ -273,6 +279,37 @@ export const sendInquiry = (listing, message) => (dispatch, getState, sdk) => {
   return dispatch(sendInquiryThunk({ listing, message })).unwrap();
 };
 
+/////////////////////////////
+// Fetch Similar Listings  //
+/////////////////////////////
+const querySimilarListingsPayloadCreator = (
+  { listing, config },
+  { rejectWithValue, extra: sdk }
+) => {
+  const params = getSimilarListingsQueryParams({ listing, config });
+  return sdk.listings
+    .query(params)
+    .then(response => {
+      // Kept page-local (like reviews) instead of going through addMarketplaceEntities:
+      // the store merges entities shallowly, so these card-sized copies (one image, two
+      // variants, sparse fields) would overwrite the full listing / image entities of any
+      // listing already loaded — the one being viewed, or one visited earlier.
+      const listingFields = config?.listing?.listingFields;
+      const entities = updatedEntities({}, response.data, { listingFields });
+      const listings = denormalisedEntities(entities, response.data.data, false);
+      return pickSimilarListings(listings, listing.id);
+    })
+    .catch(e => {
+      log.error(e, 'query-similar-listings-failed', { listingId: listing?.id?.uuid });
+      return rejectWithValue(storableError(e));
+    });
+};
+
+export const querySimilarListingsThunk = createAsyncThunk(
+  'ListingPage/querySimilarListings',
+  querySimilarListingsPayloadCreator
+);
+
 // Helper function for loadData call.
 // Note: listing could be ownListing entity too
 const fetchMonthlyTimeSlots = (dispatch, listing) => {
@@ -399,6 +436,8 @@ const initialState = {
   sendInquiryInProgress: false,
   sendInquiryError: null,
   inquiryModalOpenForListingId: null,
+  similarListings: [],
+  querySimilarListingsError: null,
 };
 
 const listingPageSlice = createSlice({
@@ -518,6 +557,20 @@ const listingPageSlice = createSlice({
       .addCase(fetchTransactionLineItemsThunk.rejected, (state, action) => {
         state.fetchLineItemsInProgress = false;
         state.fetchLineItemsError = action.payload;
+      })
+      .addCase(querySimilarListingsThunk.pending, state => {
+        state.querySimilarListingsError = null;
+      })
+      .addCase(querySimilarListingsThunk.fulfilled, (state, action) => {
+        // loadData runs on every location change without cancelling in-flight thunks, so
+        // a late response for the previous listing must not land on the current one.
+        const isForCurrentListing = action.meta.arg.listing?.id?.uuid === state.id?.uuid;
+        if (isForCurrentListing) {
+          state.similarListings = action.payload;
+        }
+      })
+      .addCase(querySimilarListingsThunk.rejected, (state, action) => {
+        state.querySimilarListingsError = action.payload;
       });
   },
 });
@@ -537,8 +590,18 @@ export const loadData = (params, search, config) => (dispatch, getState, sdk) =>
       ? state.ListingPage.inquiryModalOpenForListingId
       : null;
 
+  // The client re-runs loadData on hydration (Routes.js). Keep the server-rendered
+  // similar listings for the same listing so the module does not unmount and remount
+  // (layout shift) while the query is repeated; a different listing starts from empty.
+  const isSameListing = state.ListingPage.id?.uuid === listingId.uuid;
+  const similarListingsMaybe = isSameListing
+    ? { similarListings: state.ListingPage.similarListings }
+    : {};
+
   // Clear old line-items
-  dispatch(setInitialValues({ lineItems: null, inquiryModalOpenForListingId }));
+  dispatch(
+    setInitialValues({ lineItems: null, inquiryModalOpenForListingId, ...similarListingsMaybe })
+  );
 
   const ownListingVariants = [LISTING_PAGE_DRAFT_VARIANT, LISTING_PAGE_PENDING_APPROVAL_VARIANT];
   if (ownListingVariants.includes(params.variant)) {
@@ -554,11 +617,24 @@ export const loadData = (params, search, config) => (dispatch, getState, sdk) =>
   }
 
   const hasNoViewingRights = currentUser && !hasPermissionToViewData(currentUser);
+
+  // The "similar listings" module needs the loaded listing's category and price, so it is
+  // chained off the listing fetch (overlapping the reviews fetch) and awaited, so the
+  // server-rendered HTML carries the internal links to live inventory. A failure only
+  // empties the module; it never fails the page (the thunk's promise always resolves).
+  const showListingWithSimilar = () =>
+    dispatch(showListing(listingId, config)).then(response => {
+      const listing = response?.data?.data;
+      return listing?.id
+        ? dispatch(querySimilarListingsThunk({ listing, config })).then(() => response)
+        : response;
+    });
+
   const promises = hasNoViewingRights
     ? // If user has no viewing rights, only allow fetching their own listing without reviews
       [dispatch(showListing(listingId, config, true))]
-    : // For users with viewing rights, fetch the listing and the associated reviews
-      [dispatch(showListing(listingId, config)), dispatch(fetchReviews(listingId))];
+    : // For users with viewing rights, fetch the listing (+ similar listings) and the reviews
+      [showListingWithSimilar(), dispatch(fetchReviews(listingId))];
 
   return Promise.all(promises).then(response => {
     const listingResponse = response[0];

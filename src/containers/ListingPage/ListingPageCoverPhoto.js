@@ -51,6 +51,8 @@ import {
 import SectionHero from './SectionHero';
 import SectionReviews from './SectionReviews';
 import SectionAuthorMaybe from './SectionAuthorMaybe';
+import SectionSimilarListings from './SectionSimilarListings';
+import SoldBadge from './SoldBadge';
 import SectionMapMaybe from './SectionMapMaybe';
 import CustomListingFields from './CustomListingFields';
 import Notifications from './Notifications/Notifications';
@@ -95,6 +97,7 @@ export const ListingPageComponent = props => {
     routeConfiguration,
     currentLocale,
     showOwnListingsOnly,
+    similarListings,
     ...restOfProps
   } = props;
 
@@ -141,6 +144,7 @@ export const ListingPageComponent = props => {
     metaDescription,
     listingSchema,
     noIndexMaybe,
+    isSold,
     hasInvalidListingData,
   } = derivedData;
 
@@ -269,6 +273,7 @@ export const ListingPageComponent = props => {
         <div className={css.contentWrapperForHeroLayout}>
           <div className={css.mainColumnForHeroLayout}>
             <div className={showListingImage ? css.mobileHeading : css.noListingImageHeadingHero}>
+              {isSold ? <SoldBadge /> : null}
               {showListingImage ? (
                 // add css logic here that applies larger margin on mobile view to push down title
                 <H2 as="h1" className={css.orderPanelTitle}>
@@ -334,9 +339,12 @@ export const ListingPageComponent = props => {
               }
               title={<FormattedMessage id="ListingPage.orderTitle" values={{ title: richTitle }} />}
               titleDesktop={
-                <H4 as="h1" className={css.orderPanelTitle}>
-                  <FormattedMessage id="ListingPage.orderTitle" values={{ title: richTitle }} />
-                </H4>
+                <>
+                  {isSold ? <SoldBadge /> : null}
+                  <H4 as="h1" className={css.orderPanelTitle}>
+                    <FormattedMessage id="ListingPage.orderTitle" values={{ title: richTitle }} />
+                  </H4>
+                </>
               }
               sectionHeadingAs="h2"
               payoutDetailsWarning={payoutDetailsWarning}
@@ -352,6 +360,7 @@ export const ListingPageComponent = props => {
             />
           </div>
         </div>
+        <SectionSimilarListings listings={similarListings} />
       </LayoutSingleColumn>
     </Page>
   );
@@ -408,6 +417,7 @@ const ListingPage = props => {
     fetchLineItemsInProgress,
     fetchLineItemsError,
     inquiryModalOpenForListingId,
+    similarListings,
   } = useSelector(state => state.ListingPage);
   const currentUser = useSelector(state => state.user?.currentUser);
   const scrollingDisabled = useSelector(state => isScrollingDisabled(state));
@@ -468,6 +478,7 @@ const ListingPage = props => {
       getOwnListing={getOwnListing}
       scrollingDisabled={scrollingDisabled}
       currentLocale={currentLocale}
+      similarListings={similarListings}
       inquiryModalOpenForListingId={inquiryModalOpenForListingId}
       showListingError={showListingError}
       reviews={reviews}

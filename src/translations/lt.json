@@ -649,6 +649,8 @@
   "ListingPage.reviewsError": "Nepavyko įkelti atsiliepimų.",
   "ListingPage.reviewsTitle": "Atsiliepimai ({count})",
   "ListingPage.schemaTitle": "{title} | {marketplaceName}",
+  "ListingPage.similarListingsHeading": "Panašūs skelbimai",
+  "ListingPage.soldBadge": "Parduota",
   "ListingPage.viewImagesButton": "Peržiūrėti nuotraukas ({count})",
   "LoadableComponentErrorBoundaryPage.description": "Atrodo, kad programą reikia atnaujinti! Atnaujinkite puslapį arba grįžkite į {link}.",
   "LoadableComponentErrorBoundaryPage.heading": "Atsiprašome, nepavyko užkrauti puslapio.",

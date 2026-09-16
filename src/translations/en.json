@@ -649,6 +649,8 @@
   "ListingPage.reviewsError": "Loading reviews failed.",
   "ListingPage.reviewsTitle": "Reviews ({count})",
   "ListingPage.schemaTitle": "{title} | {marketplaceName}",
+  "ListingPage.similarListingsHeading": "Similar listings",
+  "ListingPage.soldBadge": "Sold",
   "ListingPage.viewImagesButton": "View photos ({count})",
   "LoadableComponentErrorBoundaryPage.description": "It looks like the app needs to be updated! Please refresh the page or go back to {link}.",
   "LoadableComponentErrorBoundaryPage.heading": "Oops, we couldn't fetch the page.",

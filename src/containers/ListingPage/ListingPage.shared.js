@@ -36,6 +36,7 @@ import { Page, LayoutSingleColumn, NamedLink } from '../../components';
 import FooterContainer from '../../containers/FooterContainer/FooterContainer';
 
 import { getListingMetaDescription, getListingSchema } from './ListingPage.schema';
+import { getSchemaAvailability, isSoldOut } from './ListingPage.sold';
 
 import css from './ListingPage.module.css';
 
@@ -243,12 +244,10 @@ export const getDerivedRenderData = ({
     { title, price: formattedPrice, marketplaceName }
   );
 
-  const currentStock = currentListing.currentStock?.attributes?.quantity || 0;
-  const schemaAvailability = !currentListing.currentStock
-    ? null
-    : currentStock > 0
-    ? 'https://schema.org/InStock'
-    : 'https://schema.org/OutOfStock';
+  // Stock 0 on this single-item marketplace means "sold": the page stays live (HTTP 200,
+  // content intact) but the Offer says SoldOut and the view shows a badge. See ListingPage.sold.js.
+  const isSold = isSoldOut(currentListing);
+  const schemaAvailability = getSchemaAvailability(currentListing);
 
   const availabilityMaybe = schemaAvailability ? { availability: schemaAvailability } : {};
   const noIndexMaybe =
@@ -317,6 +316,7 @@ export const getDerivedRenderData = ({
     noIndexMaybe,
     metaDescription,
     listingSchema,
+    isSold,
     hasInvalidListingData,
   };
 };
