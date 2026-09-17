@@ -4,6 +4,7 @@ import debounce from 'lodash/debounce';
 
 import { useConfiguration } from '../../context/configurationContext';
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
+import { requestMapLibrary } from '../../util/includeScripts';
 
 import { IconSpinner } from '../../components';
 
@@ -170,6 +171,9 @@ class LocationAutocompleteInputImplementation extends Component {
 
   componentDidMount() {
     this._isMounted = true;
+    // The map provider library is included per route (util/includeScripts.js). A Console page
+    // with a location Search CTA is not one of those routes, so ask for it explicitly.
+    requestMapLibrary();
   }
 
   componentWillUnmount() {

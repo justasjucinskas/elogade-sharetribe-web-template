@@ -30,11 +30,21 @@ exports.generateCSPNonce = (req, res, next) => {
   });
 };
 
+// Optional sources come straight from environment variables (e.g. assetCdnBaseUrl), so an
+// unset variable would otherwise be serialised as the literal string "undefined" into the
+// policy. Drops every empty/nullish entry from each directive array.
+const sanitizeDirectives = directives =>
+  Object.keys(directives).reduce((acc, key) => {
+    const value = directives[key];
+    acc[key] = Array.isArray(value) ? value.filter(v => v != null && v !== '') : value;
+    return acc;
+  }, {});
+
 // Default CSP whitelist.
 //
 // NOTE: Do not change these in the customizations, make custom
 // additions within the exported function in the bottom of this file.
-const defaultDirectives = {
+const defaultDirectives = sanitizeDirectives({
   baseUri: [self],
   defaultSrc: [self],
   childSrc: [blob],
@@ -133,7 +143,7 @@ const defaultDirectives = {
     'plausible.io',
   ],
   styleSrc: [self, unsafeInline, 'fonts.googleapis.com', 'api.mapbox.com'],
-};
+});
 
 /**
  * Middleware for creating a Content Security Policy
@@ -155,10 +165,10 @@ exports.csp = (reportUri, reportOnly) => {
   // const { imgSrc = [self] } = defaultDirectives;
   // const exampleImgSrc = imgSrc.concat('my-custom-domain.example.com');
 
-  const customDirectives = {
+  const customDirectives = sanitizeDirectives({
     // Example: Add custom directive override
     // imgSrc: exampleImgSrc,
-  };
+  });
 
   // ================ END CUSTOM CSP URLs ================ //
 

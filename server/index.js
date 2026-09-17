@@ -60,6 +60,18 @@ const TRUST_PROXY = process.env.SERVER_SHARETRIBE_TRUST_PROXY || null;
 const CSP = process.env.REACT_APP_CSP;
 const cspReportUrl = '/csp-report';
 const cspEnabled = CSP === 'block' || CSP === 'report';
+// Note: motion sensors (accelerometer/gyroscope) are intentionally not denied - the YouTube
+// embed on the landing page requests them through its `allow` attribute.
+const PERMISSIONS_POLICY = [
+  'camera=()',
+  'display-capture=()',
+  'geolocation=(self)',
+  'microphone=()',
+  'midi=()',
+  'payment=(self "https://js.stripe.com" "https://checkout.stripe.com")',
+  'usb=()',
+  'browsing-topics=()',
+].join(', ');
 
 // Without these, something will break for sure
 const MANDATORY_ENV_VARIABLES = [
@@ -107,6 +119,14 @@ app.use(
     },
   })
 );
+
+// Permissions-Policy (not covered by Helmet). Denies the powerful browser features this app
+// never uses and scopes the ones it does: geolocation for the "use current location" option
+// of the location autocomplete, payment for Stripe.js / Stripe Elements iframes.
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy', PERMISSIONS_POLICY);
+  next();
+});
 
 if (cspEnabled) {
   app.use(generateCSPNonce);

@@ -8,6 +8,7 @@ import { createResourceLocatorString } from '../../../util/routes';
 import { createSlug } from '../../../util/urlHelpers';
 import { propTypes } from '../../../util/types';
 import { obfuscatedCoordinates, getMapProviderApiAccess } from '../../../util/maps';
+import { MAP_LIBRARY_LOADED_EVENT, requestMapLibrary } from '../../../util/includeScripts';
 
 import { hasParentWithClassName } from './SearchMap.helpers.js';
 import * as searchMapMapbox from './SearchMapWithMapbox';
@@ -78,10 +79,30 @@ export class SearchMapComponent extends Component {
     this.onListingClicked = this.onListingClicked.bind(this);
     this.onMapClicked = this.onMapClicked.bind(this);
     this.onMapLoadHandler = this.onMapLoadHandler.bind(this);
+    this.onMapLibraryLoaded = this.onMapLibraryLoaded.bind(this);
+  }
+
+  componentDidMount() {
+    // The map library is included per route (util/includeScripts.js); after a client-side
+    // navigation it may still be loading when this mounts. Re-render once it announces itself.
+    const { config } = this.props;
+    const libLoaded = getSearchMapVariant(config.maps.mapProvider).isMapsLibLoaded();
+    if (!libLoaded && typeof window !== 'undefined') {
+      requestMapLibrary();
+      window.addEventListener(MAP_LIBRARY_LOADED_EVENT, this.onMapLibraryLoaded);
+    }
   }
 
   componentWillUnmount() {
     this.listings = [];
+    if (typeof window !== 'undefined') {
+      window.removeEventListener(MAP_LIBRARY_LOADED_EVENT, this.onMapLibraryLoaded);
+    }
+  }
+
+  onMapLibraryLoaded() {
+    window.removeEventListener(MAP_LIBRARY_LOADED_EVENT, this.onMapLibraryLoaded);
+    this.setState({ mapLibraryLoadedAt: Date.now() });
   }
 
   createURLToListing(listing) {

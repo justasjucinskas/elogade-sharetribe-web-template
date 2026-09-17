@@ -102,14 +102,20 @@ class GeocoderMapbox {
   getPlacePredictions(search, countryLimit, locale) {
     const limitCountriesMaybe = countryLimit ? { countries: countryLimit } : {};
 
-    return this.getClient()
-      .geocoding.forwardGeocode({
-        query: search,
-        limit: 5,
-        ...limitCountriesMaybe,
-        language: [locale],
-      })
-      .send()
+    // getClient() throws while the (route-gated, async) Mapbox scripts are still loading;
+    // resolve it inside the chain so callers get a rejected promise rather than an exception.
+    return Promise.resolve()
+      .then(() => this.getClient())
+      .then(client =>
+        client.geocoding
+          .forwardGeocode({
+            query: search,
+            limit: 5,
+            ...limitCountriesMaybe,
+            language: [locale],
+          })
+          .send()
+      )
       .then(response => {
         return {
           search,

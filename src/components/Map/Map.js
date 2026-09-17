@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useReducer } from 'react';
 import classNames from 'classnames';
 
 import { useConfiguration } from '../../context/configurationContext';
 import { getMapProviderApiAccess } from '../../util/maps';
+import { MAP_LIBRARY_LOADED_EVENT, requestMapLibrary } from '../../util/includeScripts';
 import * as mapboxMap from './MapboxMap';
 import * as googleMapsMap from './GoogleMap';
 
@@ -49,6 +50,24 @@ export const Map = props => {
   const isMapsLibLoaded = isGoogleMapsInUse
     ? googleMapsMap.isMapsLibLoaded
     : mapboxMap.isMapsLibLoaded;
+
+  // The map library is included per route (see util/includeScripts.js), so on a client-side
+  // navigation it may still be loading when this renders. Re-render once it announces itself
+  // (or, if it finished loading between this render and the effect, right away).
+  const libLoadedAtRender = !!isMapsLibLoaded();
+  const [, rerender] = useReducer(x => x + 1, 0);
+  useEffect(() => {
+    if (typeof window === 'undefined' || libLoadedAtRender) {
+      return undefined;
+    }
+    if (isMapsLibLoaded()) {
+      rerender();
+      return undefined;
+    }
+    requestMapLibrary();
+    window.addEventListener(MAP_LIBRARY_LOADED_EVENT, rerender);
+    return () => window.removeEventListener(MAP_LIBRARY_LOADED_EVENT, rerender);
+  }, [libLoadedAtRender, isMapsLibLoaded]);
 
   const classes = classNames(rootClassName || css.root, className);
   const mapClasses = mapRootClassName || css.mapRoot;

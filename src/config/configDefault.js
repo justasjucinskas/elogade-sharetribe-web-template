@@ -115,6 +115,14 @@ const defaultConfig = {
   siteInstagramPage: null, // e.g. 'https://www.instagram.com/sharetribe/',
   // Twitter handle is needed in meta tags (twitter:site). Start it with '@' character
   siteTwitterHandle: null, // e.g. '@sharetribe',
+  // Note: the footer asset's social-media links (Console → Footer) are merged into the
+  // Organization schema's `sameAs` as well, so the values above are only needed for
+  // profiles that are not linked from the footer.
+
+  // Optional
+  // Public customer-support email, published as schema.org Organization.contactPoint
+  // on every page. Leave null to omit the contactPoint node entirely.
+  siteContactEmail: null, // e.g. 'support@example.com'
 
   // Optional
   // This creates meta tag for Google Search Console verification
