@@ -57,7 +57,9 @@ export const LogoComponent = props => {
   if (isImageAsset(logoImageDesktop) && hasValidLogoSettings && layout === 'desktop') {
     const variants = logoImageDesktop.attributes.variants;
     const variantNames = getVariantNames(variants);
-    const { width } = getVariantData(variants);
+    // width/height attributes come from the same variant so the intrinsic ratio is right;
+    // the rendered height is capped by the logoSettings height class.
+    const { width, height } = getVariantData(variants);
     return (
       <div className={logoClasses} style={{ width: `${width}px` }}>
         <ResponsiveImage
@@ -67,14 +69,14 @@ export const LogoComponent = props => {
           variants={variantNames}
           sizes={`${width}px`}
           width={width}
-          height={logoSettings?.height}
+          height={height}
         />
       </div>
     );
   } else if (isImageAsset(logoImageMobile) && hasValidLogoSettings && layout === 'mobile') {
     const variants = logoImageMobile.attributes.variants;
     const variantNames = getVariantNames(variants);
-    const { width } = getVariantData(variants);
+    const { width, height } = getVariantData(variants);
 
     // Sizes on small screens are mainly limited by space: side buttons take 2x66 px, the rest is for logo.
     // If logo's (1x) width is less than 188, we can use logo's width as limit for sizes attribute
@@ -91,7 +93,7 @@ export const LogoComponent = props => {
           variants={variantNames}
           sizes={sizes}
           width={width}
-          height={logoSettings?.height}
+          height={height}
         />
       </div>
     );

@@ -120,14 +120,20 @@ describe('Page.schema', () => {
   });
 
   describe('buildWebSiteNode', () => {
-    it('targets the locale-prefixed keyword search', () => {
+    it('targets the locale-prefixed keyword search and keeps the site description', () => {
       expect(
-        buildWebSiteNode({ marketplaceRootURL: root, marketplaceName: 'Example', locale: 'lt' })
+        buildWebSiteNode({
+          marketplaceRootURL: root,
+          marketplaceName: 'Example',
+          description: 'An online marketplace.',
+          locale: 'lt',
+        })
       ).toEqual({
         '@type': 'WebSite',
         '@id': `${root}#website`,
         name: 'Example',
         url: root,
+        description: 'An online marketplace.',
         potentialAction: {
           '@type': 'SearchAction',
           target: {
@@ -137,6 +143,18 @@ describe('Page.schema', () => {
           'query-input': 'required name=search_term_string',
         },
       });
+    });
+
+    it('omits an empty description', () => {
+      const node = buildWebSiteNode({
+        marketplaceRootURL: root,
+        marketplaceName: 'Example',
+        locale: 'en',
+      });
+      expect(node).not.toHaveProperty('description');
+      expect(node.potentialAction.target.urlTemplate).toBe(
+        `${root}/en/s?keywords={search_term_string}`
+      );
     });
   });
 });

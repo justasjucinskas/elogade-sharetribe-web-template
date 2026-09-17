@@ -233,7 +233,12 @@ class PageComponent extends Component {
       '@graph': [
         ...schemaFromProps.map(withoutContext),
         buildOrganizationNode({ config, marketplaceRootURL, marketplaceName }),
-        buildWebSiteNode({ marketplaceRootURL, marketplaceName, locale: currentLocale }),
+        buildWebSiteNode({
+          marketplaceRootURL,
+          marketplaceName,
+          description: schemaDescription,
+          locale: currentLocale,
+        }),
       ],
     });
 

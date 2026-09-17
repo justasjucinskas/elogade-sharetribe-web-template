@@ -3,7 +3,7 @@ import classNames from 'classnames';
 
 import { useConfiguration } from '../../context/configurationContext';
 import { getMapProviderApiAccess } from '../../util/maps';
-import { MAP_LIBRARY_LOADED_EVENT } from '../../util/includeScripts';
+import { MAP_LIBRARY_LOADED_EVENT, requestMapLibrary } from '../../util/includeScripts';
 import * as mapboxMap from './MapboxMap';
 import * as googleMapsMap from './GoogleMap';
 
@@ -64,6 +64,7 @@ export const Map = props => {
       rerender();
       return undefined;
     }
+    requestMapLibrary();
     window.addEventListener(MAP_LIBRARY_LOADED_EVENT, rerender);
     return () => window.removeEventListener(MAP_LIBRARY_LOADED_EVENT, rerender);
   }, [libLoadedAtRender, isMapsLibLoaded]);

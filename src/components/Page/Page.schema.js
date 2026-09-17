@@ -104,11 +104,12 @@ export const buildOrganizationNode = ({ config, marketplaceRootURL, marketplaceN
  * schema.org WebSite node with a SearchAction (Sitelinks search box) pointing at the
  * keyword search of the current locale.
  */
-export const buildWebSiteNode = ({ marketplaceRootURL, marketplaceName, locale }) => ({
+export const buildWebSiteNode = ({ marketplaceRootURL, marketplaceName, description, locale }) => ({
   '@type': 'WebSite',
   '@id': `${marketplaceRootURL}#website`,
   name: marketplaceName,
   url: marketplaceRootURL,
+  ...(isNonEmptyString(description) ? { description } : {}),
   potentialAction: {
     '@type': 'SearchAction',
     target: {

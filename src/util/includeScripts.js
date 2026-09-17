@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 
@@ -16,6 +16,12 @@ export const STRIPE_JS_LOADED_EVENT = 'stripe-js-loaded';
  * access token is set. Map consumers rendered before that re-render on this event.
  */
 export const MAP_LIBRARY_LOADED_EVENT = 'map-library-loaded';
+/**
+ * Dispatched on `window` by a map consumer (Map, SearchMap, LocationAutocompleteInput) that
+ * mounted on a page where the map library was not included. IncludeScripts listens and adds
+ * the library, so Console-managed pages with a location Search CTA still get a geocoder.
+ */
+export const MAP_LIBRARY_REQUESTED_EVENT = 'map-library-requested';
 
 const dispatchStripeJsLoadedEvent = () => {
   if (typeof window !== 'undefined') {
@@ -25,6 +31,21 @@ const dispatchStripeJsLoadedEvent = () => {
 const dispatchMapLibraryLoadedEvent = () => {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(MAP_LIBRARY_LOADED_EVENT));
+  }
+};
+
+/**
+ * Ask IncludeScripts to include the map provider library if it is not present yet.
+ * Safe to call from any component's mount; a no-op when the library is already loaded.
+ */
+// Sticky flag next to the event: a class component's componentDidMount runs before
+// IncludeScripts' own useEffect has registered its listener on the very first render, so the
+// listener also checks this flag when it mounts.
+let mapLibraryRequested = false;
+export const requestMapLibrary = () => {
+  if (typeof window !== 'undefined' && !window.mapboxgl && !window.google?.maps) {
+    mapLibraryRequested = true;
+    window.dispatchEvent(new CustomEvent(MAP_LIBRARY_REQUESTED_EVENT));
   }
 };
 
@@ -54,17 +75,15 @@ const getRouteConfig = (pathname, routeConfiguration) => {
  * @returns {boolean}
  */
 export const isMapLibraryNeeded = (pathname, routeConfiguration, config) => {
-  if (config?.maps?.mapProvider === 'googleMaps') {
-    return true;
-  }
-  if (config?.search?.mainSearch?.searchType === 'location') {
-    return true;
-  }
   if (!pathname) {
     return true;
   }
-  return getRouteConfig(pathname, routeConfiguration)?.prioritizeLibraryLoading?.map === true;
+  return isMapLibraryNeededForRoute(getRouteConfig(pathname, routeConfiguration), config);
 };
+const isMapLibraryNeededForRoute = (routeConfig, config) =>
+  config?.maps?.mapProvider === 'googleMaps' ||
+  config?.search?.mainSearch?.searchType === 'location' ||
+  routeConfig?.prioritizeLibraryLoading?.map === true;
 
 /**
  * Map library is shown on some of the pages, but ReusableMapContainer is used app wide.
@@ -72,22 +91,11 @@ export const isMapLibraryNeeded = (pathname, routeConfiguration, config) => {
  * Note: this currently only affects Mapbox library.
  * Google Maps library is always loaded immediately. (It seems to be more fragile when loaded asynchronously.)
  *
- * @param {string} pathname - The current locale-free pathname.
- * @param {array} routeConfiguration - The route configuration.
+ * @param {Object} routeConfig - The matched route config of the initial page (null if unknown).
  * @returns {boolean} - True if the map library can be deferred, false otherwise.
  */
-const canDeferMapLibrary = (pathname, routeConfiguration) => {
-  if (!pathname) {
-    return false;
-  }
-  return getRouteConfig(pathname, routeConfiguration)?.prioritizeLibraryLoading?.map !== true;
-};
-const canDeferStripeLibrary = (pathname, routeConfiguration) => {
-  if (!pathname) {
-    return false;
-  }
-  return getRouteConfig(pathname, routeConfiguration)?.prioritizeLibraryLoading?.stripe !== true;
-};
+const canDeferMapLibrary = routeConfig => routeConfig?.prioritizeLibraryLoading?.map !== true;
+const canDeferStripeLibrary = routeConfig => routeConfig?.prioritizeLibraryLoading?.stripe !== true;
 
 /**
  * Include scripts (like Map Provider).
@@ -107,23 +115,52 @@ export const IncludeScripts = props => {
 
   const routeConfiguration = useRouteConfiguration();
   // Locale-free pathname of the current route (React Router strips the `basename`), kept in
-  // sync with client-side navigation. `initialPathname` is a fallback for callers that
-  // render this component outside a Router.
-  const location = useLocation();
-  const pathname = location?.pathname || props?.initialPathname;
-  // Note: Affects Mapbox only. Google Maps initialization is not yet ready to support asynchronous loading.
-  const deferMapLibrary = canDeferMapLibrary(pathname, routeConfiguration) ? { defer: '' } : {};
+  // sync with client-side navigation. This component must be rendered inside the Router.
+  const { pathname } = useLocation();
+  const routeConfig = useMemo(() => getRouteConfig(pathname, routeConfiguration), [
+    pathname,
+    routeConfiguration,
+  ]);
+
+  // Everything that ends up as an attribute on an already-rendered <script> is pinned to the
+  // first render: react-helmet-async compares head tags node-by-node, so changing e.g. the
+  // `defer` attribute on a client-side navigation would remove and re-append the tag, which
+  // re-fetches and re-executes the library (replacing `window.mapboxgl` / `window.Stripe`).
+  const pinnedRef = useRef(null);
+  if (pinnedRef.current === null) {
+    pinnedRef.current = {
+      // Note: Affects Mapbox only. Google Maps initialization is not yet ready to support asynchronous loading.
+      deferMapLibrary: canDeferMapLibrary(routeConfig) ? { defer: '' } : {},
+      deferStripeLibrary: canDeferStripeLibrary(routeConfig) ? { defer: '' } : {},
+    };
+  }
+  const { deferMapLibrary, deferStripeLibrary } = pinnedRef.current;
 
   const { mapProvider, googleMapsAPIKey, mapboxAccessToken } = maps || {};
   const isGoogleMapsInUse = mapProvider === 'googleMaps';
-  // Once a route has asked for the map library it stays included for the rest of the
-  // session: removing and re-adding the <script> would re-execute mapbox-gl.js and reset
-  // the global `mapboxgl` (and its access token) under a mounted map.
-  const mapLibraryRequestedRef = useRef(false);
+  // A map consumer that mounted on a page without the library (e.g. a Console page whose
+  // Search CTA has a location field) asks for it through MAP_LIBRARY_REQUESTED_EVENT.
+  const [mapLibraryRequestedByConsumer, setMapLibraryRequestedByConsumer] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+    const onRequested = () => setMapLibraryRequestedByConsumer(true);
+    if (mapLibraryRequested) {
+      onRequested();
+    }
+    window.addEventListener(MAP_LIBRARY_REQUESTED_EVENT, onRequested);
+    return () => window.removeEventListener(MAP_LIBRARY_REQUESTED_EVENT, onRequested);
+  }, []);
+  // Once the map library has been included it stays for the rest of the session: removing and
+  // re-adding the <script> would re-execute mapbox-gl.js and reset the global `mapboxgl` (and
+  // its access token) under a mounted map.
+  const mapLibraryIncludedRef = useRef(false);
   const mapLibraryNeeded =
-    mapLibraryRequestedRef.current ||
-    isMapLibraryNeeded(pathname, routeConfiguration, props?.config);
-  mapLibraryRequestedRef.current = mapLibraryNeeded;
+    mapLibraryIncludedRef.current ||
+    mapLibraryRequestedByConsumer ||
+    isMapLibraryNeededForRoute(routeConfig, props?.config);
+  mapLibraryIncludedRef.current = mapLibraryNeeded;
   const isMapboxInUse = mapProvider === 'mapbox' && mapLibraryNeeded;
 
   // Add Google Analytics script if correct id exists (it should start with 'G-' prefix)
@@ -136,10 +173,6 @@ export const IncludeScripts = props => {
   let analyticsLibraries = [];
 
   if (stripe?.publishableKey) {
-    const deferStripeLibrary = canDeferStripeLibrary(pathname, routeConfiguration)
-      ? { defer: '' }
-      : {};
-
     // Stripe script should be on every page, not just the pages that use the API:
     // https://docs.stripe.com/js/including
     stripeLibrary.push(

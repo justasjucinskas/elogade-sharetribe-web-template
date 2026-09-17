@@ -1,5 +1,9 @@
 import routeConfiguration from '../routing/routeConfiguration';
-import { isMapLibraryNeeded } from './includeScripts';
+import {
+  isMapLibraryNeeded,
+  requestMapLibrary,
+  MAP_LIBRARY_REQUESTED_EVENT,
+} from './includeScripts';
 
 const mapboxConfig = {
   maps: { mapProvider: 'mapbox' },
@@ -71,5 +75,28 @@ describe('util/includeScripts.js', () => {
       search: { mainSearch: { searchType: 'keywords' } },
     };
     expect(isMapLibraryNeeded('/', routes, googleConfig)).toBe(true);
+  });
+
+  describe('requestMapLibrary', () => {
+    afterEach(() => {
+      delete window.mapboxgl;
+    });
+
+    it('dispatches the request event while no map library is loaded', () => {
+      const listener = jest.fn();
+      window.addEventListener(MAP_LIBRARY_REQUESTED_EVENT, listener);
+      requestMapLibrary();
+      window.removeEventListener(MAP_LIBRARY_REQUESTED_EVENT, listener);
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('is a no-op once the library is present', () => {
+      window.mapboxgl = {};
+      const listener = jest.fn();
+      window.addEventListener(MAP_LIBRARY_REQUESTED_EVENT, listener);
+      requestMapLibrary();
+      window.removeEventListener(MAP_LIBRARY_REQUESTED_EVENT, listener);
+      expect(listener).not.toHaveBeenCalled();
+    });
   });
 });
