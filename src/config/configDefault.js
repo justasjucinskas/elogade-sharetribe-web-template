@@ -122,7 +122,7 @@ const defaultConfig = {
   // Optional
   // Public customer-support email, published as schema.org Organization.contactPoint
   // on every page. Leave null to omit the contactPoint node entirely.
-  siteContactEmail: null, // e.g. 'support@example.com'
+  siteContactEmail: 'support@elogade.com',
 
   // Optional
   // This creates meta tag for Google Search Console verification
