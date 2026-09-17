@@ -64,6 +64,13 @@ const SectionHero = props => {
     const imageVariants = firstImage
       ? Object.keys(firstImage.attributes.variants).filter(k => k.startsWith(variantPrefix))
       : [];
+    // Intrinsic size of the smallest variant, for the <img width/height> attributes (the
+    // card CSS sizes the image; the attributes only give the browser the aspect ratio).
+    const firstVariant = firstImage?.attributes?.variants?.[imageVariants[0]];
+    const imageDimensions =
+      firstVariant?.width && firstVariant?.height
+        ? { width: firstVariant.width, height: firstVariant.height }
+        : {};
     return {
       type: 'listing',
       key: listing.id.uuid,
@@ -72,6 +79,7 @@ const SectionHero = props => {
       seller: sellerName(listing),
       image: firstImage,
       imageVariants,
+      imageDimensions,
     };
   });
 
@@ -129,7 +137,9 @@ const SectionHero = props => {
   // showcase (see the parent's aria-hidden), so every card is a plain div —
   // clicks are funnelled to the "Browse listings" CTA instead. This keeps the
   // continuously moving strip consistent and accessible: no moving link targets.
-  const renderCard = (d, key) => (
+  // The second copy of each column only exists for the seamless loop and starts out of
+  // view, so its images are lazy-loaded; the first copy is what the viewer sees at once.
+  const renderCard = (d, key, lazy) => (
     <div key={key} className={css.card}>
       {d.type === 'listing' ? (
         <>
@@ -140,6 +150,9 @@ const SectionHero = props => {
               image={d.image}
               variants={d.imageVariants}
               sizes="300px"
+              decoding="async"
+              {...d.imageDimensions}
+              {...(lazy ? { loading: 'lazy' } : {})}
             />
             <div className={css.cardShade} />
           </div>
@@ -227,8 +240,8 @@ const SectionHero = props => {
               className={classNames(css.column, colIndex % 2 === 0 ? css.columnA : css.columnB)}
             >
               <div className={css.columnTrack}>
-                {col.map((d, i) => renderCard(d, `${colIndex}-a-${i}`))}
-                {col.map((d, i) => renderCard(d, `${colIndex}-b-${i}`))}
+                {col.map((d, i) => renderCard(d, `${colIndex}-a-${i}`, false))}
+                {col.map((d, i) => renderCard(d, `${colIndex}-b-${i}`, true))}
               </div>
             </div>
           )

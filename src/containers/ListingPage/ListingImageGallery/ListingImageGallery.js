@@ -27,6 +27,15 @@ const IMAGE_GALLERY_OPTIONS = {
 const MAX_LANDSCAPE_ASPECT_RATIO = 2; // 2:1
 const MAX_PORTRAIT_ASPECT_RATIO = 4 / 3;
 
+// Intrinsic dimensions for the <img width/height> attributes: the first variant (of the
+// given list) the image actually has. Lets the browser reserve the box before the image
+// loads (CLS); the CSS keeps width/height "auto" so the ratio is preserved when clamped.
+const getImageDimensions = (image, variantNames) => {
+  const variants = image?.attributes?.variants || {};
+  const variant = variantNames.map(name => variants[name]).find(v => !!v?.width && !!v?.height);
+  return variant ? { width: variant.width, height: variant.height } : {};
+};
+
 const getFirstImageAspectRatio = (firstImage, scaledVariant) => {
   if (!firstImage) {
     return { aspectWidth: 1, aspectHeight: 1 };
@@ -101,6 +110,7 @@ const ListingImageGallery = props => {
             image={item.image}
             alt={item.alt}
             variants={imageVariants}
+            {...getImageDimensions(item.image, imageVariants)}
             {...imageSizesMaybe}
           />
         </div>
@@ -115,7 +125,10 @@ const ListingImageGallery = props => {
           image={item.image}
           alt={item.thumbAlt}
           variants={thumbVariants}
+          {...getImageDimensions(item.image, thumbVariants)}
           sizes="88px"
+          loading="lazy"
+          decoding="async"
         />
       </div>
     );

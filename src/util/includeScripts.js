@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useLocation } from 'react-router-dom';
 
 import { useRouteConfiguration } from '../context/routeConfigurationContext';
 import { matchPathname } from '../util/routes';
@@ -10,11 +11,59 @@ const STRIPE_SCRIPT_ID = 'stripe_js_v3';
 
 /** Dispatched on `window` when Stripe.js has loaded (`window.Stripe` is available). */
 export const STRIPE_JS_LOADED_EVENT = 'stripe-js-loaded';
+/**
+ * Dispatched on `window` when the map provider library has loaded and (for Mapbox) its
+ * access token is set. Map consumers rendered before that re-render on this event.
+ */
+export const MAP_LIBRARY_LOADED_EVENT = 'map-library-loaded';
 
 const dispatchStripeJsLoadedEvent = () => {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(STRIPE_JS_LOADED_EVENT));
   }
+};
+const dispatchMapLibraryLoadedEvent = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(MAP_LIBRARY_LOADED_EVENT));
+  }
+};
+
+const getRouteConfig = (pathname, routeConfiguration) => {
+  if (!pathname) {
+    return null;
+  }
+  const matchedRoutes = matchPathname(pathname, routeConfiguration);
+  return matchedRoutes.length > 0 ? matchedRoutes[0]?.route : null;
+};
+
+/**
+ * Whether the map provider library must be included on the page at `pathname`.
+ *
+ * Mapbox (mapbox-gl.js + mapbox-sdk) used to be loaded on every page although only a few
+ * routes render a map or a location autocomplete. It is now included only when:
+ * - the route declares `prioritizeLibraryLoading.map` (listing page, map search variant,
+ *   edit-listing wizard), or
+ * - the marketplace uses location search, in which case the Topbar search form (rendered on
+ *   every page) needs the geocoder, or
+ * - the pathname is unknown (fail open: better an extra script than a broken map).
+ * Google Maps keeps its upstream behaviour (always included; it is fragile when loaded late).
+ *
+ * @param {string} pathname - locale-free pathname (React Router `location.pathname`)
+ * @param {array} routeConfiguration - The route configuration.
+ * @param {Object} config - merged app config
+ * @returns {boolean}
+ */
+export const isMapLibraryNeeded = (pathname, routeConfiguration, config) => {
+  if (config?.maps?.mapProvider === 'googleMaps') {
+    return true;
+  }
+  if (config?.search?.mainSearch?.searchType === 'location') {
+    return true;
+  }
+  if (!pathname) {
+    return true;
+  }
+  return getRouteConfig(pathname, routeConfiguration)?.prioritizeLibraryLoading?.map === true;
 };
 
 /**
@@ -23,25 +72,21 @@ const dispatchStripeJsLoadedEvent = () => {
  * Note: this currently only affects Mapbox library.
  * Google Maps library is always loaded immediately. (It seems to be more fragile when loaded asynchronously.)
  *
- * @param {string} initialPathname - The initial pathname at the time of the full page load.
+ * @param {string} pathname - The current locale-free pathname.
  * @param {array} routeConfiguration - The route configuration.
  * @returns {boolean} - True if the map library can be deferred, false otherwise.
  */
-const canDeferMapLibrary = (initialPathname, routeConfiguration) => {
-  if (!initialPathname) {
+const canDeferMapLibrary = (pathname, routeConfiguration) => {
+  if (!pathname) {
     return false;
   }
-  const matchedRoutes = matchPathname(initialPathname, routeConfiguration);
-  const currentRouteConfig = matchedRoutes.length > 0 ? matchedRoutes[0]?.route : null;
-  return currentRouteConfig?.prioritizeLibraryLoading?.map !== true;
+  return getRouteConfig(pathname, routeConfiguration)?.prioritizeLibraryLoading?.map !== true;
 };
-const canDeferStripeLibrary = (initialPathname, routeConfiguration) => {
-  if (!initialPathname) {
+const canDeferStripeLibrary = (pathname, routeConfiguration) => {
+  if (!pathname) {
     return false;
   }
-  const matchedRoutes = matchPathname(initialPathname, routeConfiguration);
-  const currentRouteConfig = matchedRoutes.length > 0 ? matchedRoutes[0]?.route : null;
-  return currentRouteConfig?.prioritizeLibraryLoading?.stripe !== true;
+  return getRouteConfig(pathname, routeConfiguration)?.prioritizeLibraryLoading?.stripe !== true;
 };
 
 /**
@@ -61,14 +106,25 @@ export const IncludeScripts = props => {
   const { googleAnalyticsId, plausibleDomains } = analytics;
 
   const routeConfiguration = useRouteConfiguration();
+  // Locale-free pathname of the current route (React Router strips the `basename`), kept in
+  // sync with client-side navigation. `initialPathname` is a fallback for callers that
+  // render this component outside a Router.
+  const location = useLocation();
+  const pathname = location?.pathname || props?.initialPathname;
   // Note: Affects Mapbox only. Google Maps initialization is not yet ready to support asynchronous loading.
-  const deferMapLibrary = canDeferMapLibrary(props?.initialPathname, routeConfiguration)
-    ? { defer: '' }
-    : {};
+  const deferMapLibrary = canDeferMapLibrary(pathname, routeConfiguration) ? { defer: '' } : {};
 
   const { mapProvider, googleMapsAPIKey, mapboxAccessToken } = maps || {};
   const isGoogleMapsInUse = mapProvider === 'googleMaps';
-  const isMapboxInUse = mapProvider === 'mapbox';
+  // Once a route has asked for the map library it stays included for the rest of the
+  // session: removing and re-adding the <script> would re-execute mapbox-gl.js and reset
+  // the global `mapboxgl` (and its access token) under a mounted map.
+  const mapLibraryRequestedRef = useRef(false);
+  const mapLibraryNeeded =
+    mapLibraryRequestedRef.current ||
+    isMapLibraryNeeded(pathname, routeConfiguration, props?.config);
+  mapLibraryRequestedRef.current = mapLibraryNeeded;
+  const isMapboxInUse = mapProvider === 'mapbox' && mapLibraryNeeded;
 
   // Add Google Analytics script if correct id exists (it should start with 'G-' prefix)
   // See: https://developers.google.com/analytics/devguides/collection/gtagjs
@@ -80,7 +136,7 @@ export const IncludeScripts = props => {
   let analyticsLibraries = [];
 
   if (stripe?.publishableKey) {
-    const deferStripeLibrary = canDeferStripeLibrary(props?.initialPathname, routeConfiguration)
+    const deferStripeLibrary = canDeferStripeLibrary(pathname, routeConfiguration)
       ? { defer: '' }
       : {};
 
@@ -156,7 +212,11 @@ export const IncludeScripts = props => {
       ></script>
     );
 
-    if (typeof window !== 'undefined') {
+    // This component now re-renders on every client-side navigation (it follows the
+    // router location to gate the map library), so the gtag bootstrap must run once per
+    // page load: `gtag('config')` sends a page_view, and in-app navigation page views are
+    // already reported by src/analytics/handlers.js.
+    if (typeof window !== 'undefined' && !window.gtag) {
       window.dataLayer = window.dataLayer || [];
       // Ensure that gtag function is found from window scope
       window.gtag = function gtag() {
@@ -198,10 +258,11 @@ export const IncludeScripts = props => {
   // we need to listen when the script is loaded.
   const onMapLibLoaded = () => {
     // At this point we know that map library is loaded after it's dynamically included
-    if (isMapboxInUse && !window.mapboxgl.accessToken) {
+    if (isMapboxInUse && window.mapboxgl && !window.mapboxgl.accessToken) {
       // Add access token for Mapbox sdk.
       window.mapboxgl.accessToken = mapboxAccessToken;
     }
+    dispatchMapLibraryLoadedEvent();
   };
 
   // React Helmet Async doesn't support onLoad prop for scripts.
@@ -261,6 +322,9 @@ export const IncludeScripts = props => {
     const assignAccessToken = () => {
       if (window.mapboxgl && !window.mapboxgl.accessToken) {
         window.mapboxgl.accessToken = mapboxAccessToken;
+      }
+      if (window.mapboxgl) {
+        dispatchMapLibraryLoadedEvent();
       }
     };
 

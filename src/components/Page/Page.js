@@ -16,19 +16,11 @@ import { prependLocale } from '../../util/locale';
 import { propTypes } from '../../util/types';
 import { apiBaseUrl } from '../../util/api';
 
+import { buildOrganizationNode, buildWebSiteNode } from './Page.schema';
 import css from './Page.module.css';
 
 const preventDefault = e => {
   e.preventDefault();
-};
-
-const twitterPageURL = siteTwitterHandle => {
-  if (siteTwitterHandle && siteTwitterHandle.charAt(0) === '@') {
-    return `https://twitter.com/${siteTwitterHandle.substring(1)}`;
-  } else if (siteTwitterHandle) {
-    return `https://twitter.com/${siteTwitterHandle}`;
-  }
-  return null;
 };
 
 const webmanifestURL = marketplaceRootURL => {
@@ -216,11 +208,6 @@ class PageComponent extends Component {
       config
     );
 
-    const facebookPage = config.siteFacebookPage;
-    const twitterPage = twitterPageURL(config.siteTwitterHandle);
-    const instagramPage = config.siteInstagramPage;
-    const sameOrganizationAs = [facebookPage, twitterPage, instagramPage].filter(v => v != null);
-
     // Schema for search engines (helps them to understand what this page is about)
     // http://schema.org
     // We are using JSON-LD format
@@ -238,27 +225,15 @@ class PageComponent extends Component {
       const { '@context': _omit, ...rest } = node || {};
       return rest;
     };
-    const addressMaybe = config.address?.streetAddress ? { address: config.address } : {};
+    // Site-wide entity nodes (Organization + WebSite with a SearchAction). Their optional
+    // fields (logo, sameAs, contactPoint) are derived from config and omitted while empty;
+    // see Page.schema.js.
     const schemaArrayJSONString = JSON.stringify({
       '@context': 'https://schema.org',
       '@graph': [
         ...schemaFromProps.map(withoutContext),
-        {
-          '@type': 'Organization',
-          '@id': `${marketplaceRootURL}#organization`,
-          url: marketplaceRootURL,
-          name: marketplaceName,
-          sameAs: sameOrganizationAs,
-          logo: config.branding.logoImageMobileURL,
-          ...addressMaybe,
-        },
-        {
-          '@type': 'WebSite',
-          '@id': `${marketplaceRootURL}#website`,
-          url: marketplaceRootURL,
-          description: schemaDescription,
-          name: schemaTitle,
-        },
+        buildOrganizationNode({ config, marketplaceRootURL, marketplaceName }),
+        buildWebSiteNode({ marketplaceRootURL, marketplaceName, locale: currentLocale }),
       ],
     });
 

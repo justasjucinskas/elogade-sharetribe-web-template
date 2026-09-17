@@ -172,6 +172,16 @@ exports.csp = (reportUri, reportOnly) => {
     directives.upgradeInsecureRequests = [];
   }
 
+  // Optional sources come straight from environment variables (e.g. assetCdnBaseUrl), so an
+  // unset variable would otherwise be serialised as the literal string "undefined" into the
+  // policy. Drop every empty/nullish entry before handing the directives to Helmet.
+  Object.keys(directives).forEach(key => {
+    const value = directives[key];
+    if (Array.isArray(value)) {
+      directives[key] = value.filter(v => v != null && v !== '');
+    }
+  });
+
   // See: https://helmetjs.github.io/docs/csp/
   return helmet.contentSecurityPolicy({
     useDefaults: false,

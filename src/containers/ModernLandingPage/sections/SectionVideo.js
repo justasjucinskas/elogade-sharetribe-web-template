@@ -82,6 +82,8 @@ const SectionVideo = () => {
                 className={css.posterImage}
                 src={posterImage}
                 alt=""
+                width={1280}
+                height={720}
                 loading="lazy"
                 decoding="async"
               />

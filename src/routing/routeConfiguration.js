@@ -182,6 +182,8 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       loadData: pageDataLoadingAPI.EditListingPage.loadData,
       prioritizeLibraryLoading: {
         stripe: true,
+        // Location autocomplete (location + pickup-address tabs) needs the map provider SDK
+        map: true,
       },
     },
     {
@@ -192,6 +194,7 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       loadData: pageDataLoadingAPI.EditListingPage.loadData,
       prioritizeLibraryLoading: {
         stripe: true,
+        map: true,
       },
     },
 

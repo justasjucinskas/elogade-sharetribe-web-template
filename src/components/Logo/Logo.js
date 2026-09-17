@@ -91,6 +91,7 @@ export const LogoComponent = props => {
           variants={variantNames}
           sizes={sizes}
           width={width}
+          height={logoSettings?.height}
         />
       </div>
     );
