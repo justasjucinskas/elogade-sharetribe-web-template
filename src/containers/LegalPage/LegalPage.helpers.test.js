@@ -47,14 +47,14 @@ describe('extractToc', () => {
 describe('pickByLocale', () => {
   const docs = { en: 'EN', lt: 'LT', pl: 'PL' };
 
-  it('maps a react-intl locale to its document', () => {
-    expect(pickByLocale(docs, 'lt-LT')).toEqual({ locale: 'lt', value: 'LT' });
-    expect(pickByLocale(docs, 'pl-PL')).toEqual({ locale: 'pl', value: 'PL' });
+  it('maps a URL locale to its document', () => {
+    expect(pickByLocale(docs, 'lt')).toEqual({ locale: 'lt', value: 'LT' });
+    expect(pickByLocale(docs, 'pl')).toEqual({ locale: 'pl', value: 'PL' });
     expect(pickByLocale(docs, 'en')).toEqual({ locale: 'en', value: 'EN' });
   });
 
   it('falls back to the default locale', () => {
-    expect(pickByLocale(docs, 'de-DE')).toEqual({ locale: 'en', value: 'EN' });
+    expect(pickByLocale(docs, 'de')).toEqual({ locale: 'en', value: 'EN' });
     expect(pickByLocale(docs, undefined)).toEqual({ locale: 'en', value: 'EN' });
   });
 });

@@ -182,7 +182,15 @@ const LegalDocument = props => {
         {isTranslation && englishHref ? (
           <p className={css.translationNotice}>
             <FormattedMessage id="LegalPage.translationNotice" />{' '}
-            <a className={css.link} href={englishHref} hrefLang={DEFAULT_LOCALE}>
+            {/* New tab: navigating this tab would drop the reader's locale and, inside
+                the sign-up modal, the half-filled form. */}
+            <a
+              className={css.link}
+              href={englishHref}
+              hrefLang={DEFAULT_LOCALE}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <FormattedMessage id="LegalPage.readInEnglish" />
             </a>
           </p>

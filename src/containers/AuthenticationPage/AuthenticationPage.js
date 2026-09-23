@@ -495,7 +495,9 @@ export const AuthenticationPageComponent = props => {
         focusElementId={'terms-accepted.tos-and-privacy'}
       >
         <div className={css.termsWrapper} role="complementary">
-          <TermsOfServiceContent />
+          {/* Mounted only while open: avoids loading both documents on every auth page
+              visit and duplicate section ids in the portal. */}
+          {tosModalOpen ? <TermsOfServiceContent /> : null}
         </div>
       </Modal>
       <Modal
@@ -507,7 +509,7 @@ export const AuthenticationPageComponent = props => {
         focusElementId={'terms-accepted.tos-and-privacy'}
       >
         <div className={css.privacyWrapper} role="complementary">
-          <PrivacyPolicyContent />
+          {privacyModalOpen ? <PrivacyPolicyContent /> : null}
         </div>
       </Modal>
     </Page>

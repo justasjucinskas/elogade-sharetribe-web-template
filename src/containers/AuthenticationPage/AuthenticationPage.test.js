@@ -65,6 +65,15 @@ describe('AuthenticationPage', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('does not mount the legal documents until their modal is opened', async () => {
+    await act(async () => {
+      render(<AuthenticationPage {...props} tab="signup" />, { withPortals: true });
+    });
+
+    expect(document.getElementById('section-1')).not.toBeInTheDocument();
+    expect(screen.queryByText('TermsOfServicePage.title')).not.toBeInTheDocument();
+  });
+
   it('changes the login form to sign up form by clicking "Sign up" ', async () => {
     // We want to make sure that during the test the env variables
     // for social logins are as we expect them to be

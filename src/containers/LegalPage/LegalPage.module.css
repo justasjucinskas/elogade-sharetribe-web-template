@@ -1,11 +1,7 @@
 @import '../../styles/customMediaQueries.css';
 
 .root {
-  --legalInk: #1d1d1f;
-  --legalMuted: #6e6e73;
-  --legalFog: #f5f5f7;
-  --legalAccent: var(--marketplaceColor);
-  --legalMono: 'SF Mono', 'SFMono-Regular', ui-monospace, 'Menlo', 'Roboto Mono', monospace;
+  composes: tokens from './LegalTokens.module.css';
 
   /* Grid item of LayoutSingleColumn: let the column shrink to the viewport. */
   min-width: 0;
@@ -17,7 +13,7 @@
 .hero {
   position: relative;
   background: var(--legalFog);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--legalHairline);
   overflow: hidden;
 
   /* A single soft accent glow keeps the band from reading as flat grey. */
@@ -37,7 +33,7 @@
   position: relative;
   max-width: var(--contentMaxWidthPages);
   margin: 0 auto;
-  padding: 48px 24px 32px;
+  padding: 48px 24px 30px;
 
   @media (--viewportMedium) {
     padding: 80px 32px 40px;
@@ -68,7 +64,7 @@
 }
 
 .lead {
-  margin: 16px 0 0;
+  margin: 18px 0 0;
   padding: 0;
   max-width: 620px;
   font-size: 17px;
@@ -84,15 +80,15 @@
 .switcher {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 32px;
-  padding: 4px;
+  gap: 6px;
+  margin-top: 30px;
+  padding: 6px;
   background: rgba(0, 0, 0, 0.05);
   border-radius: 999px;
 }
 
 .switcherLink {
-  padding: 8px 16px;
+  padding: 6px 18px;
   font-size: 14px;
   line-height: 20px;
   font-weight: var(--fontWeightMedium);
@@ -122,7 +118,7 @@
 .content {
   max-width: var(--contentMaxWidthPages);
   margin: 0 auto;
-  padding: 32px 24px 80px;
+  padding: 30px 24px 72px;
 
   @media (--viewportMedium) {
     padding: 48px 32px 120px;

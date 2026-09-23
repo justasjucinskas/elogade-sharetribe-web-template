@@ -10,14 +10,22 @@ import { fetchFeaturedListings } from '../../ducks/featuredListings.duck';
 import { getListingsById } from '../../ducks/marketplaceData.duck';
 import { getFeaturedListingsProps } from '../../util/data';
 
+import { NamedRedirect } from '../../components';
+
 import NotFoundPage from '../../containers/NotFoundPage/NotFoundPage';
 const PageBuilder = loadable(() =>
   import(/* webpackChunkName: "PageBuilder" */ '../PageBuilder/PageBuilder')
 );
 
+import { CODE_OWNED_PAGE_ROUTES } from './CMSPage.duck';
+
 export const CMSPageComponent = props => {
   const { params, pageAssetsData, inProgress, error } = props;
   const pageId = params.pageId || props.pageId;
+
+  if (CODE_OWNED_PAGE_ROUTES[pageId]) {
+    return <NamedRedirect name={CODE_OWNED_PAGE_ROUTES[pageId]} />;
+  }
 
   if (!inProgress && error?.status === 404) {
     return <NotFoundPage staticContext={props.staticContext} />;

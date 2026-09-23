@@ -5,6 +5,7 @@ import { useConfiguration } from '../../context/configurationContext';
 import { useRouteConfiguration } from '../../context/routeConfigurationContext';
 import { DEFAULT_LOCALE } from '../../config/configLocale';
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
+import { prependLocale } from '../../util/locale';
 import { pathByRouteName } from '../../util/routes';
 import { isScrollingDisabled } from '../../ducks/ui.duck';
 
@@ -28,8 +29,8 @@ const LEGAL_PAGES = ['TermsOfServicePage', 'PrivacyPolicyPage'];
  */
 const LocalizedDocument = props => {
   const { documents, englishHref, ...rest } = props;
-  const intl = useIntl();
-  const { locale, value: DocumentLoader } = pickByLocale(documents, intl.locale);
+  const currentLocale = useSelector(state => state.locale?.current || DEFAULT_LOCALE);
+  const { locale, value: DocumentLoader } = pickByLocale(documents, currentLocale);
 
   return (
     <DocumentLoader fallback={<div className={css.loading} aria-busy="true" />}>
@@ -54,12 +55,12 @@ export const LegalContent = props => {
   const { documents, pageName } = props;
   const intl = useIntl();
   const routeConfiguration = useRouteConfiguration();
-  const path = pathByRouteName(pageName, routeConfiguration);
+  const englishHref = prependLocale(pathByRouteName(pageName, routeConfiguration), DEFAULT_LOCALE);
 
   return (
     <LocalizedDocument
       documents={documents}
-      englishHref={`/${DEFAULT_LOCALE}${path}`}
+      englishHref={englishHref}
       title={intl.formatMessage({ id: `${pageName}.title` })}
     />
   );
@@ -89,7 +90,7 @@ const LegalPage = props => {
     { id: `${pageName}.schemaDescription` },
     { marketplaceName }
   );
-  const path = pathByRouteName(pageName, routeConfiguration);
+  const englishHref = prependLocale(pathByRouteName(pageName, routeConfiguration), DEFAULT_LOCALE);
 
   return (
     <Page
@@ -133,11 +134,7 @@ const LegalPage = props => {
           </header>
 
           <div className={css.content}>
-            <LocalizedDocument
-              documents={documents}
-              englishHref={`/${DEFAULT_LOCALE}${path}`}
-              showToc
-            />
+            <LocalizedDocument documents={documents} englishHref={englishHref} showToc />
           </div>
         </div>
       </LayoutSingleColumn>

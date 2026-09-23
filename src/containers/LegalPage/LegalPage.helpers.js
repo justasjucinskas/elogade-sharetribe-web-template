@@ -50,11 +50,10 @@ export const extractToc = body => {
  * Pick the legal document for the current locale, falling back to the default locale.
  *
  * @param {Object} documentsByLocale e.g. { en: loader, lt: loader, pl: loader }
- * @param {string} intlLocale react-intl locale, e.g. "lt-LT"
+ * @param {string} currentLocale URL locale from `state.locale.current`, e.g. "lt"
  * @returns {{ locale: string, value: any }}
  */
-export const pickByLocale = (documentsByLocale, intlLocale) => {
-  const language = typeof intlLocale === 'string' ? intlLocale.split('-')[0] : null;
-  const locale = documentsByLocale[language] ? language : DEFAULT_LOCALE;
+export const pickByLocale = (documentsByLocale, currentLocale) => {
+  const locale = documentsByLocale[currentLocale] ? currentLocale : DEFAULT_LOCALE;
   return { locale, value: documentsByLocale[locale] };
 };

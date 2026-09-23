@@ -1,12 +1,7 @@
 @import '../../styles/customMediaQueries.css';
 
 .root {
-  --legalInk: #1d1d1f;
-  --legalMuted: #6e6e73;
-  --legalHairline: rgba(0, 0, 0, 0.08);
-  --legalAccent: var(--marketplaceColor);
-  --legalMono: 'SF Mono', 'SFMono-Regular', ui-monospace, 'Menlo', 'Roboto Mono', monospace;
-
+  composes: tokens from './LegalTokens.module.css';
   color: var(--legalInk);
 }
 
@@ -30,7 +25,7 @@
 .meta {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .inlineTitle {
@@ -55,7 +50,7 @@
 
 .translationNotice {
   margin: 24px 0 0;
-  padding: 14px 18px;
+  padding: 12px 18px;
   font-size: 14px;
   line-height: 22px;
   color: var(--legalInk);
@@ -106,10 +101,10 @@
 
 .tocLink {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  gap: 4px;
-  padding: 7px 10px;
-  margin-left: -10px;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 6px;
+  padding: 6px 12px;
+  margin-left: -12px;
   font-size: 14px;
   line-height: 20px;
   font-weight: var(--fontWeightRegular);
@@ -159,7 +154,7 @@
 }
 
 .tocSummary {
-  padding: 14px 18px;
+  padding: 12px 18px;
   font-size: 15px;
   line-height: 22px;
   font-weight: var(--fontWeightSemiBold);
@@ -179,7 +174,7 @@
 
 .tocMobile .tocLink {
   margin-left: 0;
-  padding: 8px 0;
+  padding: 6px 0;
   border-radius: 0;
 
   &:hover {
@@ -201,7 +196,7 @@
 }
 
 .body {
-  margin-top: 16px;
+  margin-top: 18px;
   font-size: 16px;
   line-height: 1.7;
   overflow-wrap: break-word;
@@ -210,9 +205,9 @@
 .h2 {
   display: flex;
   align-items: baseline;
-  gap: 14px;
-  margin: 56px 0 0;
-  padding: 32px 0 0;
+  gap: 12px;
+  margin: 54px 0 0;
+  padding: 30px 0 0;
   font-size: 24px;
   line-height: 1.25;
   font-weight: var(--fontWeightBold);
@@ -246,8 +241,8 @@
 .h4 {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  margin: 28px 0 0;
+  gap: 12px;
+  margin: 30px 0 0;
   padding: 0;
   font-size: 16px;
   line-height: 1.4;
@@ -265,7 +260,7 @@
 }
 
 .p {
-  margin: 14px 0 0;
+  margin: 12px 0 0;
   padding: 0;
   font-size: 16px;
   line-height: 1.7;
@@ -274,8 +269,8 @@
 
 .ul,
 .ol {
-  margin: 14px 0 0;
-  padding: 0 0 0 22px;
+  margin: 12px 0 0;
+  padding: 0 0 0 24px;
 }
 
 .ul {
@@ -287,8 +282,8 @@
 }
 
 .li {
-  margin: 8px 0 0;
-  padding-left: 4px;
+  margin: 6px 0 0;
+  padding-left: 6px;
   font-size: 16px;
   line-height: 1.7;
 
