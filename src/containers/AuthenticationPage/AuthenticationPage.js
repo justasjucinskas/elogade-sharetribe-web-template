@@ -5,10 +5,9 @@ import Cookies from 'js-cookie';
 import classNames from 'classnames';
 
 import { useConfiguration } from '../../context/configurationContext';
-import { camelize } from '../../util/string';
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
 import { propTypes } from '../../util/types';
-import { ensureCurrentUser, getFeaturedListingsProps } from '../../util/data';
+import { ensureCurrentUser } from '../../util/data';
 import {
   isSignupEmailTakenError,
   isTooManyEmailVerificationRequestsError,
@@ -17,8 +16,6 @@ import {
 import { login, authenticationInProgress, signup, signupWithIdp } from '../../ducks/auth.duck';
 import { isScrollingDisabled, manageDisableScrolling } from '../../ducks/ui.duck';
 import { sendVerificationEmail } from '../../ducks/user.duck';
-import { fetchFeaturedListings } from '../../ducks/featuredListings.duck';
-import { getListingsById } from '../../ducks/marketplaceData.duck';
 import { useReveal } from '../../hooks/useReveal';
 
 import {
@@ -33,9 +30,8 @@ import {
 
 import TopbarContainer from '../../containers/TopbarContainer/TopbarContainer';
 import FooterContainer from '../../containers/FooterContainer/FooterContainer';
-// We need to get ToS asset and get it rendered for the modal on this page.
+// Code-owned legal documents, rendered in modals from the sign-up terms checkbox.
 import { TermsOfServiceContent } from '../../containers/TermsOfServicePage/TermsOfServicePage';
-// We need to get PrivacyPolicy asset and get it rendered for the modal on this page.
 import { PrivacyPolicyContent } from '../../containers/PrivacyPolicyPage/PrivacyPolicyPage';
 import NotFoundPage from '../../containers/NotFoundPage/NotFoundPage';
 
@@ -52,8 +48,6 @@ import LoginForm from './LoginForm/LoginForm';
 import SignupForm from './SignupForm/SignupForm';
 import EmailVerificationInfo from './EmailVerificationInfo';
 import SocialLoginButtons from './SocialLoginButtons/SocialLoginButtons';
-
-import { TOS_ASSET_NAME, PRIVACY_POLICY_ASSET_NAME } from './AuthenticationPage.duck';
 
 import css from './AuthenticationPage.module.css';
 
@@ -207,21 +201,9 @@ const BlankPage = props => {
  * @param {propTypes.error} props.sendVerificationEmailError - The verification email error
  * @param {Function} props.onResendVerificationEmail - The resend verification email function
  * @param {Function} props.onManageDisableScrolling - The manage disable scrolling function
- * @param {object} props.privacyAssetsData - The privacy assets data
- * @param {boolean} props.privacyFetchInProgress - Whether the privacy fetch is in progress
- * @param {propTypes.error} props.privacyFetchError - The privacy fetch error
- * @param {object} props.tosAssetsData - The terms of service assets data
- * @param {boolean} props.tosFetchInProgress - Whether the terms of service fetch is in progress
- * @param {propTypes.error} props.tosFetchError - The terms of service fetch error
  * @param {object} props.location - The location object
  * @param {object} props.params - The path parameters
  * @param {boolean} props.scrollingDisabled - Whether the scrolling is disabled
- * @param {object} props.pageAssetsData - The page assets data
- * @param {boolean} props.pageAssetsFetchInProgress - Whether the page assets fetch is in progress
- * @param {propTypes.error} props.pageAssetsFetchError - The page assets fetch error
- * @param {object} props.featuredListingData - The featured listing data
- * @param {Function} props.getListingEntitiesById - The get listing entities by id function
- * @param {Function} props.onFetchFeaturedListings - The on fetch featured listings function
  * @param {object} props.staticContext - The static context
  * @returns {JSX.Element}
  */
@@ -268,9 +250,6 @@ export const AuthenticationPageComponent = props => {
     sendVerificationEmailError,
     onResendVerificationEmail,
     onManageDisableScrolling,
-    pageAssetsData,
-    pageAssetsFetchInProgress,
-    pageAssetsFetchError,
     staticContext,
   } = props;
 
@@ -516,13 +495,7 @@ export const AuthenticationPageComponent = props => {
         focusElementId={'terms-accepted.tos-and-privacy'}
       >
         <div className={css.termsWrapper} role="complementary">
-          <TermsOfServiceContent
-            inProgress={pageAssetsFetchInProgress}
-            error={pageAssetsFetchError}
-            data={pageAssetsData?.[camelize(TOS_ASSET_NAME)]?.data}
-            featuredListings={getFeaturedListingsProps(camelize(PRIVACY_POLICY_ASSET_NAME), props)}
-            isOpen={tosModalOpen}
-          />
+          <TermsOfServiceContent />
         </div>
       </Modal>
       <Modal
@@ -534,13 +507,7 @@ export const AuthenticationPageComponent = props => {
         focusElementId={'terms-accepted.tos-and-privacy'}
       >
         <div className={css.privacyWrapper} role="complementary">
-          <PrivacyPolicyContent
-            inProgress={pageAssetsFetchInProgress}
-            error={pageAssetsFetchError}
-            data={pageAssetsData?.[camelize(PRIVACY_POLICY_ASSET_NAME)]?.data}
-            featuredListings={getFeaturedListingsProps(camelize(PRIVACY_POLICY_ASSET_NAME), props)}
-            isOpen={privacyModalOpen}
-          />
+          <PrivacyPolicyContent />
         </div>
       </Modal>
     </Page>
@@ -571,19 +538,6 @@ const AuthenticationPage = props => {
   );
   const sendVerificationEmailError = useSelector(state => state.user?.sendVerificationEmailError);
 
-  const hostedAssets = useSelector(state => state.hostedAssets || {});
-  const pageAssetsData = hostedAssets.pageAssetsData;
-  const pageAssetsFetchInProgress = hostedAssets.inProgress;
-  const pageAssetsFetchError = hostedAssets.error;
-
-  const featuredListingData = useSelector(state => state.featuredListings || {});
-  const entities = useSelector(state => state.marketplaceData?.entities || {});
-
-  const getListingEntitiesById = useCallback(
-    listingIds => getListingsById({ marketplaceData: { entities } }, listingIds),
-    [entities]
-  );
-
   // Auth thunks use .unwrap(), so failures reject. Swallow those here: the forms
   // already render loginError / signupError / confirmError from Redux (same as
   // pre-RTK thunks, which caught inside the duck and did not reject).
@@ -605,11 +559,6 @@ const AuthenticationPage = props => {
       dispatch(manageDisableScrolling(componentId, disableScrolling)),
     [dispatch]
   );
-  const onFetchFeaturedListings = useCallback(
-    (sectionId, parentPage, listingImageConfig, allSections) =>
-      dispatch(fetchFeaturedListings({ sectionId, parentPage, listingImageConfig, allSections })),
-    [dispatch]
-  );
 
   return (
     <AuthenticationPageComponent
@@ -628,12 +577,6 @@ const AuthenticationPage = props => {
       sendVerificationEmailError={sendVerificationEmailError}
       onResendVerificationEmail={onResendVerificationEmail}
       onManageDisableScrolling={onManageDisableScrolling}
-      pageAssetsData={pageAssetsData}
-      pageAssetsFetchInProgress={pageAssetsFetchInProgress}
-      pageAssetsFetchError={pageAssetsFetchError}
-      featuredListingData={featuredListingData}
-      getListingEntitiesById={getListingEntitiesById}
-      onFetchFeaturedListings={onFetchFeaturedListings}
     />
   );
 };

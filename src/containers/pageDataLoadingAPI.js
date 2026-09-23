@@ -1,7 +1,6 @@
 /**
  * Export loadData calls from ducks modules of different containers
  */
-import { loadData as AuthenticationPageLoader } from './AuthenticationPage/AuthenticationPage.duck';
 import { setInitialValues as CheckoutPageInitialValues } from './CheckoutPage/CheckoutPage.duck';
 import { loadData as CMSPageLoader } from './CMSPage/CMSPage.duck';
 import { loadData as ContactDetailsPageLoader } from './ContactDetailsPage/ContactDetailsPage.duck';
@@ -13,12 +12,10 @@ import { loadData as MakeOfferPageLoader } from './MakeOfferPage/MakeOfferPage.d
 import { loadData as ManageListingsPageLoader } from './ManageListingsPage/ManageListingsPage.duck';
 import { loadData as ModernLandingPageLoader } from './ModernLandingPage/ModernLandingPage.duck';
 import { loadData as PaymentMethodsPageLoader } from './PaymentMethodsPage/PaymentMethodsPage.duck';
-import { loadData as PrivacyPolicyPageLoader } from './PrivacyPolicyPage/PrivacyPolicyPage.duck';
 import { loadData as ProfilePageLoader } from './ProfilePage/ProfilePage.duck';
 import { loadData as RequestQuotePageLoader } from './RequestQuotePage/RequestQuotePage.duck';
 import { loadData as SearchPageLoader } from './SearchPage/SearchPage.duck';
 import { loadData as StripePayoutPageLoader } from './StripePayoutPage/StripePayoutPage.duck';
-import { loadData as TermsOfServicePageLoader } from './TermsOfServicePage/TermsOfServicePage.duck';
 import {
   loadData as TransactionPageLoader,
   setInitialValues as TransactionPageInitialValues,
@@ -26,9 +23,6 @@ import {
 
 const getPageDataLoadingAPI = () => {
   return {
-    AuthenticationPage: {
-      loadData: AuthenticationPageLoader,
-    },
     CheckoutPage: {
       setInitialValues: CheckoutPageInitialValues,
     },
@@ -62,9 +56,6 @@ const getPageDataLoadingAPI = () => {
     PaymentMethodsPage: {
       loadData: PaymentMethodsPageLoader,
     },
-    PrivacyPolicyPage: {
-      loadData: PrivacyPolicyPageLoader,
-    },
     ProfilePage: {
       loadData: ProfilePageLoader,
     },
@@ -76,9 +67,6 @@ const getPageDataLoadingAPI = () => {
     },
     StripePayoutPage: {
       loadData: StripePayoutPageLoader,
-    },
-    TermsOfServicePage: {
-      loadData: TermsOfServicePageLoader,
     },
     TransactionPage: {
       loadData: TransactionPageLoader,

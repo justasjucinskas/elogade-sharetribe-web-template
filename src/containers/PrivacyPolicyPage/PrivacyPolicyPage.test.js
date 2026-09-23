@@ -3,24 +3,29 @@ import '@testing-library/jest-dom';
 
 import { renderWithProviders as render, testingLibrary } from '../../util/testHelpers';
 
-import { PrivacyPolicyPageComponent } from './PrivacyPolicyPage';
+import PrivacyPolicyPage from './PrivacyPolicyPage';
 
-const { waitFor } = testingLibrary;
+const { screen, waitFor } = testingLibrary;
 
 describe('PrivacyPolicyPage', () => {
-  it('renders the Fallback page on error', async () => {
-    const errorMessage = 'PrivacyPolicyPage failed';
-    let e = new Error(errorMessage);
-    e.type = 'error';
-    e.name = 'Test';
+  it('renders the code-owned document with a table of contents', async () => {
+    render(<PrivacyPolicyPage />);
 
-    const { getByText } = render(
-      <PrivacyPolicyPageComponent pageAssetsData={null} inProgress={false} error={e} />
-    );
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('PrivacyPolicyPage.title');
 
     await waitFor(() => {
-      expect(getByText('Privacy Policy')).toBeInTheDocument();
-      expect(getByText('An error occurred')).toBeInTheDocument();
+      expect(document.getElementById('section-6')).toHaveTextContent('GDPR Privacy');
     });
+    expect(document.getElementById('section-3-1-4')).toHaveTextContent(
+      'Tracking Technologies and Cookies'
+    );
+    expect(screen.getByRole('link', { name: 'support@elogade.com' })).toHaveAttribute(
+      'href',
+      'mailto:support@elogade.com'
+    );
+    expect(screen.getByRole('link', { name: 'https://stripe.com/us/privacy' })).toHaveAttribute(
+      'target',
+      '_blank'
+    );
   });
 });
