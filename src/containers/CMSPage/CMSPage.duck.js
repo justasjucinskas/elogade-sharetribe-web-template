@@ -1,8 +1,19 @@
 import { fetchPageAssets, pageAssetNotFound } from '../../ducks/hostedAssets.duck';
 import { getLocalizedAssetSlug, hasNonDefaultLocaleSuffix } from '../../util/locale';
 
+// Console page slugs whose content is now code-owned. Their stale Console assets must not
+// be served under /p/:pageId; CMSPage redirects these to the named route instead.
+export const CODE_OWNED_PAGE_ROUTES = {
+  'terms-of-service': 'TermsOfServicePage',
+  'privacy-policy': 'PrivacyPolicyPage',
+};
+
 export const loadData = (params, search) => (dispatch, getState) => {
   const { pageId } = params;
+
+  if (CODE_OWNED_PAGE_ROUTES[pageId]) {
+    return Promise.resolve();
+  }
 
   // Locale-specific slugs (e.g. `about-lt`) are addressed implicitly through the
   // canonical URL on the matching locale (`/lt/p/about` → `about-lt.json`). Visiting

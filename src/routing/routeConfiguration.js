@@ -251,21 +251,18 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       name: 'SignupPage',
       component: AuthenticationPage,
       extraProps: { tab: 'signup' },
-      loadData: pageDataLoadingAPI.AuthenticationPage.loadData,
     },
     {
       path: '/signup/:userType',
       name: 'SignupForUserTypePage',
       component: AuthenticationPage,
       extraProps: { tab: 'signup' },
-      loadData: pageDataLoadingAPI.AuthenticationPage.loadData,
     },
     {
       path: '/confirm',
       name: 'ConfirmPage',
       component: AuthenticationPage,
       extraProps: { tab: 'confirm' },
-      loadData: pageDataLoadingAPI.AuthenticationPage.loadData,
     },
     {
       path: '/recover-password',
@@ -395,13 +392,11 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       path: '/terms-of-service',
       name: 'TermsOfServicePage',
       component: TermsOfServicePage,
-      loadData: pageDataLoadingAPI.TermsOfServicePage.loadData,
     },
     {
       path: '/privacy-policy',
       name: 'PrivacyPolicyPage',
       component: PrivacyPolicyPage,
-      loadData: pageDataLoadingAPI.PrivacyPolicyPage.loadData,
     },
     {
       path: '/styleguide',

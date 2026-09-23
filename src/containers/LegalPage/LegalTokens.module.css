@@ -1,0 +1,10 @@
+/* Design tokens shared by the legal page shell and the legal document (which
+   also renders standalone inside the sign-up modals). Composed into each root. */
+.tokens {
+  --legalInk: var(--colorGrey900);
+  --legalMuted: var(--colorGrey600);
+  --legalHairline: rgba(0, 0, 0, 0.08);
+  --legalFog: #f5f5f7;
+  --legalAccent: var(--marketplaceColor);
+  --legalMono: 'SF Mono', 'SFMono-Regular', ui-monospace, 'Menlo', 'Roboto Mono', monospace;
+}
