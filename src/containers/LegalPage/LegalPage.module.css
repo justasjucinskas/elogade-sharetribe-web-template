@@ -76,24 +76,37 @@
   }
 }
 
-/* Segmented control linking the two legal documents. */
+/* Segmented control linking the legal documents. The labels don't fit one row on
+   phones in any locale, so it stacks full-width there and becomes a pill from
+   viewportMedium up. */
 .switcher {
-  display: inline-flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 6px;
   margin-top: 30px;
   padding: 6px;
   background: rgba(0, 0, 0, 0.05);
-  border-radius: 999px;
+  border-radius: 18px;
+
+  @media (--viewportMedium) {
+    display: inline-flex;
+    flex-wrap: wrap;
+    border-radius: 999px;
+  }
 }
 
 .switcherLink {
-  padding: 6px 18px;
-  font-size: 14px;
+  padding: 12px 18px;
+  font-size: 15px;
   line-height: 20px;
   font-weight: var(--fontWeightMedium);
   color: var(--legalMuted);
-  border-radius: 999px;
+  border-radius: 12px;
+
+  @media (--viewportMedium) {
+    padding: 6px 18px;
+    font-size: 14px;
+    border-radius: 999px;
+  }
   transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
