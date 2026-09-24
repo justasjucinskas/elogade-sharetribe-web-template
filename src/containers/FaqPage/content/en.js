@@ -322,7 +322,7 @@ ELOGADE reserves the right to take appropriate action according to platform poli
       {
         id: 'contact',
         question: 'How do I contact ELOGADE?',
-        answer: `Use the “Help / Contact” page (or your support email if listed) and include:
+        answer: `Email us at [support@elogade.com](mailto:support@elogade.com) and include:
 
 * order number,
 * short description of the issue,

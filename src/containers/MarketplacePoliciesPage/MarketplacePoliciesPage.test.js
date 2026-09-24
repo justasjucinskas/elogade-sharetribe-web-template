@@ -18,7 +18,7 @@ describe('MarketplacePoliciesPage', () => {
     await waitFor(() => {
       expect(document.getElementById('section-1')).toHaveTextContent('Buyer Protection');
     });
-    expect(document.getElementById('section-1-18-1')).toHaveTextContent('Strictly Prohibited');
+    expect(document.getElementById('section-1-17-1')).toHaveTextContent('Strictly Prohibited');
     expect(screen.getAllByRole('link', { name: /Fees & Commissions/ })[0]).toHaveAttribute(
       'href',
       '#section-5'

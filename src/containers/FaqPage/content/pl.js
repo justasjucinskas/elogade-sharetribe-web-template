@@ -322,7 +322,7 @@ ELOGADE zastrzega sobie prawo do podjęcia odpowiednich działań zgodnie z regu
       {
         id: 'contact',
         question: 'Jak mogę skontaktować się z ELOGADE?',
-        answer: `Użyj strony „Pomoc / Kontakt” (lub podanego adresu e-mail wsparcia) i podaj:
+        answer: `Napisz do nas na adres [support@elogade.com](mailto:support@elogade.com) i podaj:
 
 * numer zamówienia,
 * krótki opis problemu,

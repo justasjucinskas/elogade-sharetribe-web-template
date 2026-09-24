@@ -112,11 +112,7 @@ ELOGADE ocenia sprawy na podstawie dostępnych danych, w tym:
 * Historii wiadomości
 * Dostarczonych dowodów w postaci zdjęć lub wideo
 
-### 1.13 - Częściowe zwroty środków
-
-W niektórych uzasadnionych i popartych dowodami przypadkach ELOGADE może zaoferować lub zatwierdzić częściowy zwrot środków w ramach rozwiązania sporu.
-
-### 1.14 - Powtarzające się niewywiązywanie z obowiązków przez sprzedawcę
+### 1.13 - Powtarzające się niewywiązywanie z obowiązków przez sprzedawcę
 
 Sprzedawcy, którzy wielokrotnie nie wysyłają zamówień lub nie realizują transakcji w dobrej wierze, mogą spotkać się z:
 
@@ -124,16 +120,16 @@ Sprzedawcy, którzy wielokrotnie nie wysyłają zamówień lub nie realizują tr
 * Tymczasowym zakazem sprzedaży
 * Blokadą konta
 
-### 1.15 - Potwierdzenie dostawy
+### 1.14 - Potwierdzenie dostawy
 
 Status dostawy ustalamy głównie na podstawie oficjalnych informacji ze śledzenia przesyłki przewoźnika.
 
-### 1.16 - Rola platformy
+### 1.15 - Rola platformy
 
 * ELOGADE jest platformą handlową działającą online w krajach bałtyckich i wybranych krajach UE i pełni rolę pośrednika. Umowa sprzedaży zawierana jest bezpośrednio między kupującym a sprzedającym.
 * ELOGADE nie staje się właścicielem przedmiotów wystawianych na platformie i nie jest stroną transakcji między użytkownikami.
 
-### 1.17 - Weryfikacja tożsamości i konta
+### 1.16 - Weryfikacja tożsamości i konta
 
 ELOGADE może w dowolnym momencie wymagać od użytkowników przejścia weryfikacji tożsamości lub konta, aby spełnić wymogi prawne, regulacyjne lub nałożone przez operatora płatności. Brak weryfikacji może skutkować:
 
@@ -142,11 +138,11 @@ ELOGADE może w dowolnym momencie wymagać od użytkowników przejścia weryfika
 * Tymczasowym zamrożeniem środków
 * Blokadą konta
 
-### 1.18 - Przedmioty zabronione
+### 1.17 - Przedmioty zabronione
 
 Aby utrzymać bezpieczne i zaufane środowisko platformy, sprzedaż niektórych przedmiotów na ELOGADE jest surowo zabroniona.
 
-#### 1.18.1 - Surowo zabronione
+#### 1.17.1 - Surowo zabronione
 
 * Urządzenia kradzione lub zdobyte nielegalnie
 * Urządzenia z aktywną blokadą iCloud, Google lub podobnymi
@@ -158,21 +154,21 @@ Aby utrzymać bezpieczne i zaufane środowisko platformy, sprzedaż niektórych 
 * Ogłoszenia wprowadzające w błąd
 * Urządzenia z uszkodzonymi lub spuchniętymi bateriami oraz przedmioty niebezpieczne w transporcie
 
-### 1.19 - Wymogi dotyczące identyfikacji urządzeń
+### 1.18 - Wymogi dotyczące identyfikacji urządzeń
 
 * Sprzedawcy nie mogą usuwać, zmieniać ani modyfikować numerów IMEI, numerów seryjnych ani innych identyfikatorów sprzętu.
 * W uzasadnionych przypadkach sprzedawcy mogą zostać poproszeni o podanie częściowych lub pełnych identyfikatorów urządzenia w celach weryfikacyjnych.
 * ELOGADE zastrzega sobie prawo do żądania weryfikacji, usuwania podejrzanych ogłoszeń lub blokowania kont.
 * Urządzenia zgłoszone jako zgubione, skradzione lub wpisane na czarną listę mogą zostać usunięte bez wcześniejszego powiadomienia.
 
-### 1.20 - Obowiązki sprzedawcy
+### 1.19 - Obowiązki sprzedawcy
 
 * Zagwarantowanie, że urządzenie jest jego prawną własnością
 * Usunięcie wszystkich kont osobistych i blokad
 * Dokładne opisanie stanu i wad
 * Dodanie autentycznych zdjęć sprzedawanego przedmiotu
 
-### 1.21 - Standardy oceny stanu przedmiotu
+### 1.20 - Standardy oceny stanu przedmiotu
 
 * **Nowy** — nieużywany, nierozpakowany, w oryginalnym opakowaniu
 * **Jak nowy** — minimalne ślady użytkowania lub ich brak, w pełni sprawny
@@ -181,15 +177,15 @@ Aby utrzymać bezpieczne i zaufane środowisko platformy, sprzedaż niektórych 
 * **Akceptowalny** — mocne ślady zużycia, ale nadal działa; wyraźne wady wizualne; urządzenie musi być w pełni sprawne pod względem kluczowych funkcji
 * **Dostateczny / Na części** — znaczne zużycie lub nie w pełni sprawny (wymaga dokładnego opisu)
 
-### 1.22 - Weryfikacja ryzyka transakcji
+### 1.21 - Weryfikacja ryzyka transakcji
 
 ELOGADE może tymczasowo opóźnić wypłaty, zamrozić środki, poprosić o dodatkową weryfikację lub anulować transakcje oznaczone jako wysokiego ryzyka.
 
-### 1.23 - Dostępność platformy
+### 1.22 - Dostępność platformy
 
 ELOGADE udostępnia platformę w stanie „takim, w jakim jest” (as is) i w miarę dostępności. Mogą wystąpić tymczasowe przerwy lub problemy techniczne.
 
-### 1.24 - Prawa konsumenta
+### 1.23 - Prawa konsumenta
 
 Żadna z tych zasad nie ogranicza bezwzględnie obowiązujących praw konsumenta wynikających z obowiązujących przepisów.
 
@@ -334,13 +330,7 @@ Zwrot środków może zostać odrzucony, gdy:
 * Zachęcamy do rozwiązywania problemów za pośrednictwem ELOGADE przed zgłoszeniem obciążenia zwrotnego w swoim banku.
 * Jeśli obciążenie zwrotne zostanie zgłoszone, ELOGADE zastrzega sobie prawo do zablokowania konta i przeprowadzenia dochodzenia w danej sprawie.
 
-### 6.7 - Zwrot opłat
-
-* Warunki zwrotu opłat zostały opisane przede wszystkim w sekcji „Zwroty środków i anulowanie płatności” powyżej.
-* Z reguły opłaty mogą zostać zwrócone, gdy wina leży po stronie sprzedawcy lub gdy wymagają tego obowiązujące przepisy.
-* Jeśli wina leży po stronie kupującego, niektóre opłaty mogą nie podlegać zwrotowi.
-
-### 6.8 - Podatki i obowiązki użytkownika
+### 6.7 - Podatki i obowiązki użytkownika
 
 * Użytkownicy ponoszą wyłączną odpowiedzialność za określenie i wypełnienie swoich własnych obowiązków podatkowych związanych z transakcjami zawartymi na ELOGADE.
 * ELOGADE nie doradza w kwestiach podatkowych oraz nie potrąca ani nie odprowadza podatków w imieniu użytkowników, chyba że jest to wyraźnie wymagane przez obowiązujące prawo.

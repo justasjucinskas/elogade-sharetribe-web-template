@@ -112,11 +112,7 @@ ELOGADE evaluates cases based on available data, including:
 * Message history
 * Provided photo or video evidence
 
-### 1.13 - Partial Refunds
-
-In certain cases, where appropriate and supported by evidence, ELOGADE may offer or approve partial refunds as part of dispute resolution.
-
-### 1.14 - Repeated Seller Non-Performance
+### 1.13 - Repeated Seller Non-Performance
 
 Sellers who repeatedly fail to ship orders or fulfill transactions in good faith may be subject to:
 
@@ -124,16 +120,16 @@ Sellers who repeatedly fail to ship orders or fulfill transactions in good faith
 * Temporary selling restrictions
 * Account suspension
 
-### 1.15 - Delivery Confirmation Source
+### 1.14 - Delivery Confirmation Source
 
 Delivery status is determined primarily based on the carrier’s official tracking information.
 
-### 1.16 - Platform Role Disclaimer
+### 1.15 - Platform Role Disclaimer
 
 * ELOGADE operates an online marketplace across the Baltic region and selected EU countries and acts as an intermediary platform. The sales contract is concluded directly between the buyer and the seller.
 * ELOGADE does not take ownership of items listed on the platform and is not a party to the transaction between users.
 
-### 1.17 - Identity and Account Verification
+### 1.16 - Identity and Account Verification
 
 ELOGADE may require users to complete identity or account verification at any time to comply with legal, regulatory, or payment provider requirements. Failure to complete requested verification may result in:
 
@@ -142,11 +138,11 @@ ELOGADE may require users to complete identity or account verification at any ti
 * Temporary holds
 * Account suspension
 
-### 1.18 - Prohibited Items Policy
+### 1.17 - Prohibited Items Policy
 
 To maintain a safe and trustworthy marketplace, certain items are strictly prohibited on ELOGADE.
 
-#### 1.18.1 - Strictly Prohibited
+#### 1.17.1 - Strictly Prohibited
 
 * Stolen or unlawfully obtained devices
 * Devices with active iCloud, Google, or similar locks
@@ -158,21 +154,21 @@ To maintain a safe and trustworthy marketplace, certain items are strictly prohi
 * Misleading or deceptive listings
 * Devices with damaged or swollen batteries or items unsafe for shipping
 
-### 1.19 - Device Identification Requirements
+### 1.18 - Device Identification Requirements
 
 * Sellers must not remove, alter, or tamper with IMEI numbers, serial numbers, or other device identifiers.
 * Where applicable, sellers may be required to provide partial or full device identifiers for verification purposes.
 * ELOGADE reserves the right to request verification, remove suspicious listings, or suspend accounts.
 * Devices reported as lost, stolen, or blacklisted may be removed without prior notice.
 
-### 1.20 - Seller Responsibilities
+### 1.19 - Seller Responsibilities
 
 * Ensure legal ownership of the device
 * Remove all personal accounts and locks
 * Accurately disclose condition and defects
 * Provide real photos of the actual item
 
-### 1.21 - Item Condition Standards
+### 1.20 - Item Condition Standards
 
 * **New** — unused, unopened, in original packaging
 * **Like New** — minimal or no signs of use, fully functional
@@ -181,15 +177,15 @@ To maintain a safe and trustworthy marketplace, certain items are strictly prohi
 * **Acceptable** — heavy signs of wear but still functional; cosmetic defects clearly visible; the device must remain fully functional in all core features
 * **Fair / For Parts** — significant wear or not fully functional (must be clearly described)
 
-### 1.22 - Transaction Risk Review
+### 1.21 - Transaction Risk Review
 
 ELOGADE may temporarily delay payouts, hold funds, request additional verification, or cancel transactions flagged as high risk.
 
-### 1.23 - Platform Availability
+### 1.22 - Platform Availability
 
 ELOGADE provides the platform on an “as is” and “as available” basis. Temporary interruptions or technical issues may occur.
 
-### 1.24 - Consumer Rights
+### 1.23 - Consumer Rights
 
 Nothing in these policies limits mandatory consumer rights provided under applicable law.
 
@@ -334,13 +330,7 @@ Refunds may be denied when:
 * Users are encouraged to resolve issues through ELOGADE before initiating a chargeback.
 * If a chargeback is filed, ELOGADE reserves the right to suspend the account and investigate the case.
 
-### 6.7 - Refunds of Fees
-
-* Fee refund conditions are primarily outlined in the “Refunds & Payment Reversals” section above.
-* In general, fees may be refunded when the seller is at fault or when required by applicable law.
-* If the buyer is at fault, certain fees may be non-refundable.
-
-### 6.8 - Taxes and User Responsibilities
+### 6.7 - Taxes and User Responsibilities
 
 * Users are solely responsible for determining and fulfilling their own tax obligations related to transactions conducted on ELOGADE.
 * ELOGADE does not provide tax advice and does not withhold or remit taxes on behalf of users unless explicitly required by applicable law.

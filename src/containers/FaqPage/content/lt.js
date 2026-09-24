@@ -322,7 +322,7 @@ ELOGADE pasilieka teisę imtis atitinkamų veiksmų pagal platformos taisykles.`
       {
         id: 'contact',
         question: 'Kaip susisiekti su ELOGADE?',
-        answer: `Naudokitės puslapiu „Pagalba / Kontaktai“ (arba nurodytu pagalbos el. paštu) ir pateikite:
+        answer: `Parašykite mums adresu [support@elogade.com](mailto:support@elogade.com) ir pateikite:
 
 * užsakymo numerį,
 * trumpą problemos aprašymą,

@@ -112,11 +112,7 @@ ELOGADE vertina situacijas remdamasi turimais duomenimis, įskaitant:
 * Žinučių istoriją
 * Pateiktus foto ar video įrodymus
 
-### 1.13 - Dalinis pinigų grąžinimas
-
-Tam tikrais atvejais, kai tai tikslinga ir pagrįsta įrodymais, ELOGADE, spręsdama ginčą, gali pasiūlyti arba patvirtinti dalinį pinigų grąžinimą.
-
-### 1.14 - Pakartotinis pardavėjo įsipareigojimų nevykdymas
+### 1.13 - Pakartotinis pardavėjo įsipareigojimų nevykdymas
 
 Pardavėjams, kurie pakartotinai neišsiunčia užsakymų arba nevykdo sandorių sąžiningai, gali būti taikoma:
 
@@ -124,16 +120,16 @@ Pardavėjams, kurie pakartotinai neišsiunčia užsakymų arba nevykdo sandorių
 * Laikinieji pardavimo apribojimai
 * Paskyros blokavimas
 
-### 1.15 - Pristatymo patvirtinimo šaltinis
+### 1.14 - Pristatymo patvirtinimo šaltinis
 
 Pristatymo statusas nustatomas pirmiausia remiantis oficialia vežėjo siuntų sekimo informacija.
 
-### 1.16 - Platformos vaidmens atsakomybės ribojimas
+### 1.15 - Platformos vaidmens atsakomybės ribojimas
 
 * ELOGADE valdo internetinę prekyvietę Baltijos šalių regione ir tam tikrose ES šalyse bei veikia kaip tarpininkavimo platforma. Pardavimo sutartis sudaroma tiesiogiai tarp pirkėjo ir pardavėjo.
 * ELOGADE neperima nuosavybės teisių į platformoje patalpintas prekes ir nėra naudotojų sandorio šalis.
 
-### 1.17 - Tapatybės ir paskyros verifikacija
+### 1.16 - Tapatybės ir paskyros verifikacija
 
 ELOGADE gali bet kada pareikalauti, kad naudotojai atliktų tapatybės arba paskyros patvirtinimą, siekiant laikytis teisinių, reguliavimo ar mokėjimo paslaugų teikėjo reikalavimų. Neperėjus reikalaujamos patikros, gali būti:
 
@@ -142,11 +138,11 @@ ELOGADE gali bet kada pareikalauti, kad naudotojai atliktų tapatybės arba pask
 * Taikomas laikinas lėšų sulaikymas
 * Blokuojama paskyra
 
-### 1.18 - Draudžiamų prekių taisyklės
+### 1.17 - Draudžiamų prekių taisyklės
 
 Siekiant išlaikyti saugią ir patikimą prekyvietę, tam tikros prekės ELOGADE platformoje yra griežtai draudžiamos.
 
-#### 1.18.1 - Griežtai draudžiama
+#### 1.17.1 - Griežtai draudžiama
 
 * Vogti arba neteisėtai įgyti įrenginiai
 * Įrenginiai su aktyviu „iCloud“, „Google“ ar panašiu užraktu
@@ -158,21 +154,21 @@ Siekiant išlaikyti saugią ir patikimą prekyvietę, tam tikros prekės ELOGADE
 * Klaidinantys ar apgaulingi skelbimai
 * Įrenginiai su pažeistomis ar išsipūtusiomis baterijomis arba prekės, kurias siųsti yra nesaugu
 
-### 1.19 - Reikalavimai įrenginio identifikavimui
+### 1.18 - Reikalavimai įrenginio identifikavimui
 
 * Pardavėjai negali pašalinti, keisti ar klastoti IMEI numerių, serijinių numerių ar kitų įrenginio identifikatorių.
 * Kai taikoma, verifikacijos tikslais iš pardavėjų gali būti pareikalauta pateikti dalinius arba pilnus įrenginio identifikatorius.
 * ELOGADE pasilieka teisę prašyti patvirtinimo, pašalinti įtartinus skelbimus arba blokuoti paskyras.
 * Įrenginiai, apie kuriuos pranešta kaip apie pamestus, vogtus ar įtrauktus į juoduosius sąrašus, gali būti pašalinti be išankstinio įspėjimo.
 
-### 1.20 - Pardavėjo atsakomybės
+### 1.19 - Pardavėjo atsakomybės
 
 * Užtikrinti teisėtą nuosavybės teisę į įrenginį
 * Pašalinti visas asmenines paskyras ir užraktus
 * Tiksliai nurodyti būklę ir defektus
 * Pateikti tikras konkrečios prekės nuotraukas
 
-### 1.21 - Prekių būklės standartai
+### 1.20 - Prekių būklės standartai
 
 * **Nauja** – nenaudota, neatidaryta, originalioje pakuotėje
 * **Kaip nauja** – minimalūs naudojimo požymiai arba jų nėra, veikia nepriekaištingai
@@ -181,15 +177,15 @@ Siekiant išlaikyti saugią ir patikimą prekyvietę, tam tikros prekės ELOGADE
 * **Patenkinama** – stiprūs nusidėvėjimo požymiai, tačiau vis dar veikia; kosmetiniai defektai yra aiškiai matomi; visos pagrindinės įrenginio funkcijos privalo veikti
 * **Defektuota / Dalims** – didelis nusidėvėjimas arba veikia ne pilnai (privalo būti aiškiai aprašyta)
 
-### 1.22 - Sandorių rizikos vertinimas
+### 1.21 - Sandorių rizikos vertinimas
 
 ELOGADE gali laikinai atidėti išmokas, sulaikyti lėšas, paprašyti papildomo patvirtinimo arba atšaukti sandorius, kurie buvo pažymėti kaip didelės rizikos.
 
-### 1.23 - Platformos prieinamumas
+### 1.22 - Platformos prieinamumas
 
 ELOGADE teikia platformą tokia, kokia ji yra („as is“) ir kada ji prieinama („as available“). Gali pasitaikyti laikinų sutrikimų ar techninių problemų.
 
-### 1.24 - Vartotojų teisės
+### 1.23 - Vartotojų teisės
 
 Jokia šių taisyklių nuostata neriboja privalomų vartotojų teisių, numatytų galiojančiuose įstatymuose.
 
@@ -334,13 +330,7 @@ Pinigų grąžinimas gali būti atmestas, kai:
 * Naudotojai yra raginami pirmiausia spręsti kylančias problemas ELOGADE platformoje, prieš inicijuodami mokėjimo atšaukimą (chargeback) per savo banką.
 * Jei inicijuojamas „chargeback“ procesas, ELOGADE pasilieka teisę sustabdyti paskyros veiklą ir atlikti situacijos tyrimą.
 
-### 6.7 - Mokesčių grąžinimo sąlygos
-
-* Mokesčių grąžinimo sąlygos iš esmės yra nurodytos aukščiau esančiame skyriuje „Pinigų grąžinimas ir mokėjimų atšaukimas“.
-* Bendrąja prasme, mokesčiai gali būti grąžinami, jei kaltas pardavėjas arba kai to reikalauja galiojantys įstatymai.
-* Jei kaltas pirkėjas, tam tikri mokesčiai gali būti negrąžinami.
-
-### 6.8 - Mokesčiai ir naudotojų atsakomybės
+### 6.7 - Mokesčiai ir naudotojų atsakomybės
 
 * Naudotojai patys asmeniškai atsako už savo mokestinių prievolių, susijusių su ELOGADE platformoje vykdomais sandoriais, nustatymą ir vykdymą.
 * ELOGADE neteikia mokesčių konsultacijų ir neišskaičiuoja bei neperveda mokesčių naudotojų vardu, nebent tai aiškiai numato galiojantys įstatymai.
