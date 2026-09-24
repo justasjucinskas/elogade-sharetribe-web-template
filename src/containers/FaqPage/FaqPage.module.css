@@ -1,0 +1,289 @@
+@import '../../styles/customMediaQueries.css';
+
+/* Colors come from the tokens in LegalTokens.module.css, set on the page root
+   by ContentPageLayout. */
+
+/* ================ Header ================ */
+
+.heroContact {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 30px 0 0;
+  padding: 6px 18px;
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--legalMuted);
+  background: rgba(0, 0, 0, 0.05);
+  /* Not a full pill: the text wraps onto two lines on phones. */
+  border-radius: 18px;
+}
+
+.heroContactLink {
+  font-weight: var(--fontWeightMedium);
+  color: var(--legalAccent);
+  overflow-wrap: anywhere;
+
+  &:hover {
+    color: var(--legalAccent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* ================ Layout ================ */
+
+/* Desktop: sticky topics rail + questions column (same grid as the legal documents). */
+.layout {
+  color: var(--legalInk);
+
+  @media (--viewportLarge) {
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    gap: 72px;
+    align-items: start;
+  }
+}
+
+.main {
+  max-width: 760px;
+  min-width: 0;
+}
+
+/* Reserves space while a locale chunk loads on client-side navigation. */
+.loading {
+  min-height: 60vh;
+}
+
+/* ================ Sections ================ */
+
+.section {
+  margin-top: 48px;
+
+  &:first-of-type {
+    margin-top: 24px;
+  }
+
+  @media (--viewportLarge) {
+    margin-top: 64px;
+
+    &:first-of-type {
+      margin-top: 0;
+    }
+  }
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+  padding: 0 0 12px;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: var(--fontWeightBold);
+  letter-spacing: -0.02em;
+  color: var(--legalInk);
+  scroll-margin-top: calc(var(--topbarHeight) + 16px);
+
+  @media (--viewportMedium) {
+    font-size: 26px;
+    scroll-margin-top: calc(var(--topbarHeightDesktop) + 24px);
+  }
+}
+
+.sectionNumber {
+  flex-shrink: 0;
+  font-family: var(--legalMono);
+  font-size: 14px;
+  font-weight: var(--fontWeightMedium);
+  letter-spacing: 0;
+  color: var(--legalAccent);
+}
+
+.sectionIntro {
+  margin: 0 0 18px;
+  padding: 6px 18px 18px;
+  background: var(--legalFog);
+  border-radius: 12px;
+}
+
+/* ================ Questions ================ */
+
+.items {
+  border-top: 1px solid var(--legalHairline);
+}
+
+.item {
+  border-bottom: 1px solid var(--legalHairline);
+  scroll-margin-top: calc(var(--topbarHeight) + 16px);
+
+  @media (--viewportMedium) {
+    scroll-margin-top: calc(var(--topbarHeightDesktop) + 24px);
+  }
+
+  &[open] .chevron {
+    transform: rotate(-135deg);
+    margin-top: 6px;
+  }
+
+  &[open] .questionText {
+    color: var(--legalAccent);
+  }
+}
+
+.question {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 0;
+  cursor: pointer;
+  list-style: none;
+
+  /* Hide the default disclosure triangle (WebKit ignores list-style here). */
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &:hover .questionText {
+    color: var(--legalAccent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--legalAccent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+.questionText {
+  margin: 0;
+  padding: 0;
+  font-size: 17px;
+  line-height: 1.45;
+  font-weight: var(--fontWeightSemiBold);
+  letter-spacing: -0.01em;
+  color: var(--legalInk);
+  transition: color 0.2s ease;
+}
+
+/* A drawn chevron: rotated two-sided border. */
+.chevron {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  margin-top: 6px;
+  margin-right: 6px;
+  border-right: 2px solid var(--legalMuted);
+  border-bottom: 2px solid var(--legalMuted);
+  transform: rotate(45deg);
+  transition: transform 0.25s ease, margin-top 0.25s ease;
+}
+
+.answer {
+  padding: 0 36px 24px 0;
+  animation: fadeIn 0.25s ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.markdown {
+  color: var(--legalInk);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ================ More help ================ */
+
+.moreHelp {
+  margin-top: 60px;
+  padding: 30px 24px;
+  background: var(--legalFog);
+  border-radius: 18px;
+
+  @media (--viewportMedium) {
+    margin-top: 80px;
+    padding: 40px;
+  }
+}
+
+.moreHelpTitle {
+  margin: 0;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: var(--fontWeightBold);
+  letter-spacing: -0.02em;
+  color: var(--legalInk);
+}
+
+.moreHelpText {
+  margin: 12px 0 0;
+  padding: 0;
+  max-width: 520px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--legalMuted);
+}
+
+.moreHelpActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 24px;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: var(--fontWeightSemiBold);
+  border-radius: 999px;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--legalAccent);
+    outline-offset: 2px;
+  }
+}
+
+.primaryButton {
+  color: var(--colorWhite);
+  background: var(--legalAccent);
+
+  &:hover {
+    color: var(--colorWhite);
+    background: var(--marketplaceColorDark);
+  }
+}
+
+.secondaryButton {
+  color: var(--legalInk);
+  background: var(--colorWhite);
+  box-shadow: inset 0 0 0 1px var(--legalHairline);
+
+  &:hover {
+    color: var(--legalInk);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+  }
+}

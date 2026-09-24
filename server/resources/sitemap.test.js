@@ -292,14 +292,17 @@ describe('sitemap handlers', () => {
     expect(res.body).not.toContain('sitemap-recent-listings');
   });
 
-  it('default sitemap contains landing, terms and privacy only — no login, signup or bare search', async () => {
+  it('default sitemap contains the code-owned content pages only — no login, signup or bare search', async () => {
     const res = buildRes();
     await sitemapDefault({}, res, ROOT);
 
-    expect(countMatches(res.body, '<loc>')).toBe(9);
+    expect(countMatches(res.body, '<loc>')).toBe(18);
     expect(res.body).toContain(`<loc>${ROOT}/lt</loc>`);
     expect(res.body).toContain(`<loc>${ROOT}/pl/terms-of-service</loc>`);
     expect(res.body).toContain(`<loc>${ROOT}/en/privacy-policy</loc>`);
+    expect(res.body).toContain(`<loc>${ROOT}/lt/p/about</loc>`);
+    expect(res.body).toContain(`<loc>${ROOT}/en/p/faq</loc>`);
+    expect(res.body).toContain(`<loc>${ROOT}/pl/p/market-policies</loc>`);
     expect(res.body).not.toMatch(/login|signup/);
     expect(res.body).not.toContain(`/s</loc>`);
   });
@@ -336,7 +339,7 @@ describe('sitemap handlers', () => {
     expect(res.body).not.toContain('<url>');
   });
 
-  it('pages sitemap lists CMS pages, skipping fixed-route and locale-suffixed slugs', async () => {
+  it('pages sitemap lists CMS pages, skipping code-owned and locale-suffixed slugs', async () => {
     const asset = assetPath => ({ attributes: { assetPath } });
     const sdk = {
       sitemapData: {
@@ -344,13 +347,16 @@ describe('sitemap handlers', () => {
           Promise.resolve({
             data: {
               data: [
-                asset('/content/pages/about.json'),
-                asset('/content/pages/about-lt.json'),
-                asset('/content/pages/about-pl.json'),
-                asset('/content/pages/about-lte.json'),
+                asset('/content/pages/shipping.json'),
+                asset('/content/pages/shipping-lt.json'),
+                asset('/content/pages/shipping-pl.json'),
+                asset('/content/pages/shipping-lte.json'),
                 asset('/content/pages/landing-page.json'),
                 asset('/content/pages/terms-of-service.json'),
                 asset('/content/pages/privacy-policy.json'),
+                asset('/content/pages/about.json'),
+                asset('/content/pages/faq.json'),
+                asset('/content/pages/market-policies.json'),
                 { attributes: {} },
               ],
             },
@@ -364,12 +370,12 @@ describe('sitemap handlers', () => {
     expect(sdk.sitemapData.queryAssets).toHaveBeenCalledWith({ pathPrefix: '/content/pages/' });
     const locs = (res.body.match(/<loc>[^<]*<\/loc>/g) || []).map(l => l.slice(5, -6));
     expect(locs).toEqual([
-      `${ROOT}/en/p/about`,
-      `${ROOT}/lt/p/about`,
-      `${ROOT}/pl/p/about`,
-      `${ROOT}/en/p/about-lte`,
-      `${ROOT}/lt/p/about-lte`,
-      `${ROOT}/pl/p/about-lte`,
+      `${ROOT}/en/p/shipping`,
+      `${ROOT}/lt/p/shipping`,
+      `${ROOT}/pl/p/shipping`,
+      `${ROOT}/en/p/shipping-lte`,
+      `${ROOT}/lt/p/shipping-lte`,
+      `${ROOT}/pl/p/shipping-lte`,
     ]);
   });
 

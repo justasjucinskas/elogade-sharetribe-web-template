@@ -6,6 +6,9 @@ import termsPl from '../TermsOfServicePage/content/pl';
 import privacyEn from '../PrivacyPolicyPage/content/en';
 import privacyLt from '../PrivacyPolicyPage/content/lt';
 import privacyPl from '../PrivacyPolicyPage/content/pl';
+import policiesEn from '../MarketplacePoliciesPage/content/en';
+import policiesLt from '../MarketplacePoliciesPage/content/lt';
+import policiesPl from '../MarketplacePoliciesPage/content/pl';
 
 describe('parseHeading', () => {
   it('splits a numbered heading into number, title and anchor id', () => {
@@ -65,6 +68,7 @@ describe('pickByLocale', () => {
 describe.each([
   ['Terms of Service', { en: termsEn, lt: termsLt, pl: termsPl }],
   ['Privacy Policy', { en: privacyEn, lt: privacyLt, pl: privacyPl }],
+  ['Marketplace Policies', { en: policiesEn, lt: policiesLt, pl: policiesPl }],
 ])('%s translations', (_name, docs) => {
   const headingNumbers = body =>
     body

@@ -1,0 +1,124 @@
+@import '../../styles/customMediaQueries.css';
+
+/* Table of contents shared by the legal documents and the FAQ. Colors come from
+   the tokens in LegalTokens.module.css, set on the page root. */
+
+.tocAside {
+  display: none;
+
+  @media (--viewportLarge) {
+    display: block;
+    position: sticky;
+    top: calc(var(--topbarHeightDesktop) + 32px);
+    max-height: calc(100vh - var(--topbarHeightDesktop) - 64px);
+    overflow-y: auto;
+  }
+}
+
+.tocDesktop {
+  padding-right: 8px;
+}
+
+.tocTitle {
+  margin: 0 0 12px;
+  padding: 0;
+  font-family: var(--legalMono);
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--legalMuted);
+}
+
+.tocList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tocItem {
+  margin: 0;
+}
+
+.tocLink {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 6px;
+  padding: 6px 12px;
+  margin-left: -12px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: var(--fontWeightRegular);
+  color: var(--legalMuted);
+  border-radius: 8px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+
+  &:hover {
+    color: var(--legalInk);
+    background: var(--colorGrey50);
+    text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--legalAccent);
+    outline-offset: 1px;
+  }
+}
+
+.tocLinkActive {
+  color: var(--legalInk);
+  font-weight: var(--fontWeightMedium);
+  background: var(--colorGrey50);
+
+  & .tocNumber {
+    color: var(--legalAccent);
+  }
+}
+
+.tocNumber {
+  font-family: var(--legalMono);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--colorGrey400);
+  transition: color 0.2s ease;
+}
+
+/* Mobile/tablet: collapsible contents under the meta row. */
+.tocMobile {
+  margin: 24px 0 0;
+  border: 1px solid var(--legalHairline);
+  border-radius: 12px;
+
+  @media (--viewportLarge) {
+    display: none;
+  }
+}
+
+.tocSummary {
+  padding: 12px 18px;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+  list-style-position: inside;
+
+  &:focus-visible {
+    outline: 2px solid var(--legalAccent);
+    outline-offset: 2px;
+    border-radius: 12px;
+  }
+}
+
+.tocMobile .tocList {
+  padding: 0 18px 12px;
+}
+
+.tocMobile .tocLink {
+  margin-left: 0;
+  padding: 6px 0;
+  border-radius: 0;
+
+  &:hover {
+    background: transparent;
+  }
+}

@@ -3,6 +3,7 @@ import {
   createResourceLocatorString,
   findRouteByRouteName,
   canonicalRoutePath,
+  matchPathname,
   replaceParamsInHref,
 } from './routes';
 
@@ -68,6 +69,16 @@ describe('util/routes.js', () => {
       expect(() => findRouteByRouteName('BlaaBlaaPage', routes)).toThrow(
         'Component "BlaaBlaaPage" was not found.'
       );
+    });
+  });
+
+  describe('matchPathname', () => {
+    it('serves code-owned pages at their former Console URLs, ahead of the CMSPage catch-all', () => {
+      const routeName = path => matchPathname(path, routes).map(m => m.route.name);
+      expect(routeName('/p/about')).toEqual(['AboutPage']);
+      expect(routeName('/p/faq')).toEqual(['FaqPage']);
+      expect(routeName('/p/market-policies')).toEqual(['MarketplacePoliciesPage']);
+      expect(routeName('/p/shipping')).toEqual(['CMSPage']);
     });
   });
 

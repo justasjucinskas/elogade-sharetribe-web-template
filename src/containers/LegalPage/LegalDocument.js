@@ -1,12 +1,15 @@
-import React, { Children, useEffect, useMemo, useState } from 'react';
+import React, { Children, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 
 import { DEFAULT_LOCALE } from '../../config/configLocale';
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
+import { prependLocale } from '../../util/locale';
 
 import renderMarkdown from '../PageBuilder/markdownProcessor';
 
 import { extractToc, parseHeading } from './LegalPage.helpers';
+import { TocDisclosure, TocRail, useActiveSection } from './LegalToc';
 
 import css from './LegalDocument.module.css';
 
@@ -30,11 +33,15 @@ const numberedHeading = (Tag, className) => {
 };
 
 const Link = ({ href, children }) => {
+  const currentLocale = useSelector(state => state.locale?.current || DEFAULT_LOCALE);
   const isExternal = /^https?:\/\//.test(href || '');
+  // Site-internal paths ("/p/faq") are written locale-free in the content; this is a
+  // plain <a> (outside React Router's basename), so add the reader's locale here.
+  const isInternalPath = /^\/(?!\/)/.test(href || '');
   return (
     <a
       className={css.link}
-      href={href}
+      href={isInternalPath ? prependLocale(href, currentLocale) : href}
       {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
     >
       {children}
@@ -42,9 +49,9 @@ const Link = ({ href, children }) => {
   );
 };
 
-// The body only uses these Markdown constructs; each maps to a classed element
-// (the styling guide forbids element selectors).
-const markdownComponents = {
+// The content only uses these Markdown constructs; each maps to a classed element
+// (the styling guide forbids element selectors). Also used by the FAQ and About pages.
+export const markdownComponents = {
   h2: numberedHeading('h2', css.h2),
   h3: numberedHeading('h3', css.h3),
   h4: numberedHeading('h4', css.h4),
@@ -57,63 +64,7 @@ const markdownComponents = {
 };
 
 /**
- * Highlight the table-of-contents entry of the section currently being read:
- * the last top-level heading above the reading line (upper quarter of the
- * viewport). Purely presentational, so it runs client-side only; SSR renders
- * no active entry.
- */
-const useActiveSection = (toc, enabled) => {
-  const [activeId, setActiveId] = useState(null);
-
-  useEffect(() => {
-    if (!enabled || typeof window === 'undefined') {
-      return undefined;
-    }
-    let frame = null;
-    const update = () => {
-      frame = null;
-      const readingLine = window.innerHeight * 0.25;
-      // Looked up per update (cheap: one per section) so re-rendered nodes are never stale.
-      const headings = toc.map(item => document.getElementById(item.id)).filter(Boolean);
-      const current = headings.filter(h => h.getBoundingClientRect().top <= readingLine).pop();
-      setActiveId(current ? current.id : null);
-    };
-    const onScroll = () => {
-      if (frame === null) frame = window.requestAnimationFrame(update);
-    };
-    update();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      if (frame !== null) window.cancelAnimationFrame(frame);
-    };
-  }, [toc, enabled]);
-
-  return activeId;
-};
-
-const TocList = ({ toc, activeId, onNavigate }) => (
-  <ol className={css.tocList}>
-    {toc.map(({ id, number, title }) => (
-      <li key={id} className={css.tocItem}>
-        <a
-          href={`#${id}`}
-          className={classNames(css.tocLink, { [css.tocLinkActive]: id === activeId })}
-          aria-current={id === activeId ? 'location' : undefined}
-          onClick={onNavigate}
-        >
-          <span className={css.tocNumber}>{number}</span>
-          <span>{title}</span>
-        </a>
-      </li>
-    ))}
-  </ol>
-);
-
-/**
- * Renders one legal document (Terms of Service or Privacy Policy).
+ * Renders one legal document (Terms of Service, Privacy Policy, Marketplace Policies).
  *
  * @component
  * @param {Object} props
@@ -143,26 +94,11 @@ const LegalDocument = props => {
     : null;
 
   const isTranslation = locale !== DEFAULT_LOCALE;
-  const closeMobileToc = e => {
-    const details = e.currentTarget.closest('details');
-    if (details) details.open = false;
-  };
-
-  const tocTitle = <FormattedMessage id="LegalPage.tocTitle" />;
+  const hasToc = showToc && toc.length > 0;
 
   return (
     <div className={classNames(css.root, { [css.withToc]: showToc })}>
-      {showToc && toc.length > 0 ? (
-        <aside className={css.tocAside}>
-          <nav
-            className={css.tocDesktop}
-            aria-label={intl.formatMessage({ id: 'LegalPage.tocTitle' })}
-          >
-            <p className={css.tocTitle}>{tocTitle}</p>
-            <TocList toc={toc} activeId={activeId} />
-          </nav>
-        </aside>
-      ) : null}
+      {hasToc ? <TocRail toc={toc} activeId={activeId} /> : null}
 
       <article className={css.article}>
         <header className={css.meta}>
@@ -196,12 +132,7 @@ const LegalDocument = props => {
           </p>
         ) : null}
 
-        {showToc && toc.length > 0 ? (
-          <details className={css.tocMobile}>
-            <summary className={css.tocSummary}>{tocTitle}</summary>
-            <TocList toc={toc} activeId={activeId} onNavigate={closeMobileToc} />
-          </details>
-        ) : null}
+        {hasToc ? <TocDisclosure toc={toc} activeId={activeId} /> : null}
 
         <div className={css.body}>{content}</div>
       </article>

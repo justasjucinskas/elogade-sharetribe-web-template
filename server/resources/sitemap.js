@@ -47,8 +47,8 @@ const dev = process.env.REACT_APP_ENV === 'development';
 // 2. sitemap-index.xml links to 4 different sub sitemaps:                   //
 //   a. sitemap-default.xml                                                  //
 //     - Contains links to public built-in pages of the client app.          //
-//     - It also shows landing-page, terms-of-service and privacy-policy     //
-//       pages as they have fixed paths unlike other CMS pages.              //
+//     - It also shows the code-owned content pages (landing, terms,         //
+//       privacy, about, faq, market-policies): they have fixed routes.      //
 //   b. sitemap-categories.xml                                               //
 //     - Category search pages (/s?pub_categoryLevel1=...) for every         //
 //       category, at any level, with at least MIN_LISTINGS_FOR_INDEXING     //
@@ -58,7 +58,7 @@ const dev = process.env.REACT_APP_ENV === 'development';
 //     - Every live (published, in-stock) listing, max 10 000                //
 //   d. sitemap-recent-pages.xml                                             //
 //     - This contains Pages, which are shown from path /p/:pageId           //
-//     - Does not contain landing-page, terms-of-service and privacy-policy  //
+//     - Does not contain the slugs of the code-owned pages listed above     //
 //                                                                           //
 // Every entry is expanded to one <url> per supported locale with hreflang   //
 // alternates (withLocaleAlternates). /<locale>/sitemap-*.xml serves the     //
@@ -84,8 +84,10 @@ const dev = process.env.REACT_APP_ENV === 'development';
 //         <xhtml:link rel="alternate" hreflang="..."> siblings) by
 //         expandPathsWithLocaleAlternates below.
 //
-// Note 2: landing page (/), /terms-of-service, and /privacy-policy are fixed routes on this client app
-//       even though the content comes from hosted assets
+// Note 2: these pages are code-owned with fixed routes, so they are listed here even if their
+//         old Console page assets are deleted. /p/about, /p/faq and /p/market-policies keep
+//         their former Console page URLs; CODE_OWNED_PAGE_SLUGS keeps them out of
+//         sitemap-recent-pages.xml so they aren't listed twice.
 //
 // Note 3: /signup and /login are `noindex,follow` (AuthenticationPage) and the bare /s
 //         search page is a thin duplicate of the category pages, so none of them are
@@ -94,7 +96,21 @@ const defaultPublicPaths = {
   landingPage: '/',
   termsOfService: '/terms-of-service',
   privacyPolicy: '/privacy-policy',
+  about: '/p/about',
+  faq: '/p/faq',
+  marketplacePolicies: '/p/market-policies',
 };
+
+// Console page slugs (content/pages/<slug>.json) whose pages are code-owned and
+// listed in defaultPublicPaths instead.
+const CODE_OWNED_PAGE_SLUGS = [
+  'landing-page',
+  'terms-of-service',
+  'privacy-policy',
+  'about',
+  'faq',
+  'market-policies',
+];
 
 // Time-to-live (ttl) is one hour. The server never observes listing lifecycle
 // events, so a short TTL is the agreed substitute for event-driven regeneration.
@@ -390,8 +406,8 @@ const sitemapListings = (req, res, rootUrl, sdk) => {
 
 /**
  * The recent pages sitemap contains Pages, which are shown from path /p/:pageId
- * However, it does not contain landing-page, terms-of-service and privacy-policy
- * as those pages have hard-coded paths too: '/', '/terms-of-service', adn '/privacy-policy'.
+ * However, it does not contain the code-owned pages (CODE_OWNED_PAGE_SLUGS): those
+ * are listed in the default sitemap.
  *
  * @param {Object} req request
  * @param {Object} res response
@@ -409,13 +425,12 @@ const sitemapPages = (req, res, rootUrl, sdk) => {
       // pages; they're served from the base URL on the LT locale and rejected
       // when accessed directly (CMSPage.duck.js uses the same helper), so they
       // don't get their own sitemap entry.
-      const permanentPaths = ['landing-page', 'terms-of-service', 'privacy-policy'];
       return assets.reduce((picked, asset) => {
         const assetFileName = asset.attributes?.assetPath?.slice(pathPrefix.length);
         if (!assetFileName) return picked;
         const assetName = assetFileName.split('.')[0];
         if (!assetName) return picked;
-        if (permanentPaths.includes(assetName)) return picked;
+        if (CODE_OWNED_PAGE_SLUGS.includes(assetName)) return picked;
         if (hasNonDefaultLocaleSuffix(assetName)) return picked;
         return [...picked, `/p/${assetName}`];
       }, []);
