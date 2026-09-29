@@ -256,7 +256,12 @@ const CustomLinksMenu = ({
 
   return (
     <div className={containerClassName} ref={containerRef} style={containerStyle}>
-      <PriorityLinks links={links} priorityLinks={priorityLinks} setLinks={setLinks} />
+      <PriorityLinks
+        links={links}
+        priorityLinks={priorityLinks}
+        setLinks={setLinks}
+        containerWidth={containerWidth}
+      />
       {showLinksMenu ? (
         <LinksMenu
           id="linksMenu"
