@@ -8,7 +8,7 @@ import { types as sdkTypes } from '../../../../util/sdkLoader';
 import { isValidCurrencyForTransactionProcess } from '../../../../util/fieldHelpers';
 
 // Import shared components
-import { H3, ListingLink } from '../../../../components';
+import { H3, ListingLink, PromoNotice } from '../../../../components';
 
 // Import modules from this directory
 import EditListingPricingAndStockForm from './EditListingPricingAndStockForm';
@@ -140,6 +140,7 @@ const EditListingPricingAndStockPanel = props => {
       <H3 as="h1">
         <FormattedMessage id={panelHeadingProps.id} values={{ ...panelHeadingProps.values }} />
       </H3>
+      <PromoNotice className={css.promoNotice} variant="seller" />
       {priceCurrencyValid ? (
         <EditListingPricingAndStockForm
           className={css.form}

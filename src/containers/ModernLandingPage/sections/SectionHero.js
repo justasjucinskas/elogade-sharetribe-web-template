@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import { useConfiguration } from '../../../context/configurationContext';
 import { useIntl } from '../../../util/reactIntl';
 import { formatMoney } from '../../../util/currency';
+import { formatPromoLastDay, getActivePromo } from '../../../util/promo';
 import { useReveal } from '../../../hooks/useReveal';
 
 import { NamedLink, ResponsiveImage } from '../../../components';
@@ -44,7 +45,7 @@ const buildColumns = descriptors => {
 };
 
 const SectionHero = props => {
-  const { listings = [] } = props;
+  const { listings = [], isAuthenticated = false } = props;
   const intl = useIntl();
   const config = useConfiguration();
   const { ref, enabled, revealed } = useReveal();
@@ -133,6 +134,29 @@ const SectionHero = props => {
 
   const columns = buildColumns(useReal ? listingDescriptors : placeholderDescriptors);
 
+  // Running promotion (config/configPromo.js): a pill above the headline that sends
+  // visitors to sign up, or members to list an item.
+  const promo = getActivePromo();
+  const bold = chunks => <strong className={css.promoStrong}>{chunks}</strong>;
+  const promoPill = promo ? (
+    <NamedLink name={isAuthenticated ? 'NewListingPage' : 'SignupPage'} className={css.promoPill}>
+      <span className={css.promoTag}>{msg('promoTag')}</span>
+      <span className={css.promoTextWide}>
+        {intl.formatMessage(
+          { id: 'ModernLandingPage.promoText' },
+          { date: formatPromoLastDay(intl, promo, 'long'), b: bold }
+        )}
+      </span>
+      <span className={css.promoTextNarrow}>
+        {intl.formatMessage(
+          { id: 'ModernLandingPage.promoTextShort' },
+          { date: formatPromoLastDay(intl, promo, 'short'), b: bold }
+        )}
+      </span>
+      <IconArrow className={css.promoArrow} />
+    </NamedLink>
+  ) : null;
+
   // A single card. The whole waterfall is a decorative, non-interactive
   // showcase (see the parent's aria-hidden), so every card is a plain div —
   // clicks are funnelled to the "Browse listings" CTA instead. This keeps the
@@ -198,6 +222,7 @@ const SectionHero = props => {
             [css.isRevealed]: revealed,
           })}
         >
+          {promoPill}
           <h1 className={css.title}>
             <span className={css.titleWord}>
               <span className={classNames(css.titleWordInner, css.titleWordInner1)}>

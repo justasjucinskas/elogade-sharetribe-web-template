@@ -6,6 +6,13 @@ import { fakeIntl } from '../../util/testData';
 
 import AuthenticationPage from './AuthenticationPage';
 
+// Promo surfaces depend on the date. Keep the promotion ended by default so these tests
+// don't change behaviour with the calendar; the promo tests below switch it on.
+jest.mock('../../config/configPromo', () => ({
+  promo: { id: 'test-promo', startsAt: null, endsAt: '2000-01-01T00:00:00Z' },
+}));
+const { promo } = jest.requireMock('../../config/configPromo');
+
 const { screen, waitFor, userEvent } = testingLibrary;
 
 const noop = () => null;
@@ -92,6 +99,45 @@ describe('AuthenticationPage', () => {
     waitFor(() =>
       expect(screen.findByRole('button', { name: 'SignupForm.signUp' })).toBeInTheDocument()
     );
+  });
+});
+
+describe('AuthenticationPage during a promotion', () => {
+  beforeEach(() => {
+    window.scrollTo = jest.fn();
+    // TopbarSimplified (the slim header on the promo sign-up page) needs matchMedia.
+    window.matchMedia = jest.fn(() => ({
+      matches: false,
+      addEventListener: noop,
+      removeEventListener: noop,
+    }));
+    process.env = Object.assign(process.env, { REACT_APP_FACEBOOK_APP_ID: '' });
+    process.env = Object.assign(process.env, { REACT_APP_GOOGLE_CLIENT_ID: '' });
+    promo.endsAt = '2999-01-01T00:00:00Z';
+  });
+
+  afterEach(() => {
+    promo.endsAt = '2000-01-01T00:00:00Z';
+    delete window.matchMedia;
+  });
+
+  it('shows the offer next to the sign-up form', async () => {
+    await act(async () => {
+      render(<AuthenticationPage {...props} tab="signup" />);
+    });
+
+    expect(screen.getByText('AuthenticationPage.promoTitleLead')).toBeInTheDocument();
+    expect(screen.getByText('AuthenticationPage.promoSubtitle')).toBeInTheDocument();
+    expect(screen.queryByText('AuthenticationPage.brandTitleSignupLead')).not.toBeInTheDocument();
+  });
+
+  it('keeps the regular brand panel on the login tab', async () => {
+    await act(async () => {
+      render(<AuthenticationPage {...props} tab="login" />);
+    });
+
+    expect(screen.getByText('AuthenticationPage.brandTitleLoginLead')).toBeInTheDocument();
+    expect(screen.queryByText('AuthenticationPage.promoTitleLead')).not.toBeInTheDocument();
   });
 });
 

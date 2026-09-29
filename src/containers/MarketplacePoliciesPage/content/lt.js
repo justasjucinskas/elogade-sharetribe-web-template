@@ -7,7 +7,7 @@
 // The body is Markdown, rendered through PageBuilder's sanitized markdown
 // processor. String.raw keeps any "\" hard line breaks intact.
 
-const lastUpdated = '2026-09-24';
+const lastUpdated = '2026-09-28';
 
 const body = String.raw`
 Jei reikia pagalbos, susisiekite su mumis adresu [support@elogade.com](mailto:support@elogade.com).
@@ -256,6 +256,8 @@ Naudotojai gali valdyti arba išjungti slapukus per savo naršyklės nustatymus.
 ## 5 - Mokesčiai ir komisiniai
 
 ELOGADE taiko skaidrią paslaugų mokesčių sistemą, kad galėtų išlaikyti bei tobulinti platformą, užtikrinti saugius mokėjimus ir teikti naudotojų apsaugą.
+
+**Akcija:** iki 2026 m. spalio 31 d. (imtinai) ELOGADE netaiko paslaugų mokesčio nei pardavėjams, nei pirkėjams (0 %). Nuo 2026 m. lapkričio 1 d. vėl taikomi 5.1 ir 5.2 punktuose nurodyti mokesčiai. Akcija netaikoma Stripe mokėjimų apdorojimo mokesčiams. Užsakymui taikomas mokestis, parodytas prieš patvirtinant mokėjimą.
 
 ### 5.1 - Pardavėjo komisinis mokestis
 

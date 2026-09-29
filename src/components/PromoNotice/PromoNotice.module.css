@@ -1,0 +1,43 @@
+@import '../../styles/customMediaQueries.css';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 18px;
+
+  border-radius: 12px;
+  background-color: #eef5ff;
+  border: 1px solid #cfe0f7;
+  color: var(--colorGrey700);
+
+  @media (--viewportMedium) {
+    padding: 16px 20px;
+  }
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: var(--fontWeightSemiBold);
+  color: #0063c7;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.text {
+  margin: 0;
+  padding: 0 0 0 28px;
+
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: var(--fontWeightRegular);
+}

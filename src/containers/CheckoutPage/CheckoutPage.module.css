@@ -352,6 +352,14 @@
   }
 }
 
+.promoNotice {
+  margin: 12px 0 0;
+
+  @media (--viewportLarge) {
+    margin: 0 48px 32px;
+  }
+}
+
 /* ChekcoutPageWithInquiryProcess */
 
 .section {
