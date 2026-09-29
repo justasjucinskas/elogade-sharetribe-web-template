@@ -24,7 +24,8 @@ const highlights = [
   {
     id: 'protection',
     title: 'Pirkėjo apsauga',
-    text: 'Per 48 valandas nuo pristatymo pirkėjai gali patikrinti prekę ir pranešti apie problemą.',
+    text:
+      'Per 48 valandas nuo pristatymo pirkėjai gali patikrinti prekę ir pranešti apie problemą.',
   },
   {
     id: 'rules',
