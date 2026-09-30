@@ -33,11 +33,10 @@ describe('AboutPage', () => {
 describe('About content', () => {
   const ids = doc => doc.highlights.map(h => h.id);
 
-  it.each([
-    ['lt', aboutLt],
-    ['pl', aboutPl],
-  ])('%s keeps the English highlights', (_locale, doc) => {
+  it.each([['lt', aboutLt], ['pl', aboutPl]])('%s keeps the English highlights', (_locale, doc) => {
     expect(ids(doc)).toEqual(ids(aboutEn));
-    expect(doc.body.trim().split(/\n{2,}/)).toHaveLength(aboutEn.body.trim().split(/\n{2,}/).length);
+    expect(doc.body.trim().split(/\n{2,}/)).toHaveLength(
+      aboutEn.body.trim().split(/\n{2,}/).length
+    );
   });
 });

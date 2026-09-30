@@ -27,7 +27,7 @@ import css from './ModernLandingPage.module.css';
  * renames. The hero showcase renders real listings loaded via loadData.
  */
 export const ModernLandingPageComponent = props => {
-  const { scrollingDisabled, featuredListings, categoryCounts } = props;
+  const { scrollingDisabled, featuredListings, categoryCounts, isAuthenticated } = props;
   const config = useConfiguration();
   const intl = useIntl();
 
@@ -66,7 +66,7 @@ export const ModernLandingPageComponent = props => {
         footer={<FooterContainer />}
       >
         <div className={css.root}>
-          <SectionHero listings={featuredListings} />
+          <SectionHero listings={featuredListings} isAuthenticated={isAuthenticated} />
           <SectionCategories categoryCounts={categoryCounts} />
           <SectionVideo />
           <SectionFeatures />
@@ -83,6 +83,7 @@ const mapStateToProps = state => {
     scrollingDisabled: isScrollingDisabled(state),
     featuredListings: getListingsById(state, featuredListingRefs.map(ref => ref.id)),
     categoryCounts,
+    isAuthenticated: state.auth.isAuthenticated,
   };
 };
 

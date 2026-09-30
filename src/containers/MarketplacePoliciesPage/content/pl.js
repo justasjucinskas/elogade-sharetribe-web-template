@@ -7,7 +7,7 @@
 // The body is Markdown, rendered through PageBuilder's sanitized markdown
 // processor. String.raw keeps any "\" hard line breaks intact.
 
-const lastUpdated = '2026-09-24';
+const lastUpdated = '2026-09-28';
 
 const body = String.raw`
 W razie potrzeby wsparcia, skontaktuj się z nami pod adresem [support@elogade.com](mailto:support@elogade.com).
@@ -256,6 +256,8 @@ Możesz zarządzać plikami cookie lub wyłączyć je w ustawieniach swojej prze
 ## 5 - Opłaty i Prowizje
 
 ELOGADE stosuje przejrzystą opłatę serwisową w celu utrzymania i ulepszania platformy, zapewnienia bezpiecznych płatności i ochrony użytkowników.
+
+**Promocja:** do 31 października 2026 r. (włącznie) ELOGADE nie pobiera opłaty serwisowej ani od sprzedających, ani od kupujących (0%). Od 1 listopada 2026 r. ponownie obowiązują opłaty opisane w punktach 5.1 i 5.2. Promocja nie obejmuje opłat Stripe za przetwarzanie płatności. Do zamówienia stosuje się opłatę wyświetloną przed potwierdzeniem płatności.
 
 ### 5.1 - Prowizja od sprzedaży
 

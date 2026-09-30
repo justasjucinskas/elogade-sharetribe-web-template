@@ -82,7 +82,10 @@ const AboutPage = () => {
         {content => <AboutContent content={content} />}
       </LocalizedContent>
 
-      <nav className={css.related} aria-label={intl.formatMessage({ id: 'AboutPage.relatedTitle' })}>
+      <nav
+        className={css.related}
+        aria-label={intl.formatMessage({ id: 'AboutPage.relatedTitle' })}
+      >
         <h2 className={css.relatedTitle}>
           <FormattedMessage id="AboutPage.relatedTitle" />
         </h2>

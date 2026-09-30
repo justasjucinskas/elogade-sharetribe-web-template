@@ -215,6 +215,90 @@
   height: 14px;
 }
 
+/* ================= Promo variant of the brand panel ================= */
+
+/* The sign-up card is tall (Console user fields), so a vertically centred panel would
+   push the offer below the fold on desktop. Pin it to the top and keep it in view while
+   the form scrolls. */
+.brandPanelPromo {
+  @media (--viewportLarge) {
+    align-self: start;
+    position: sticky;
+    top: 48px;
+  }
+}
+
+.promoBadge {
+  margin: 0 0 20px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background-color: var(--authCyan);
+  color: var(--authInk);
+  font-family: var(--authMono);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+
+  @media (--viewportMedium) {
+    margin-bottom: 24px;
+  }
+}
+
+/* Buyer / seller rate chips — kept on small screens too (unlike the trust points),
+   since they carry the offer itself. */
+.promoRates {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+
+  @media (--viewportLarge) {
+    justify-content: flex-start;
+    margin-top: 32px;
+  }
+}
+
+.promoRate {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.promoRateValue {
+  font-weight: 700;
+  color: var(--authCyan);
+}
+
+.promoCountdown {
+  display: none;
+
+  @media (--viewportLarge) {
+    display: block;
+    margin: 32px 0 0;
+    padding: 0;
+    font-family: var(--authMono);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+  }
+}
+
 /* ================= Form panel & card ================= */
 
 .formPanel {
@@ -467,6 +551,98 @@
   height: 12px;
 }
 
+/* ================= Promo next step (after sign-up) ================= */
+
+.promoNextStep {
+  margin-top: 24px;
+  padding: 24px 20px;
+  border-radius: 18px;
+  background-color: var(--authInk);
+  color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    margin-top: 32px;
+    padding: 24px;
+  }
+}
+
+.promoNextKicker {
+  margin: 0;
+  padding: 0;
+  font-family: var(--authMono);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--authCyan);
+}
+
+.promoNextTitle {
+  margin: 12px 0 0;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--colorWhite);
+}
+
+.promoNextText {
+  margin: 6px 0 0;
+  padding: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.promoNextActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 18px;
+}
+
+.promoNextPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 100px;
+  background-color: var(--marketplaceColor);
+  color: var(--colorWhite);
+  font-size: 15px;
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: none;
+    background-color: var(--marketplaceColorDark);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--authCyan);
+    outline-offset: 2px;
+  }
+}
+
+.promoNextSecondary {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--colorWhite);
+
+  &:hover {
+    color: var(--authCyan);
+    text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--authCyan);
+    outline-offset: 2px;
+  }
+}
+
 /* ================= Spinner (blank page) ================= */
 
 /* BlankPage renders this on the default (light) layout background, so the
@@ -504,17 +680,23 @@
 /* ================= Reveal choreography (SSR-safe) ================= */
 
 /* Visible by default; only pre-hidden once JS + motion are available. */
+.revealReady .promoBadge,
 .revealReady .brandTitle,
 .revealReady .brandSubtitle,
+.revealReady .promoRates,
 .revealReady .brandTrustItem,
+.revealReady .promoCountdown,
 .revealReady .card {
   opacity: 0;
   transform: translateY(24px);
 }
 
+.isRevealed .promoBadge,
 .isRevealed .brandTitle,
 .isRevealed .brandSubtitle,
+.isRevealed .promoRates,
 .isRevealed .brandTrustItem,
+.isRevealed .promoCountdown,
 .isRevealed .card {
   opacity: 1;
   transform: translateY(0);
@@ -535,6 +717,12 @@
 }
 .isRevealed .brandTrustItem:nth-child(3) {
   transition-delay: 0.42s;
+}
+.isRevealed .promoRates {
+  transition-delay: 0.22s;
+}
+.isRevealed .promoCountdown {
+  transition-delay: 0.5s;
 }
 .isRevealed .card {
   transition-delay: 0.22s;

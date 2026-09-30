@@ -162,6 +162,89 @@
   }
 }
 
+/* ================= Promo pill ================= */
+
+/* Glass pill above the headline while a promotion runs (config/configPromo.js). */
+.promoPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  margin: 0 0 24px;
+  padding: 5px 14px 5px 5px;
+
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--colorWhite);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+
+  &:hover {
+    text-decoration: none;
+    border-color: rgba(0, 212, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--modernCyan);
+    outline-offset: 3px;
+  }
+
+  @media (--viewportMedium) {
+    margin-bottom: 32px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+.promoTag {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 100px;
+  background-color: var(--modernCyan);
+  color: var(--modernInk);
+  font-family: var(--modernMono);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.promoStrong {
+  font-weight: 600;
+}
+
+/* Long copy from tablet up, short copy on phones. */
+.promoTextWide {
+  display: none;
+
+  @media (--viewportMedium) {
+    display: inline;
+  }
+}
+
+.promoTextNarrow {
+  @media (--viewportMedium) {
+    display: none;
+  }
+}
+
+.promoArrow {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  color: var(--modernCyan);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.promoPill:hover .promoArrow {
+  transform: translateX(3px);
+}
+
 /* ================= CTAs ================= */
 
 .ctas {
@@ -471,6 +554,7 @@
   transform: translateY(112%);
 }
 
+.revealReady .promoPill,
 .revealReady .subtitle,
 .revealReady .ctas {
   opacity: 0;
@@ -494,6 +578,7 @@
   transition-delay: 0.34s;
 }
 
+.isRevealed .promoPill,
 .isRevealed .subtitle,
 .isRevealed .ctas {
   opacity: 1;

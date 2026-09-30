@@ -7,7 +7,7 @@ import {
   isValidCurrencyForTransactionProcess,
   pickTransactionFieldsData,
 } from '../../util/fieldHelpers.js';
-import { propTypes } from '../../util/types';
+import { LINE_ITEM_CUSTOMER_COMMISSION, propTypes } from '../../util/types';
 import { ensureTransaction } from '../../util/data';
 import { createSlug } from '../../util/urlHelpers';
 import {
@@ -23,7 +23,15 @@ import {
 } from '../../transactions/transaction';
 
 // Import shared components
-import { H3, H4, NamedLink, OrderBreakdown, Page, TopbarSimplified } from '../../components';
+import {
+  H3,
+  H4,
+  NamedLink,
+  OrderBreakdown,
+  Page,
+  PromoNotice,
+  TopbarSimplified,
+} from '../../components';
 
 // Session helpers file needs to be imported before other CheckoutPage modules that use it
 import { clearData } from './CheckoutPageSessionHelpers';
@@ -502,18 +510,33 @@ export const CheckoutPageWithPayment = props => {
 
   const txBookingMaybe = tx?.booking?.id ? { booking: tx.booking, timeZone } : {};
 
+  // The promo notice only tells the buyer there's no fee when the breakdown agrees: if a
+  // customer commission is still configured in Console, its line item is present and the
+  // notice stays hidden instead of contradicting the price.
+  const hasCustomerCommission = !!tx.attributes.lineItems?.some(
+    item =>
+      item.code === LINE_ITEM_CUSTOMER_COMMISSION &&
+      item.includeFor?.includes('customer') &&
+      item.lineTotal?.amount !== 0
+  );
+
   // Show breakdown only when (speculated?) transaction is loaded
   // (i.e. it has an id and lineItems)
   const breakdown =
     tx.id && tx.attributes.lineItems?.length > 0 ? (
-      <OrderBreakdown
-        className={css.orderBreakdown}
-        userRole="customer"
-        transaction={tx}
-        {...txBookingMaybe}
-        currency={config.currency}
-        marketplaceName={config.marketplaceName}
-      />
+      <>
+        <OrderBreakdown
+          className={css.orderBreakdown}
+          userRole="customer"
+          transaction={tx}
+          {...txBookingMaybe}
+          currency={config.currency}
+          marketplaceName={config.marketplaceName}
+        />
+        {!hasCustomerCommission ? (
+          <PromoNotice className={css.promoNotice} variant="buyer" />
+        ) : null}
+      </>
     ) : null;
 
   const totalPrice =

@@ -7,6 +7,14 @@
   flex-direction: column;
 }
 
+.promoNotice {
+  margin-top: 18px;
+
+  @media (--viewportMedium) {
+    margin-top: 24px;
+  }
+}
+
 .form {
   flex-grow: 1;
 }

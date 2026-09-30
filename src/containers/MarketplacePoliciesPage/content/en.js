@@ -7,7 +7,7 @@
 // The body is Markdown, rendered through PageBuilder's sanitized markdown
 // processor. String.raw keeps any "\" hard line breaks intact.
 
-const lastUpdated = '2026-09-24';
+const lastUpdated = '2026-09-28';
 
 const body = String.raw`
 For support, contact us at [support@elogade.com](mailto:support@elogade.com).
@@ -256,6 +256,8 @@ Users can control or disable cookies through their browser settings. Some platfo
 ## 5 - Fees & Commissions
 
 ELOGADE applies a transparent service fee to maintain and improve the platform, ensure secure payments, and provide user protection.
+
+**Promotion:** until 31 October 2026 (inclusive), ELOGADE charges no service fee to sellers or buyers (0%). The fees described in 5.1 and 5.2 apply again from 1 November 2026. The promotion does not cover Stripe's payment processing fees. The fee that applies to an order is the one shown before payment is confirmed.
 
 ### 5.1 - Seller Commission
 

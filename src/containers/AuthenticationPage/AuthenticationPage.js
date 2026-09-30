@@ -8,6 +8,7 @@ import { useConfiguration } from '../../context/configurationContext';
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
 import { propTypes } from '../../util/types';
 import { ensureCurrentUser } from '../../util/data';
+import { formatPromoLastDay, getActivePromo, getPromoDaysLeft } from '../../util/promo';
 import {
   isSignupEmailTakenError,
   isTooManyEmailVerificationRequestsError,
@@ -26,6 +27,7 @@ import {
   NamedLink,
   Modal,
   LayoutSingleColumn,
+  TopbarSimplified,
 } from '../../components';
 
 import TopbarContainer from '../../containers/TopbarContainer/TopbarContainer';
@@ -65,11 +67,59 @@ const CheckIcon = () => (
 );
 
 /**
+ * Sign-up variant of the brand panel while a promotion runs (config/configPromo.js). Ads
+ * land visitors on the sign-up page, so the panel repeats the offer they clicked on.
+ */
+const PromoBrandPanel = ({ intl, promo, marketplaceName }) => {
+  const msg = (id, values) => intl.formatMessage({ id: `AuthenticationPage.${id}` }, values);
+  const date = formatPromoLastDay(intl, promo, 'long');
+  const shortDate = formatPromoLastDay(intl, promo, 'short');
+  const rateValue = msg('promoRateValue');
+
+  return (
+    <div className={classNames(css.brandPanel, css.brandPanelPromo)}>
+      <span className={css.promoBadge}>{msg('promoBadge', { date: shortDate })}</span>
+      <h2 className={css.brandTitle}>
+        {msg('promoTitleLead')}{' '}
+        <span className={css.brandTitleAccent}>{msg('promoTitleAccent')}</span>
+      </h2>
+      <p className={css.brandSubtitle}>{msg('promoSubtitle', { date, marketplaceName })}</p>
+      <ul className={css.promoRates}>
+        <li className={css.promoRate}>
+          {msg('promoRateBuyers')} <strong className={css.promoRateValue}>{rateValue}</strong>
+        </li>
+        <li className={css.promoRate}>
+          {msg('promoRateSellers')} <strong className={css.promoRateValue}>{rateValue}</strong>
+        </li>
+      </ul>
+      <ul className={css.brandTrust}>
+        {['brandTrust1', 'brandTrust2', 'brandTrust3'].map(key => (
+          <li key={key} className={css.brandTrustItem}>
+            <span className={css.brandTrustIcon}>
+              <CheckIcon />
+            </span>
+            {msg(key)}
+          </li>
+        ))}
+      </ul>
+      {/* The day count can differ between SSR and hydration right at midnight. */}
+      <p className={css.promoCountdown} suppressHydrationWarning>
+        {msg('promoDaysLeft', { days: getPromoDaysLeft(promo) })}
+      </p>
+    </div>
+  );
+};
+
+/**
  * The immersive brand/marketing panel shown alongside the form. Copy adapts to
  * login vs. signup; the SSO-confirm and email-verification flows fall through to
  * the signup wording since they are part of the sign-up journey.
  */
-const BrandPanel = ({ isLogin, intl }) => {
+const BrandPanel = ({ isLogin, intl, promo, marketplaceName }) => {
+  if (promo && !isLogin) {
+    return <PromoBrandPanel intl={intl} promo={promo} marketplaceName={marketplaceName} />;
+  }
+
   const msg = id => intl.formatMessage({ id: `AuthenticationPage.${id}` });
   const titleLead = isLogin ? msg('brandTitleLoginLead') : msg('brandTitleSignupLead');
   const titleAccent = isLogin ? msg('brandTitleLoginAccent') : msg('brandTitleSignupAccent');
@@ -343,6 +393,12 @@ export const AuthenticationPageComponent = props => {
   const showAuthenticationForm = !showEmailVerification && !isConfirm;
   const showLoginForm = showAuthenticationForm && isLogin;
 
+  // While a promotion runs, the sign-up form doubles as the ad landing page: the brand
+  // panel carries the offer and the full Topbar (search, nav links) gives way to the logo
+  // only, so nothing pulls the visitor away from the form.
+  const promo = getActivePromo();
+  const isPromoSignup = !!promo && showAuthenticationForm && !isLogin;
+
   return (
     <Page
       title={schemaTitle}
@@ -356,7 +412,9 @@ export const AuthenticationPageComponent = props => {
       }}
     >
       <LayoutSingleColumn
-        topbar={<TopbarContainer className={topbarClasses} />}
+        topbar={
+          isPromoSignup ? <TopbarSimplified /> : <TopbarContainer className={topbarClasses} />
+        }
         footer={<FooterContainer />}
       >
         <section className={css.root}>
@@ -373,7 +431,12 @@ export const AuthenticationPageComponent = props => {
               [css.isRevealed]: revealed,
             })}
           >
-            <BrandPanel isLogin={isLogin} intl={intl} />
+            <BrandPanel
+              isLogin={isLogin}
+              intl={intl}
+              promo={promo}
+              marketplaceName={marketplaceName}
+            />
 
             <div className={css.formPanel}>
               <div className={css.card}>
@@ -479,6 +542,8 @@ export const AuthenticationPageComponent = props => {
                       />
                     }
                     sendVerificationEmailInProgress={sendVerificationEmailInProgress}
+                    promo={promo}
+                    marketplaceName={marketplaceName}
                   />
                 ) : null}
               </div>
