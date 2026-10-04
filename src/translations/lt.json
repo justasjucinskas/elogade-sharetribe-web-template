@@ -1066,7 +1066,7 @@
   "PromoBanner.textShort": "<b>0 % komisinių</b> iki {date}",
   "PromoNotice.buyerText": "{marketplaceName} netaiko komisinių nei pirkėjams, nei pardavėjams.",
   "PromoNotice.buyerTitle": "0 % komisinių iki {date}",
-  "PromoNotice.sellerText": "{marketplaceName} neima komisinio nei iš jūsų, nei iš pirkėjo. Stripe mokėjimo apdorojimo mokestis taikomas atskirai.",
+  "PromoNotice.sellerText": "{marketplaceName} neima komisinio nei iš jūsų, nei iš pirkėjo.",
   "PromoNotice.sellerTitle": "Iki {date} komisinių netaikome",
   "ReportModal.close": "Uždaryti",
   "ReportModal.description": "Papasakokite, kas nutiko. Peržiūrėsime problemą ir kuo greičiau su Jumis susisieksime.",

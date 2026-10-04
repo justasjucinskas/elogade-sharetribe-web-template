@@ -1066,7 +1066,7 @@
   "PromoBanner.textShort": "<b>0% prowizji</b> do {date}",
   "PromoNotice.buyerText": "{marketplaceName} nie pobiera prowizji ani od kupujących, ani od sprzedających.",
   "PromoNotice.buyerTitle": "0% prowizji do {date}",
-  "PromoNotice.sellerText": "{marketplaceName} nie pobiera prowizji ani od Ciebie, ani od kupującego. Opłata Stripe za obsługę płatności obowiązuje osobno.",
+  "PromoNotice.sellerText": "{marketplaceName} nie pobiera prowizji ani od Ciebie, ani od kupującego.",
   "PromoNotice.sellerTitle": "Bez prowizji do {date}",
   "ReportModal.close": "Zamknij",
   "ReportModal.description": "Opisz, co poszło nie tak. Sprawdzimy zgłoszenie i wrócimy do Ciebie najszybciej, jak to możliwe.",

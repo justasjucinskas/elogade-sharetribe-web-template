@@ -1066,7 +1066,7 @@
   "PromoBanner.textShort": "<b>0% commission</b> until {date}",
   "PromoNotice.buyerText": "{marketplaceName} charges no commission to buyers or sellers.",
   "PromoNotice.buyerTitle": "0% commission until {date}",
-  "PromoNotice.sellerText": "{marketplaceName} takes no commission from you or the buyer. Stripe's payment processing fee still applies.",
+  "PromoNotice.sellerText": "{marketplaceName} takes no commission from you or the buyer.",
   "PromoNotice.sellerTitle": "No commission until {date}",
   "ReportModal.close": "Close",
   "ReportModal.description": "Tell us what went wrong. We'll review the issue and get back to you as soon as possible.",
