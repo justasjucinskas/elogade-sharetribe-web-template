@@ -1,0 +1,15 @@
+# Staging for feature testing: staging.elogade.com -> Caddy -> 127.0.0.1:3002.
+# Talks to the Sharetribe Test environment (checkme-test), not Live.
+# The image is built locally and loaded with `docker load` (not in GHCR), so
+# Watchtower must leave it alone.
+services:
+  web-staging:
+    image: elogade-web:staging
+    container_name: elogade-web-staging
+    restart: unless-stopped
+    env_file:
+      - ./staging.env
+    ports:
+      - '127.0.0.1:3002:3000'
+    labels:
+      com.centurylinklabs.watchtower.enable: 'false'
