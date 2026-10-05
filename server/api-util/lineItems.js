@@ -141,9 +141,18 @@ const getDateRangeQuantityAndLineItems = (orderData, code) => {
  * @param {Money} [orderData.offer] - The offer for the offer (if transition intent is "make-offer")
  * @param {Object} providerCommission
  * @param {Object} customerCommission
+ * @param {Object} [options]
+ * @param {string} [options.processName] - Set by server code only (never from the request):
+ *   'offer-purchase' prices a product (unit type 'item') at orderData.offer.
  * @returns {Array} lineItems
  */
-exports.transactionLineItems = (listing, orderData, providerCommission, customerCommission) => {
+exports.transactionLineItems = (
+  listing,
+  orderData,
+  providerCommission,
+  customerCommission,
+  options = {}
+) => {
   const publicData = listing.attributes.publicData;
   // Note: the unitType needs to be one of the following:
   // day, night, hour, fixed, or item (these are related to payment processes)
@@ -151,6 +160,9 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
 
   const isBookable = ['day', 'night', 'hour', 'fixed'].includes(unitType);
   const isNegotiationUnitType = ['offer', 'request'].includes(unitType);
+  // Price offers on products: the item is sold at the offered (or agreed) price, with
+  // shipping and commissions added exactly as for a regular purchase.
+  const isPriceOfferOnItem = options.processName === 'offer-purchase' && unitType === 'item';
   const priceAttribute = listing.attributes.price;
   const currency = priceAttribute?.currency || orderData.currency;
 
@@ -164,7 +176,7 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
   const unitPrice =
     isBookable && priceVariationsEnabled && isPriceInSubunitsValid
       ? new Money(priceInSubunits, currency)
-      : offer instanceof Money && isNegotiationUnitType
+      : offer instanceof Money && (isNegotiationUnitType || isPriceOfferOnItem)
       ? offer
       : priceAttribute;
 

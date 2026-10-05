@@ -20,12 +20,22 @@ const revokeCounterOfferTransitions = [
   'transition/provider-reject-counter-offer',
 ];
 
-// default-negotiation process: transitions that affect pricing on negotiation loop
+// offer-purchase process (price offers on product listings): transitions that put an offer on
+// the table. See server/api-util/priceOffers.js
+const offerPurchaseOfferTransitions = [
+  'transition/buyer-make-offer',
+  'transition/seller-counter-offer',
+  'transition/buyer-counter-offer',
+];
+
+// default-negotiation and offer-purchase processes: transitions that affect pricing on
+// negotiation loop. A transaction only has the transitions of its own process.
 const offerTransitionsInNegotiationProcess = [
   ...makeOfferTransitions,
   ...updateOfferTransitions,
   ...counterOfferTransitions,
   ...revokeCounterOfferTransitions,
+  ...offerPurchaseOfferTransitions,
 ];
 
 /**
@@ -123,6 +133,20 @@ const isValidNegotiationOffersArray = (offers, transitions, relevantTransitions)
  * @param {Array<NegotiationOffer>} offers - Array of negotiation offers
  * @param {Array<TransitionRecord>} transitions - Array of transition records
  */
+const invalidHistoryError = (offers, transitions) => {
+  const error = new Error('Past negotiation offers are invalid');
+  error.status = 400;
+  error.statusText = 'Past negotiation offers are invalid';
+  error.data = {
+    offers: offers,
+    relevantTransitions: filterRelevantTransitions(
+      transitions,
+      offerTransitionsInNegotiationProcess
+    ),
+  };
+  return error;
+};
+
 exports.throwErrorIfNegotiationOfferHasInvalidHistory = (transitionName, offers, transitions) => {
   // const isNegotiationProcess = transaction.attributes.processName === 'default-negotiation';
   const isRelevantTransition = offerTransitionsInNegotiationProcess.includes(transitionName);
@@ -131,17 +155,21 @@ exports.throwErrorIfNegotiationOfferHasInvalidHistory = (transitionName, offers,
     isRelevantTransition &&
     !isValidNegotiationOffersArray(offers, transitions, offerTransitionsInNegotiationProcess)
   ) {
-    const error = new Error('Past negotiation offers are invalid');
-    error.status = 400;
-    error.statusText = 'Past negotiation offers are invalid';
-    error.data = {
-      offers: offers,
-      relevantTransitions: filterRelevantTransitions(
-        transitions,
-        offerTransitionsInNegotiationProcess
-      ),
-    };
-    throw error;
+    throw invalidHistoryError(offers, transitions);
+  }
+};
+
+/**
+ * Throws an error if the offers array doesn't match the offer-carrying transitions in the
+ * transaction's history, regardless of the transition that is about to be made.
+ * Used by transitions that rely on the latest offer (e.g. accepting or paying an offer).
+ *
+ * @param {Array<NegotiationOffer>} offers - Array of negotiation offers
+ * @param {Array<TransitionRecord>} transitions - Array of transition records
+ */
+exports.throwErrorIfOfferHistoryIsInvalid = (offers, transitions) => {
+  if (!isValidNegotiationOffersArray(offers, transitions, offerTransitionsInNegotiationProcess)) {
+    throw invalidHistoryError(offers, transitions);
   }
 };
 

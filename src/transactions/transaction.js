@@ -4,6 +4,7 @@ import * as bookingProcess from './transactionProcessBooking';
 import * as inquiryProcess from './transactionProcessInquiry';
 import * as negotiationProcess from './transactionProcessNegotiation';
 import * as downloadProcess from './transactionProcessDownload';
+import * as offerPurchaseProcess from './transactionProcessOfferPurchase';
 
 // Supported unit types
 // Note: These are passed to translations/microcopy in certain cases.
@@ -26,6 +27,9 @@ export const BOOKING_PROCESS_NAME = 'default-booking';
 export const INQUIRY_PROCESS_NAME = 'default-inquiry';
 export const NEGOTIATION_PROCESS_NAME = 'default-negotiation';
 export const DOWNLOAD_PROCESS_NAME = 'default-download';
+// Price offers on product listings. No listing type uses this process: "Make an offer"
+// initiates it explicitly, while "Buy" keeps using the listing type's default-purchase.
+export const OFFER_PURCHASE_PROCESS_NAME = 'offer-purchase';
 
 /**
  * A process should export:
@@ -70,6 +74,12 @@ const PROCESSES = [
     alias: `${DOWNLOAD_PROCESS_NAME}/release-1`,
     process: downloadProcess,
     unitTypes: [FILE],
+  },
+  {
+    name: OFFER_PURCHASE_PROCESS_NAME,
+    alias: `${OFFER_PURCHASE_PROCESS_NAME}/release-1`,
+    process: offerPurchaseProcess,
+    unitTypes: [],
   },
 ];
 
@@ -242,6 +252,8 @@ export const resolveLatestProcessName = processName => {
       return NEGOTIATION_PROCESS_NAME;
     case DOWNLOAD_PROCESS_NAME:
       return DOWNLOAD_PROCESS_NAME;
+    case OFFER_PURCHASE_PROCESS_NAME:
+      return OFFER_PURCHASE_PROCESS_NAME;
     default:
       return processName;
   }
@@ -389,6 +401,15 @@ export const isDownloadProcess = processName => {
 export const isDownloadProcessAlias = processAlias => {
   const processName = processAlias ? processAlias.split('/')[0] : null;
   return processAlias ? isDownloadProcess(processName) : false;
+};
+
+/**
+ * Check if the process is the price offer process (offer-purchase)
+ *
+ * @param {String} processName
+ */
+export const isOfferPurchaseProcess = processName => {
+  return resolveLatestProcessName(processName) === OFFER_PURCHASE_PROCESS_NAME;
 };
 
 /**

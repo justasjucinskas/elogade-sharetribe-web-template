@@ -1,0 +1,1 @@
+{{set-translations (asset "content/email-texts.json")}}{{t "OfferPurchaseOfferClosed.Subject" "The offer for {listingTitle} was closed" listingTitle=transaction.listing.title}}

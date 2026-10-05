@@ -1,0 +1,58 @@
+# Price offers — build checklist
+
+Working file for building `specs/price-offers.md`. Tick an item only when its check passed.
+
+## Process
+
+- [x] `ext/transaction-processes/offer-purchase/process.edn` (offer loop + default-purchase copy)
+- [x] `flex-cli process` validates the file locally
+- [x] Email templates: 10 offer templates + 25 purchase templates copied
+- [x] `specs/price-offers-email-texts.json` with the new keys and English texts
+
+## Shared config
+
+- [x] `src/config/configPriceOffers.js` (CommonJS, read by client and server): flag, 50% ratio,
+      3-offer cap
+
+## Server
+
+- [x] `server/api-util/priceOffers.js`: validation + agreed price
+- [x] `negotiation.js` transition lists extended for offer-purchase (history validation)
+- [x] `initiate-privileged.js`: buyer-make-offer metadata + validation
+- [x] `transition-privileged.js`: counters, accepts, request-payment-after-offer
+- [x] `lineItems.js`: offer-purchase branch keeps `line-item/item` + shipping
+- [x] `delete-account.js`: offer-purchase payment states
+- [x] Unit tests: below 50 %, ≥ listing price, seller counter ≤ buyer offer, 4th buyer offer, pay
+      uses metadata amount
+
+## Client
+
+- [ ] `transactionProcessOfferPurchase.js` + registered in `transaction.js` + graph tests
+- [ ] ListingPage: "Make an offer" button + modal, min/max validation, link to open offer
+- [ ] TransactionPage: state data for every state × role, counter modal with limits, pay flow, "item
+      sold"
+- [ ] Checkout: `REQUEST_PAYMENT_AFTER_OFFER` in both places, pickup/shipping as purchase
+- [ ] Inbox: state labels
+- [ ] Feature flag `REACT_APP_PRICE_OFFERS_ENABLED` (Dockerfile, workflow, env template)
+- [ ] i18n: en, lt, pl
+
+## Checks
+
+- [ ] `yarn test` (client) and `yarn run test-server` pass
+- [ ] `yarn build` passes
+- [ ] `yarn run format-ci` clean
+- [ ] Staging: process pushed + alias
+- [ ] Staging scenario: offer → accept → pay → ship → received → reviews
+- [ ] Staging scenario: offer → counter → counter → accept → pay
+- [ ] Staging scenario: offer below 50 % blocked in UI and API
+- [ ] Staging scenario: two accepted offers, first pays, second sees "sold"
+- [ ] Staging scenario: listing-price buy while offer accepted → offer buyer can't pay
+- [ ] Staging scenario: "Buy" unchanged end-to-end
+- [ ] Timers checked with shortened periods, then restored
+- [ ] Self-review of the diff
+
+## Found along the way
+
+- State names `offer-pending` / `offer-accepted` collide with default-negotiation's states in the
+  state-based notification query (`user.duck.js` → `getStatesNeeding*Attention`), which would badge
+  the wrong party. Renamed to `buyer-offer-pending` / `offer-agreed`.

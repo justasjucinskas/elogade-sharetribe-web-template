@@ -1,6 +1,7 @@
 const sharetribeSdk = require('sharetribe-flex-sdk');
 const { transactionLineItems } = require('../api-util/lineItems');
 const { isIntentionToMakeOffer } = require('../api-util/negotiation');
+const priceOffers = require('../api-util/priceOffers');
 const {
   createCookieTokenStore,
   getSdk,
@@ -12,7 +13,8 @@ const {
 
 const { Money } = sharetribeSdk.types;
 
-const listingPromise = (sdk, id) => sdk.listings.show({ id });
+const listingPromise = (sdk, id, include) =>
+  include ? sdk.listings.show({ id, include }) : sdk.listings.show({ id });
 
 const getFullOrderData = (orderData, bodyParams, currency) => {
   const { offerInSubunits } = orderData || {};
@@ -58,14 +60,46 @@ module.exports = (req, res) => {
   let lineItems = null;
   let metadataMaybe = {};
 
-  Promise.all([listingPromise(sdk, bodyParams?.params?.listingId), fetchCommission(sdk)])
-    .then(([showListingResponse, fetchAssetsResponse]) => {
+  // Price offers (offer-purchase process) are validated and priced in priceOffers.js.
+  const isPriceOffer =
+    transitionName === priceOffers.BUYER_MAKE_OFFER ||
+    priceOffers.isOfferPurchaseProcessAlias(bodyParams?.processAlias);
+
+  Promise.all([
+    listingPromise(
+      sdk,
+      bodyParams?.params?.listingId,
+      isPriceOffer ? ['author', 'currentStock'] : null
+    ),
+    fetchCommission(sdk),
+  ])
+    .then(responses =>
+      // Sequential: a token refresh during listings.show is then reused by this call.
+      isPriceOffer
+        ? sdk.currentUser.show().then(currentUserResponse => [...responses, currentUserResponse])
+        : responses
+    )
+    .then(([showListingResponse, fetchAssetsResponse, currentUserResponse]) => {
       const listing = showListingResponse.data.data;
       const commissionAsset = fetchAssetsResponse.data.data[0];
 
       const currency = listing.attributes.price?.currency || orderData.currency;
       const { providerCommission, customerCommission } =
         commissionAsset?.type === 'jsonAsset' ? commissionAsset.attributes.data : {};
+
+      if (isPriceOffer) {
+        const offerParams = priceOffers.getInitiateParams({
+          listing,
+          stockQuantity: priceOffers.getStockQuantity(listing, showListingResponse.data.included),
+          currentUser: currentUserResponse?.data?.data,
+          orderData,
+          bodyParams,
+          commissions: { providerCommission, customerCommission },
+        });
+        lineItems = offerParams.lineItems;
+        metadataMaybe = { metadata: offerParams.metadata };
+        return getTrustedSdk(req, res, tokenStore);
+      }
 
       lineItems = transactionLineItems(
         listing,

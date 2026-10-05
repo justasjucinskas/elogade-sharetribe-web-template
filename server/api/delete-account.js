@@ -50,9 +50,10 @@ module.exports = (req, res) => {
     });
 
   // Purchase states that contain Stripe payment processing
+  // (offer-purchase shares default-purchase's states from pending-payment onwards)
   const ongoingPurchasesWithIncompletePaymentProcessing = () =>
     sdk.transactions.query({
-      processNames: 'default-purchase',
+      processNames: 'default-purchase,offer-purchase',
       states: stripeRelatedStatesForPurchases.join(','),
     });
 

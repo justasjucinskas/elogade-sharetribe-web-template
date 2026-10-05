@@ -9,6 +9,7 @@ const {
   isIntentionToUpdateOffer,
   throwErrorIfNegotiationOfferHasInvalidHistory,
 } = require('../api-util/negotiation');
+const priceOffers = require('../api-util/priceOffers');
 const {
   createCookieTokenStore,
   getSdk,
@@ -20,7 +21,8 @@ const {
 
 const { Money } = sharetribeSdk.types;
 
-const transactionPromise = (sdk, id) => sdk.transactions.show({ id, include: ['listing'] });
+const transactionPromise = (sdk, id) =>
+  sdk.transactions.show({ id, include: ['listing', 'listing.currentStock'] });
 const getListingRelationShip = transactionShowAPIData => {
   const { data, included } = transactionShowAPIData;
   const { relationships } = data;
@@ -123,6 +125,8 @@ module.exports = (req, res) => {
   const transitionName = bodyParams.transition;
   let lineItems = null;
   let metadataMaybe = {};
+  // Params computed by priceOffers.js for the offer-purchase process (replace lineItems & metadata)
+  let priceOfferParams = null;
 
   Promise.all([transactionPromise(sdk, bodyParams?.id), fetchCommission(sdk)])
     .then(responses => {
@@ -144,6 +148,21 @@ module.exports = (req, res) => {
         orderData.currency;
       const { providerCommission, customerCommission } =
         commissionAsset?.type === 'jsonAsset' ? commissionAsset.attributes.data : {};
+
+      if (priceOffers.isOfferPurchaseProcessName(transaction.attributes.processName)) {
+        priceOfferParams = priceOffers.getTransitionParams({
+          transaction,
+          listing,
+          stockQuantity: priceOffers.getStockQuantity(
+            listing,
+            showTransactionResponse.data.included
+          ),
+          orderData,
+          transitionName,
+          commissions: { providerCommission, customerCommission },
+        });
+        return getTrustedSdk(req, res, tokenStore);
+      }
 
       lineItems = transactionLineItems(
         listing,
@@ -167,15 +186,24 @@ module.exports = (req, res) => {
       // Omit listingId from params (transition/request-payment-after-inquiry does not need it)
       const { listingId, ...restParams } = roleBasedBodyParams?.params || {};
 
+      // Price offers: line items and metadata only ever come from the server.
+      const {
+        lineItems: clientLineItems,
+        metadata: clientMetadata,
+        ...paramsWithoutPricing
+      } = restParams;
+
       // Add lineItems to the body params
-      const body = {
-        ...bodyParams,
-        params: {
-          ...restParams,
-          lineItems,
-          ...metadataMaybe,
-        },
-      };
+      const body = priceOfferParams
+        ? { ...bodyParams, params: { ...paramsWithoutPricing, ...priceOfferParams } }
+        : {
+            ...bodyParams,
+            params: {
+              ...restParams,
+              lineItems,
+              ...metadataMaybe,
+            },
+          };
 
       if (isSpeculative) {
         return trustedSdk.transactions.transitionSpeculative(body, queryParams);
