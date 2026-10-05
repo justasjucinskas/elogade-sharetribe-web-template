@@ -136,8 +136,8 @@ Timers use `:time/last-entered-state` so each round gets its own deadline
   offer/accepted offer expired; the purchase-phase templates copied from `default-purchase`.
   Templates read wording from the hosted asset `content/email-texts.json` (Console → Content → Email
   texts) and fall back to the default text written in the template (`{{t "Key" "Default text"}}`)
-  when a key is missing. As of 2026-10-05 both marketplaces have locale `lt` but all 520 hosted
-  email texts are Sharetribe's English defaults, so every email goes out in English today. New
+  when a key is missing. As of 2026-10-05 Live and staging both have locale `lt`, yet none of their
+  hosted email texts (521 on Live) is Lithuanian, so every email goes out in English today. New
   templates therefore get **English default texts**, matching the rest; no Console step is needed
   for them to work. The build also writes the new keys and texts to
   `specs/price-offers-email-texts.json` so they can be added in Console whenever the emails are
@@ -188,22 +188,33 @@ Timers use `:time/last-entered-state` so each round gets its own deadline
 5. Timers checked on staging (temporarily shortened periods in a test version, then restored).
 6. Self-review of the diff; blocking problems fixed.
 
+## Environments
+
+"Production" in this spec means **Live** — the environment behind www.elogade.com, client id
+`34ce3207…` (GitHub Actions var + Hetzner VM env; it is **not** in `.env`). Staging is the client id
+active in `.env` (`76bc4e…`). The commented-out `.env` id `960f1e…` is a **different** environment
+(different hosted-asset versions than Live), role unconfirmed — never treat it as production and
+never push there. Live was checked on 2026-10-05: same listing types as staging
+(`newproducts`/`usedproducts` on `default-purchase/release-1`, `oneItem` stock), locale `lt`.
+
 ## Stop and ask before
 
-- Pushing the process to **production** (Sharetribe CLI `process create` + `create-alias`, later
-  `push` + `update-alias`). Order on production: push the process **before** deploying code with the
+- Pushing the process to **production (Live)** (Sharetribe CLI `process create` + `create-alias`,
+  later `push` + `update-alias`). Order on Live: push the process **before** deploying code with the
   flag on — initiating on a missing alias fails.
 - **Staging pushes are pre-approved** (user, 2026-10-05): `process create`, `push`, `create-alias`
   and `update-alias` for `offer-purchase` on the staging marketplace may run without asking. Only
   that process, only staging; no other CLI writes (`search set`, `stripe update-version`, other
   processes' aliases).
 - CLI: `flex-cli` (installed with yarn at `~/.yarn/bin/flex-cli`, on PATH via `~/.zshrc`), logged
-  in. Marketplace IDs: staging = `TODO`, production = `TODO` — get them from the user if still TODO;
-  confirm which is which by `flex-cli process list -m <id>` (read-only).
+  in. Marketplace IDs: staging = `TODO`, Live = `TODO` — get them from the user if still TODO (the
+  part after `/m/` in the Console URL); confirm each with `flex-cli process list -m <id>`
+  (read-only). The Live marketplace ID must belong to the environment of client id `34ce3207…`, not
+  `960f1e…`.
 - (Resolved 2026-10-05: user confirmed staging uses Stripe **test** keys — test-card payments on
   staging are fine.)
 - Any Console change (none needed).
-- Deploying to Hetzner / production.
+- Deploying to Hetzner / Live.
 - Any requirement turning out impossible on Sharetribe, or a decision above not holding up.
 
 ## Risks and rollback
