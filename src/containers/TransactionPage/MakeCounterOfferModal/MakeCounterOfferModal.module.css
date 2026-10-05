@@ -69,6 +69,12 @@
   }
 }
 
+.offerInfo {
+  composes: marketplaceModalParagraphStyles from global;
+  margin: -12px 0 0 0;
+  color: var(--colorGrey700);
+}
+
 .submitButton {
   margin-top: auto;
   margin-bottom: 96px;

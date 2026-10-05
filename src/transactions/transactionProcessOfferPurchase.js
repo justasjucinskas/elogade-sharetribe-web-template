@@ -272,17 +272,63 @@ export const buyerOfferTransitions = [
 ];
 
 /**
- * Checks if the state is one where the price is still being negotiated.
+ * Checks if the offers array (metadata, written by the client app's server) matches the
+ * offer-carrying transitions of the transaction, in the same order and by the same actors.
+ *
+ * Note: TransactionPage uses this (with isNegotiationState) to validate offer data.
+ *
+ * @param {Array<Object>} transitions transaction.attributes.transitions
+ * @param {Array<Object>} offers transaction.attributes.metadata.offers
+ * @returns {boolean}
+ */
+export const isValidNegotiationOffersArray = (transitions, offers) => {
+  const pickedTransitions = transitions.filter(t => offerTransitions.includes(t.transition));
+  const isOffersAnArray = !!offers && Array.isArray(offers);
+  if (!isOffersAnArray || offers.length !== pickedTransitions.length) {
+    return false;
+  }
+  return offers.every(
+    (offer, i) =>
+      offer.transition === pickedTransitions[i].transition && offer.by === pickedTransitions[i].by
+  );
+};
+
+/**
+ * Returns a new array of transitions where offer-carrying transitions have the offered amount
+ * (offerInSubunits) added. ActivityFeed shows it.
+ *
+ * @param {Array<Object>} transitions transaction.attributes.transitions
+ * @param {Array<Object>} offers transaction.attributes.metadata.offers
+ * @returns {Array<Object>}
+ */
+export const getTransitionsWithMatchingOffers = (transitions, offers) => {
+  if (!isValidNegotiationOffersArray(transitions, offers)) {
+    return transitions;
+  }
+  let offerIndex = 0;
+  return transitions.map(t =>
+    offerTransitions.includes(t.transition)
+      ? { ...t, offerInSubunits: offers[offerIndex++]?.offerInSubunits }
+      : t
+  );
+};
+
+/**
+ * Checks if the state is one where actions rely on the offer history: the price is being
+ * negotiated, or it has been agreed and is waiting for payment.
+ * TransactionPage validates the offer data (isValidNegotiationOffersArray) in these states.
  *
  * @param {string} state e.g. 'buyer-offer-pending' or 'state/buyer-offer-pending'
  * @returns {boolean}
  */
-export const isOfferNegotiationState = state => {
+export const isNegotiationState = state => {
   if (state == null) {
     return false;
   }
   const unprefixedState = state.indexOf('/') === -1 ? state : state.split('/')[1];
-  return [states.BUYER_OFFER_PENDING, states.COUNTER_OFFER_PENDING].includes(unprefixedState);
+  return [states.BUYER_OFFER_PENDING, states.COUNTER_OFFER_PENDING, states.OFFER_AGREED].includes(
+    unprefixedState
+  );
 };
 
 // Check if a transition is the kind that should be rendered

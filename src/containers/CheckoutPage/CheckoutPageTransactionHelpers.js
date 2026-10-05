@@ -2,7 +2,11 @@
 import { findRouteByRouteName } from '../../util/routes';
 import { ensureStripeCustomer, ensureTransaction } from '../../util/data';
 import { formatMoney } from '../../util/currency';
-import { NEGOTIATION_PROCESS_NAME, resolveLatestProcessName } from '../../transactions/transaction';
+import {
+  NEGOTIATION_PROCESS_NAME,
+  OFFER_PURCHASE_PROCESS_NAME,
+  resolveLatestProcessName,
+} from '../../transactions/transaction';
 import { storeData } from './CheckoutPageSessionHelpers';
 
 /**
@@ -205,12 +209,18 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
     const isOfferPendingInNegotiationProcess =
       resolveLatestProcessName(processAlias.split('/')[0]) === NEGOTIATION_PROCESS_NAME &&
       storedTx.attributes.state === `state/${process.states.OFFER_PENDING}`;
+    // Price offers: the listing's alias is default-purchase, the transaction's process isn't.
+    const isPriceAgreedInOfferPurchaseProcess =
+      resolveLatestProcessName(storedTx?.attributes?.processName) === OFFER_PURCHASE_PROCESS_NAME &&
+      storedTx.attributes.state === `state/${process.states.OFFER_AGREED}`;
 
     const requestTransition =
       storedTx?.attributes?.lastTransition === process.transitions.INQUIRE
         ? process.transitions.REQUEST_PAYMENT_AFTER_INQUIRY
         : isOfferPendingInNegotiationProcess
         ? process.transitions.REQUEST_PAYMENT_TO_ACCEPT_OFFER
+        : isPriceAgreedInOfferPurchaseProcess
+        ? process.transitions.REQUEST_PAYMENT_AFTER_OFFER
         : process.transitions.REQUEST_PAYMENT;
     const isPrivileged = process.isPrivileged(requestTransition);
 

@@ -279,3 +279,20 @@
     padding: 0;
   }
 }
+
+/* Price offers: "Make an offer" under the product order form, and next to "Buy" in the
+   mobile bottom bar */
+.priceOfferAction {
+  margin-top: 12px;
+}
+
+.priceOfferActionInCTA {
+  flex: 1 1 0;
+  min-width: 0;
+  margin-right: 8px;
+
+  & + * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}

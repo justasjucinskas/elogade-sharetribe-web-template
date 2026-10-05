@@ -14,6 +14,8 @@ name: Build and publish Docker image
 #     REACT_APP_FACEBOOK_APP_ID        (optional)
 #     REACT_APP_GOOGLE_CLIENT_ID       (optional)
 #     REACT_APP_CSP                    (report | block)
+#     REACT_APP_PRICE_OFFERS_ENABLED   (true to show "Make an offer"; push the
+#                                       offer-purchase process to the marketplace first)
 # These are PUBLIC build-time values (they ship in the browser bundle); the
 # secret/* designation here only controls log masking. Server-side secrets
 # (SHARETRIBE_SDK_CLIENT_SECRET etc.) are NOT used at build time.
@@ -77,5 +79,6 @@ jobs:
             REACT_APP_FACEBOOK_APP_ID=${{ vars.REACT_APP_FACEBOOK_APP_ID }}
             REACT_APP_GOOGLE_CLIENT_ID=${{ vars.REACT_APP_GOOGLE_CLIENT_ID }}
             REACT_APP_CSP=${{ vars.REACT_APP_CSP }}
+            REACT_APP_PRICE_OFFERS_ENABLED=${{ vars.REACT_APP_PRICE_OFFERS_ENABLED }}
             REACT_APP_ENV=production
             REACT_APP_SHARETRIBE_USING_SSL=true

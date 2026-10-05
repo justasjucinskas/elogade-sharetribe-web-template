@@ -27,14 +27,14 @@ Working file for building `specs/price-offers.md`. Tick an item only when its ch
 
 ## Client
 
-- [ ] `transactionProcessOfferPurchase.js` + registered in `transaction.js` + graph tests
-- [ ] ListingPage: "Make an offer" button + modal, min/max validation, link to open offer
-- [ ] TransactionPage: state data for every state × role, counter modal with limits, pay flow, "item
+- [x] `transactionProcessOfferPurchase.js` + registered in `transaction.js` + graph tests
+- [x] ListingPage: "Make an offer" button + modal, min/max validation, link to open offer
+- [x] TransactionPage: state data for every state × role, counter modal with limits, pay flow, "item
       sold"
-- [ ] Checkout: `REQUEST_PAYMENT_AFTER_OFFER` in both places, pickup/shipping as purchase
-- [ ] Inbox: state labels
-- [ ] Feature flag `REACT_APP_PRICE_OFFERS_ENABLED` (Dockerfile, workflow, env template)
-- [ ] i18n: en, lt, pl
+- [x] Checkout: `REQUEST_PAYMENT_AFTER_OFFER` in both places, pickup/shipping as purchase
+- [x] Inbox: state labels
+- [x] Feature flag `REACT_APP_PRICE_OFFERS_ENABLED` (Dockerfile, workflow, env template)
+- [x] i18n: en, lt, pl
 
 ## Checks
 
@@ -52,6 +52,13 @@ Working file for building `specs/price-offers.md`. Tick an item only when its ch
 - [ ] Self-review of the diff
 
 ## Found along the way
+
+- `transactions.query` supports `listingId` (API reference, checked 2026-10-05): ListingPage links
+  to the buyer's open offer instead of offering a new one.
+- Locale files: fork-added keys only exist in en/lt/pl (the other 14 files are upstream leftovers
+  outside `SUPPORTED_LOCALES`), so offer keys are added to en/lt/pl only.
+- `AuthenticationPage.test.js` › "keeps the regular brand panel on the login tab" failed once in
+  the full run and passes alone (11/11): load-related flake, file not touched by this work.
 
 - State names `offer-pending` / `offer-accepted` collide with default-negotiation's states in the
   state-based notification query (`user.duck.js` → `getStatesNeeding*Attention`), which would badge

@@ -5,6 +5,7 @@ import {
   PURCHASE_PROCESS_NAME,
   NEGOTIATION_PROCESS_NAME,
   DOWNLOAD_PROCESS_NAME,
+  OFFER_PURCHASE_PROCESS_NAME,
   resolveLatestProcessName,
 } from '../../transactions/transaction';
 import { getStateDataForBookingProcess } from './TransactionPage.stateDataBooking.js';
@@ -12,6 +13,7 @@ import { getStateDataForInquiryProcess } from './TransactionPage.stateDataInquir
 import { getStateDataForPurchaseProcess } from './TransactionPage.stateDataPurchase.js';
 import { getStateDataForNegotiationProcess } from './TransactionPage.stateDataNegotiation.js';
 import { getStateDataForDownloadProcess } from './TransactionPage.stateDataDownload.js';
+import { getStateDataForOfferPurchaseProcess } from './TransactionPage.stateDataOfferPurchase.js';
 
 const errorShape = shape({
   type: oneOf(['error']).isRequired,
@@ -161,6 +163,8 @@ export const getStateData = (params, process) => {
     return getStateDataForInquiryProcess(params, processInfo());
   } else if (processName === NEGOTIATION_PROCESS_NAME) {
     return getStateDataForNegotiationProcess(params, processInfo());
+  } else if (processName === OFFER_PURCHASE_PROCESS_NAME) {
+    return getStateDataForOfferPurchaseProcess(params, processInfo());
   } else {
     return {};
   }

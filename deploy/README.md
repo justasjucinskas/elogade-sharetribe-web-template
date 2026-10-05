@@ -20,6 +20,8 @@ Add under **Settings → Secrets and variables → Actions** (see the header of
 `.github/workflows/docker-publish.yml` for the exact list):
 - **Secrets**: `REACT_APP_SHARETRIBE_SDK_CLIENT_ID`, `REACT_APP_STRIPE_PUBLISHABLE_KEY`, `REACT_APP_MAPBOX_ACCESS_TOKEN`
 - **Variables**: `REACT_APP_MARKETPLACE_ROOT_URL`, `REACT_APP_MARKETPLACE_NAME`, `REACT_APP_CSP`, and optionally the Facebook/Google client IDs
+  and `REACT_APP_PRICE_OFFERS_ENABLED` (`true` shows "Make an offer"; push the `offer-purchase`
+  process to the marketplace and create its `release-1` alias before turning it on)
 
 Push to `main` (or run the workflow manually) to publish the first image. Make the
 GHCR package **public**, or give the VM a read token (below).

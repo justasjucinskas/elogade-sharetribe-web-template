@@ -1,0 +1,55 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  margin: 42px 24px 0 24px;
+
+  @media (--viewportMedium) {
+    padding: 7px 0 1px 0;
+    margin: 40px 24px 0 24px;
+  }
+  @media (--viewportLarge) {
+    margin: 40px 0 0 0;
+  }
+}
+
+.sectionHeading {
+  composes: h4 from global;
+  margin: 16px 0 0 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px 0 0 0;
+}
+
+.label {
+  composes: p from global;
+  padding: 0;
+  margin: 0;
+}
+
+.listingPrice {
+  color: var(--colorGrey700);
+}
+
+.offer {
+  font-weight: var(--fontWeightBold);
+}
+
+.info {
+  composes: p from global;
+  color: var(--colorGrey700);
+  margin: 16px 0 0 0;
+}
+
+.notAvailable {
+  composes: p from global;
+  color: var(--colorFail);
+  font-weight: var(--fontWeightSemiBold);
+  margin: 16px 0 0 0;
+}

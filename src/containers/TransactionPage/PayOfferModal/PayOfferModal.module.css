@@ -1,0 +1,36 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  composes: marketplaceModalBaseStyles from global;
+  padding-top: 70px;
+
+  @media (--viewportMedium) {
+    flex-basis: 567px;
+  }
+}
+
+.modalContent {
+  flex-grow: 1;
+}
+
+.modalTitle {
+  composes: marketplaceModalTitleStyles from global;
+}
+
+.modalMessage {
+  composes: marketplaceModalParagraphStyles from global;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+}
+
+.deliveryField {
+  margin-bottom: 32px;
+}
+
+.submitButton {
+  flex-shrink: 0;
+}

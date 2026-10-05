@@ -56,6 +56,7 @@ import SoldBadge from './SoldBadge';
 import SectionMapMaybe from './SectionMapMaybe';
 import SectionGallery from './SectionGallery';
 import CustomListingFields from './CustomListingFields';
+import { usePriceOffer } from './PriceOffer/PriceOffer';
 import ListingPageAccessWrapper from './ListingPageAccessWrapper';
 
 import css from './ListingPage.module.css';
@@ -145,6 +146,19 @@ export const ListingPageComponent = props => {
     isSold,
     hasInvalidListingData,
   } = derivedData;
+
+  // Price offers ("Make an offer" next to "Buy"). A hook: called before the early returns.
+  const { priceOfferAction, priceOfferModal } = usePriceOffer({
+    listing: currentListing,
+    isOwnListing,
+    currentUser,
+    config,
+    routes: routeConfiguration,
+    history,
+    location,
+    intl,
+    onManageDisableScrolling,
+  });
 
   const topbar = <TopbarContainer />;
 
@@ -333,10 +347,12 @@ export const ListingPageComponent = props => {
               dayCountAvailableForBooking={config.stripe.dayCountAvailableForBooking}
               marketplaceName={config.marketplaceName}
               showListingImage={showListingImage}
+              priceOfferAction={priceOfferAction}
             />
           </div>
         </div>
         <SectionSimilarListings listings={similarListings} />
+        {priceOfferModal}
       </LayoutSingleColumn>
     </Page>
   );

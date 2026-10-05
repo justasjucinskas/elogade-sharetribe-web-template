@@ -1,0 +1,14 @@
+@import '../../../styles/customMediaQueries.css';
+
+.makeOfferButton {
+  width: 100%;
+}
+
+.viewOfferLink {
+  composes: buttonSecondary from global;
+  width: 100%;
+
+  &:hover {
+    text-decoration: none;
+  }
+}

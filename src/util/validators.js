@@ -138,6 +138,10 @@ export const moneySubUnitAmountAtLeast = (message, minValue) => value => {
   return value instanceof Money && value.amount >= minValue ? VALID : message;
 };
 
+export const moneySubUnitAmountBelow = (message, maxValueExclusive) => value => {
+  return value instanceof Money && value.amount < maxValueExclusive ? VALID : message;
+};
+
 const parseNum = str => {
   const num = Number.parseInt(str, 10);
   return Number.isNaN(num) ? null : num;

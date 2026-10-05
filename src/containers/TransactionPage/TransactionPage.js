@@ -9,6 +9,7 @@ import { useRouteConfiguration } from '../../context/routeConfigurationContext';
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
 import { createResourceLocatorString, findRouteByRouteName } from '../../util/routes';
 import {
+  LINE_ITEM_ITEM,
   LINE_ITEM_OFFER,
   LINE_ITEM_REQUEST,
   LISTING_UNIT_TYPES,
@@ -35,6 +36,7 @@ import {
   isInquiryProcess,
   DOWNLOAD_PROCESS_NAME,
   isDownloadProcess,
+  OFFER_PURCHASE_PROCESS_NAME,
 } from '../../transactions/transaction';
 
 import { getMarketplaceEntities } from '../../ducks/marketplaceData.duck';
@@ -57,6 +59,10 @@ import TopbarContainer from '../../containers/TopbarContainer/TopbarContainer';
 import FooterContainer from '../../containers/FooterContainer/FooterContainer';
 
 import { getStateData } from './TransactionPage.stateData';
+import {
+  getCounterOfferTransitions,
+  getPriceOfferCounterProps,
+} from './TransactionPage.priceOffers';
 import ActionButtons, {
   ACTION_BUTTON_1_ID,
   ACTION_BUTTON_2_ID,
@@ -72,6 +78,8 @@ import ReportModal from './ReportModal/ReportModal';
 import ReviewModal from './ReviewModal/ReviewModal';
 import RequestChangesModal from './RequestChangesModal/RequestChangesModal';
 import MakeCounterOfferModal from './MakeCounterOfferModal/MakeCounterOfferModal';
+import PriceOfferSummary from './PriceOfferSummary/PriceOfferSummary';
+import PayOfferModal, { getDeliveryMethodOptions } from './PayOfferModal/PayOfferModal';
 import SendMessageForm from './SendMessageForm/SendMessageForm';
 import TransactionPanel from './TransactionPanel/TransactionPanel';
 
@@ -331,6 +339,7 @@ export const TransactionPageComponent = props => {
   const [changeRequestSubmitted, setChangeRequestSubmitted] = useState(false);
   const [isMakeCounterOfferModalOpen, setMakeCounterOfferModalOpen] = useState(false);
   const [counterOfferSubmitted, setCounterOfferSubmitted] = useState(false);
+  const [isPayOfferModalOpen, setPayOfferModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -516,6 +525,21 @@ export const TransactionPageComponent = props => {
   // This is called from action buttons
   const onOpenMakeCounterOfferModal = () => {
     setMakeCounterOfferModalOpen(true);
+  };
+
+  // Price offers: pay the agreed price on CheckoutPage, like purchase after inquiry.
+  // The buyer chooses the delivery method first if the listing has more than one.
+  const isOfferPurchase = processName === OFFER_PURCHASE_PROCESS_NAME;
+  const listingTypeConfigForOffer = config.listing.listingTypes.find(
+    conf => conf.listingType === listing?.attributes?.publicData?.listingType
+  );
+  const onPayAgreedOffer = () => {
+    const deliveryMethods = getDeliveryMethodOptions(listing, listingTypeConfigForOffer);
+    if (deliveryMethods.length > 1) {
+      setPayOfferModalOpen(true);
+    } else {
+      handleSubmitOrderRequest({ quantity: '1', deliveryMethod: deliveryMethods[0] });
+    }
   };
 
   // Submit review and close the review modal
@@ -747,6 +771,7 @@ export const TransactionPageComponent = props => {
           onOpenReviewModal,
           onOpenRequestChangesModal,
           onOpenMakeCounterOfferModal,
+          onPayAgreedOffer,
           onCheckoutRedirect: handleSubmitOrderRequest,
           onMakeOfferRedirect: onMakeOffer,
           intl,
@@ -946,17 +971,26 @@ export const TransactionPageComponent = props => {
         />
       }
       offer={
-        <Offer
-          transaction={transaction}
-          isNegotiationProcess={isNegotiationProcess}
-          transactionRole={transactionRole}
-          isRegularNegotiation={isRegularNegotiation}
-          isProviderBanned={isProviderBanned}
-          intl={intl}
-          transactionFieldsComponent={
-            <TransactionFields {...customTransactionFieldProps('provider', true)} />
-          }
-        />
+        isOfferPurchase ? (
+          <PriceOfferSummary
+            transaction={transaction}
+            transactionRole={transactionRole}
+            processState={stateData.processState}
+            intl={intl}
+          />
+        ) : (
+          <Offer
+            transaction={transaction}
+            isNegotiationProcess={isNegotiationProcess}
+            transactionRole={transactionRole}
+            isRegularNegotiation={isRegularNegotiation}
+            isProviderBanned={isProviderBanned}
+            intl={intl}
+            transactionFieldsComponent={
+              <TransactionFields {...customTransactionFieldProps('provider', true)} />
+            }
+          />
+        )
       }
       isInquiryProcess={processName === INQUIRY_PROCESS_NAME}
       config={config}
@@ -1004,18 +1038,28 @@ export const TransactionPageComponent = props => {
   const marketplaceCurrency = config.currency;
   const currency = transaction?.attributes?.payinTotal?.currency || marketplaceCurrency;
   const currencyConfig = currency ? appSettings.getCurrencyFormatting(currency) : null;
-  const counterOffers = [
-    process?.transitions?.CUSTOMER_MAKE_COUNTER_OFFER,
-    process?.transitions?.PROVIDER_MAKE_COUNTER_OFFER,
-  ];
+  // Price offers (offer-purchase) use their own counter offer transitions and limits.
+  const {
+    customerCounterOfferTransition,
+    providerCounterOfferTransition,
+  } = getCounterOfferTransitions(process, isOfferPurchase);
+  const counterOffers = [customerCounterOfferTransition, providerCounterOfferTransition];
   const negotiationOfferLineItem = transaction?.attributes?.lineItems?.find(item =>
-    [LINE_ITEM_REQUEST, LINE_ITEM_OFFER].includes(item.code)
+    [LINE_ITEM_REQUEST, LINE_ITEM_OFFER, ...(isOfferPurchase ? [LINE_ITEM_ITEM] : [])].includes(
+      item.code
+    )
   );
   const currentOffer = negotiationOfferLineItem?.unitPrice;
   const showMakeCounterOfferModal =
-    currencyConfig &&
-    (process?.transitions?.CUSTOMER_MAKE_COUNTER_OFFER ||
-      process?.transitions?.PROVIDER_MAKE_COUNTER_OFFER);
+    currencyConfig && (customerCounterOfferTransition || providerCounterOfferTransition);
+  const priceOfferCounterProps = isOfferPurchase
+    ? getPriceOfferCounterProps({
+        intl,
+        listingPrice: listing?.attributes?.price,
+        currentOffer,
+        transactionRole,
+      })
+    : {};
 
   const pageHeading = isDataAvailable
     ? intl.formatMessage(
@@ -1119,8 +1163,8 @@ export const TransactionPageComponent = props => {
             onMakeCounterOffer={onMakeCounterOffer(
               transaction?.id,
               transactionRole === CUSTOMER
-                ? process?.transitions?.CUSTOMER_MAKE_COUNTER_OFFER
-                : process?.transitions?.PROVIDER_MAKE_COUNTER_OFFER,
+                ? customerCounterOfferTransition
+                : providerCounterOfferTransition,
               onTransition,
               transactionRole,
               currency,
@@ -1132,6 +1176,21 @@ export const TransactionPageComponent = props => {
             counterOfferInProgress={counterOffers.includes(transitionInProgress)}
             counterOfferError={transitionError}
             currencyConfig={currencyConfig}
+            {...priceOfferCounterProps}
+          />
+        ) : null}
+        {isOfferPurchase && isDataAvailable ? (
+          <PayOfferModal
+            id="PayOfferModal"
+            isOpen={isPayOfferModalOpen}
+            onCloseModal={() => setPayOfferModalOpen(false)}
+            focusElementId={`${actionButtonContainer}_${ACTION_BUTTON_1_ID}`}
+            onManageDisableScrolling={onManageDisableScrolling}
+            listing={listing}
+            onSubmit={({ deliveryMethod }) => {
+              setPayOfferModalOpen(false);
+              handleSubmitOrderRequest({ quantity: '1', deliveryMethod });
+            }}
           />
         ) : null}
       </LayoutSingleColumn>

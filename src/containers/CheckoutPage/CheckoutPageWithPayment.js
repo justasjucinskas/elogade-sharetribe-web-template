@@ -19,6 +19,7 @@ import {
   resolveLatestProcessName,
   BOOKING_PROCESS_NAME,
   NEGOTIATION_PROCESS_NAME,
+  OFFER_PURCHASE_PROCESS_NAME,
   PURCHASE_PROCESS_NAME,
 } from '../../transactions/transaction';
 
@@ -198,11 +199,17 @@ const fetchSpeculatedTransactionIfNeeded = (orderParams, pageData, fetchSpeculat
     const isOfferPendingInNegotiationProcess =
       resolvedProcessName === NEGOTIATION_PROCESS_NAME &&
       tx.attributes.state === `state/${process.states.OFFER_PENDING}`;
+    // Price offers: the agreed price is paid from offer-agreed
+    const isPriceAgreedInOfferPurchaseProcess =
+      resolvedProcessName === OFFER_PURCHASE_PROCESS_NAME &&
+      tx.attributes.state === `state/${process.states.OFFER_AGREED}`;
 
     const requestTransition = isInquiryInPaymentProcess
       ? process.transitions.REQUEST_PAYMENT_AFTER_INQUIRY
       : isOfferPendingInNegotiationProcess
       ? process.transitions.REQUEST_PAYMENT_TO_ACCEPT_OFFER
+      : isPriceAgreedInOfferPurchaseProcess
+      ? process.transitions.REQUEST_PAYMENT_AFTER_OFFER
       : process.transitions.REQUEST_PAYMENT;
     const isPrivileged = process.isPrivileged(requestTransition);
 
@@ -568,17 +575,21 @@ export const CheckoutPageWithPayment = props => {
     </NamedLink>
   );
 
+  const isOfferPurchase = processName === OFFER_PURCHASE_PROCESS_NAME;
   const errorMessages = getErrorMessages(
     listingNotFound,
     initiateOrderError,
     isPaymentExpired,
     retrievePaymentIntentError,
     speculateTransactionError,
-    listingLink
+    listingLink,
+    // Price offers: the item was bought by someone else after the price was agreed
+    isOfferPurchase ? 'CheckoutPage.offer-purchase.itemSoldMessage' : undefined
   );
 
   const isBooking = processName === BOOKING_PROCESS_NAME;
-  const isPurchase = processName === PURCHASE_PROCESS_NAME;
+  // Price offers (offer-purchase) are paid like a purchase: same delivery methods.
+  const isPurchase = processName === PURCHASE_PROCESS_NAME || isOfferPurchase;
   const isNegotiation = processName === NEGOTIATION_PROCESS_NAME;
 
   const txTransitions = existingTransaction?.attributes?.transitions || [];

@@ -272,6 +272,8 @@ const hasValidPriceVariants = priceVariants => {
  * @param {number} props.dayCountAvailableForBooking - Number of days available for booking
  * @param {string} props.marketplaceName - Name of the marketplace
  * @param {'h2'|'h3'} [props.sectionHeadingAs='h3'] - Semantic heading level for form section titles (under the panel title)
+ * @param {Function} [props.priceOfferAction] - Price offers: (placement: 'panel' | 'cta') => node,
+ *   rendered next to "Buy" for products in stock (e.g. a "Make an offer" button)
  *
  * @returns {JSX.Element} Component that displays the order panel with appropriate form
  */
@@ -314,6 +316,7 @@ const OrderPanel = props => {
     hideAuthorInfo,
     hidePrice,
     sectionHeadingAs = 'h3',
+    priceOfferAction,
   } = props;
 
   const publicData = listing?.attributes?.publicData || {};
@@ -428,6 +431,10 @@ const OrderPanel = props => {
   };
 
   const showClosedListingHelpText = listing.id && isClosed;
+
+  // Price offers are only shown next to "Buy" when the product can be bought.
+  const showPriceOfferAction =
+    typeof priceOfferAction === 'function' && showProductOrderForm && currentStock > 0;
 
   const subTitleText = showClosedListingHelpText
     ? intl.formatMessage({ id: 'OrderPanel.subTitleClosedListing' })
@@ -581,6 +588,9 @@ const OrderPanel = props => {
             <FormattedMessage id="OrderPanel.unknownTransactionProcess" />
           </p>
         ) : null}
+        {showPriceOfferAction ? (
+          <div className={css.priceOfferAction}>{priceOfferAction('panel')}</div>
+        ) : null}
       </ModalInMobile>
       <div className={css.openOrderForm}>
         <PriceMaybe
@@ -591,6 +601,9 @@ const OrderPanel = props => {
           marketplaceCurrency={marketplaceCurrency}
           showCurrencyMismatch
         />
+        {showPriceOfferAction ? (
+          <div className={css.priceOfferActionInCTA}>{priceOfferAction('cta')}</div>
+        ) : null}
 
         {isClosed ? (
           <div className={css.closedListingButton}>

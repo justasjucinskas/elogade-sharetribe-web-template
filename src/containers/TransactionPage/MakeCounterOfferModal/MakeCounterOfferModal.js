@@ -6,9 +6,9 @@ import { useConfiguration } from '../../../context/configurationContext';
 import { FormattedMessage, useIntl } from '../../../util/reactIntl';
 import { propTypes } from '../../../util/types';
 import { formatMoney } from '../../../util/currency';
-import { required } from '../../../util/validators';
+import { composeValidators, required } from '../../../util/validators';
 
-import { FieldCurrencyInput, Form, Modal, Button } from '../../../components';
+import { FieldCurrencyInput, FieldTextInput, Form, Modal, Button } from '../../../components';
 
 import IconPriceTag from './IconPriceTag';
 import css from './MakeCounterOfferModal.module.css';
@@ -30,16 +30,24 @@ const MakeCounterOfferForm = props => (
         counterOfferInProgress,
         currencyConfig,
         currentOffer,
+        offerValidator,
+        offerInfo,
+        messageField,
+        submitButtonText,
+        errorMessage,
       } = fieldRenderProps;
 
-      const errorMessageMaybe = counterOfferError ? (
-        <FormattedMessage id="MakeCounterOfferForm.submitFailed" />
-      ) : null;
+      const errorMessageMaybe = counterOfferError
+        ? errorMessage || <FormattedMessage id="MakeCounterOfferForm.submitFailed" />
+        : null;
 
       const classes = classNames(rootClassName || css.formRoot, className);
       const submitInProgress = counterOfferInProgress;
       const submitDisabled = invalid || disabled || submitInProgress;
       const currentOfferFormatted = currentOffer ? formatMoney(intl, currentOffer) : '$10.00';
+      const requiredOffer = required(
+        intl.formatMessage({ id: 'MakeCounterOfferForm.offerRequired' })
+      );
 
       return (
         <Form className={classes} onSubmit={handleSubmit}>
@@ -53,8 +61,21 @@ const MakeCounterOfferForm = props => (
               { currentOffer: currentOfferFormatted }
             )}
             currencyConfig={currencyConfig}
-            validate={required(intl.formatMessage({ id: 'MakeCounterOfferForm.offerRequired' }))}
+            validate={
+              offerValidator ? composeValidators(requiredOffer, offerValidator) : requiredOffer
+            }
           />
+          {offerInfo ? <p className={css.offerInfo}>{offerInfo}</p> : null}
+          {messageField ? (
+            <FieldTextInput
+              className={css.counterOfferMessage}
+              type="textarea"
+              id={formId ? `${formId}.message` : 'message'}
+              name="message"
+              label={messageField.label}
+              placeholder={messageField.placeholder}
+            />
+          ) : null}
           <p className={css.errorPlaceholder}>{errorMessageMaybe}</p>
           <Button
             className={css.submitButton}
@@ -63,7 +84,7 @@ const MakeCounterOfferForm = props => (
             disabled={submitDisabled}
             ready={counterOfferSubmitted}
           >
-            {intl.formatMessage({ id: 'MakeCounterOfferForm.submit' })}
+            {submitButtonText || intl.formatMessage({ id: 'MakeCounterOfferForm.submit' })}
           </Button>
         </Form>
       );
@@ -75,15 +96,17 @@ const MakeCounterOfferForm = props => (
 const CounterOfferInfo = props => {
   const config = useConfiguration();
   const marketplaceName = config.marketplaceName;
-  const { onMakeCounterOffer, ...restOfProps } = props;
+  const { onMakeCounterOffer, title, description, ...restOfProps } = props;
 
   return (
     <>
       <p className={css.modalTitle}>
-        <FormattedMessage id="MakeCounterOfferModal.title" />
+        {title || <FormattedMessage id="MakeCounterOfferModal.title" />}
       </p>
       <p className={css.modalMessage}>
-        <FormattedMessage id="MakeCounterOfferModal.description" values={{ marketplaceName }} />
+        {description || (
+          <FormattedMessage id="MakeCounterOfferModal.description" values={{ marketplaceName }} />
+        )}
       </p>
       <MakeCounterOfferForm onSubmit={onMakeCounterOffer} {...restOfProps} />
     </>
@@ -107,6 +130,14 @@ const CounterOfferInfo = props => {
  * @param {boolean} props.counterOfferInProgress - Whether the counter offer is in progress
  * @param {propTypes.error} props.counterOfferError - The counter offer error
  * @param {Object} props.currencyConfig - The currency configuration
+ * @param {ReactNode} [props.title] - Overrides the default title
+ * @param {ReactNode} [props.description] - Overrides the default description
+ * @param {Function} [props.offerValidator] - Extra validator for the offer (Money), after "required"
+ * @param {ReactNode} [props.offerInfo] - Shown under the offer input (e.g. allowed range)
+ * @param {Object} [props.messageField] - { label, placeholder }: adds an optional message field
+ * @param {string} [props.submitButtonText] - Overrides the default submit button text
+ * @param {ReactNode} [props.errorMessage] - Overrides the default submit error message
+ * @param {string} [props.formId] - Form id (used for field ids)
  * @returns {JSX.Element} The MakeCounterOfferModal component
  */
 const MakeCounterOfferModal = props => {
@@ -125,6 +156,7 @@ const MakeCounterOfferModal = props => {
     counterOfferError,
     currencyConfig,
     currentOffer,
+    ...offerFormProps
   } = props;
   const classes = classNames(rootClassName || css.root, className);
 
@@ -148,6 +180,7 @@ const MakeCounterOfferModal = props => {
         counterOfferSubmitted={counterOfferSubmitted}
         intl={intl}
         currencyConfig={currencyConfig}
+        {...offerFormProps}
       />
     </Modal>
   );
