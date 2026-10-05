@@ -41,7 +41,7 @@ Working file for building `specs/price-offers.md`. Tick an item only when its ch
 - [ ] `yarn test` (client) and `yarn run test-server` pass
 - [ ] `yarn build` passes
 - [ ] `yarn run format-ci` clean
-- [ ] Staging: process pushed + alias
+- [x] Staging: process pushed + alias (`checkme-test`, offer-purchase v1, `release-1`, 2026-10-05)
 - [ ] Staging scenario: offer → accept → pay → ship → received → reviews
 - [ ] Staging scenario: offer → counter → counter → accept → pay
 - [ ] Staging scenario: offer below 50 % blocked in UI and API
@@ -64,7 +64,9 @@ Working file for building `specs/price-offers.md`. Tick an item only when its ch
 - State names `offer-pending` / `offer-accepted` collide with default-negotiation's states in the
   state-based notification query (`user.duck.js` → `getStatesNeeding*Attention`), which would badge
   the wrong party. Renamed to `buyer-offer-pending` / `offer-agreed`.
-- Open: Inbox (`InboxPage.duck.js`, via `getSupportedProcessesInfo`) and `delete-account.js` now
-  query `processNames` including `offer-purchase` even with the flag off. If the Marketplace API
-  rejected an unknown process name, Inbox would break on an environment without the process (Live
-  before the push). Check on staging _before_ pushing the process: open the Inbox logged in.
+- Inbox (`InboxPage.duck.js`, via `getSupportedProcessesInfo`) and `delete-account.js` query
+  `processNames` including `offer-purchase` even with the flag off. Checked on `checkme-test` before
+  the push (process not there yet): the Inbox loads normally, so the API ignores unknown process
+  names and merging can't break Live's Inbox before the Live push.
+- Sellers need payout details (Stripe Connect, test data on staging) for any payment, incl. paying
+  an agreed offer; making/accepting an offer doesn't touch Stripe.
