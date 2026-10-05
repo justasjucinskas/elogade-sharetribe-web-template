@@ -1,22 +1,39 @@
 @import '../../../styles/customMediaQueries.css';
 
+/* Compact on purpose: the whole offer form (incl. the optional message on ListingPage) should fit
+   on a laptop screen without scrolling. */
 .root {
   composes: marketplaceModalBaseStyles from global;
-  padding-top: 70px;
+  /* Room for the close button, which is fixed to the top on mobile */
+  padding-top: 64px;
+  padding-bottom: 24px;
 
   @media (--viewportMedium) {
     flex-basis: 567px;
-    min-height: 687px;
+    padding: 32px 48px 32px 48px;
+    /* Centered vertically instead of the default 12.5vh offset. If the content is taller than
+       the screen, the margins collapse and the modal scrolls as usual. */
+    margin-top: auto;
+    margin-bottom: auto;
   }
 }
 
 .modalContent {
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Icon of the modal */
 .modalIcon {
   composes: marketplaceModalIconStyles from global;
+  height: 36px;
+  margin-bottom: 12px;
+
+  @media (--viewportMedium) {
+    height: 36px;
+    margin-bottom: 12px;
+  }
 }
 
 /* Title of the modal */
@@ -26,64 +43,63 @@
 
 /* Paragraph for the Modal */
 .modalMessage {
-  composes: marketplaceModalParagraphStyles from global;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: var(--fontWeightMedium);
+  margin: 8px 0 0 0;
 }
 
 .formRoot {
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
 
   /* Layout: size and positioning */
   width: 100%;
   height: auto;
-  margin-top: 24px;
+  margin-top: 16px;
 }
 
 .errorPlaceholder {
   color: var(--colorFail);
-
-  @media (--viewportMedium) {
-    margin: 0;
-    width: 100%;
-    min-height: 32px;
-  }
-}
-
-.counterOfferMessage {
-  flex-shrink: 0;
-  margin-top: 24px;
-  margin-bottom: 24px;
-
-  @media (--viewportMedium) {
-    margin-top: 30px;
-  }
+  font-size: 14px;
+  line-height: 20px;
+  margin: 8px 0 0 0;
+  width: 100%;
 }
 
 .counterOffer {
   flex-shrink: 0;
-  margin-top: 24px;
-  margin-bottom: 24px;
-
-  @media (--viewportMedium) {
-    margin-top: 30px;
-  }
+  margin: 0;
 }
 
 .offerInfo {
-  composes: marketplaceModalParagraphStyles from global;
-  margin: -12px 0 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  margin: 8px 0 0 0;
   color: var(--colorGrey700);
 }
 
-.submitButton {
-  margin-top: auto;
-  margin-bottom: 96px;
+.counterOfferMessage {
   flex-shrink: 0;
+  margin: 16px 0 0 0;
+}
+
+/* The optional message starts as a single line and grows while typing */
+.messageInput {
+  min-height: 48px;
+
+  @media (--viewportMedium) {
+    min-height: 48px;
+  }
+}
+
+.submitButton {
+  flex-shrink: 0;
+  margin-top: 16px;
 
   @media (--viewportMedium) {
     display: inline-block;
     width: 100%;
-    margin-top: 36px;
-    margin-bottom: 0;
   }
 }

@@ -69,6 +69,7 @@ const MakeCounterOfferForm = props => (
           {messageField ? (
             <FieldTextInput
               className={css.counterOfferMessage}
+              inputRootClass={css.messageInput}
               type="textarea"
               id={formId ? `${formId}.message` : 'message'}
               name="message"
@@ -76,7 +77,7 @@ const MakeCounterOfferForm = props => (
               placeholder={messageField.placeholder}
             />
           ) : null}
-          <p className={css.errorPlaceholder}>{errorMessageMaybe}</p>
+          {errorMessageMaybe ? <p className={css.errorPlaceholder}>{errorMessageMaybe}</p> : null}
           <Button
             className={css.submitButton}
             type="submit"
