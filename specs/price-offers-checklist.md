@@ -49,7 +49,8 @@ Working file for building `specs/price-offers.md`. Tick an item only when its ch
 - [ ] Staging scenario: listing-price buy while offer accepted → offer buyer can't pay
 - [ ] Staging scenario: "Buy" unchanged end-to-end
 - [ ] Timers checked with shortened periods, then restored
-- [ ] Self-review of the diff
+- [ ] Self-review of the diff (fresh-context review 2026-10-05: 1 blocker — checkout message not
+      shown on offer-purchase — fixed in 68d6d172c with a test; re-review after staging changes)
 
 ## Found along the way
 
@@ -57,9 +58,13 @@ Working file for building `specs/price-offers.md`. Tick an item only when its ch
   to the buyer's open offer instead of offering a new one.
 - Locale files: fork-added keys only exist in en/lt/pl (the other 14 files are upstream leftovers
   outside `SUPPORTED_LOCALES`), so offer keys are added to en/lt/pl only.
-- `AuthenticationPage.test.js` › "keeps the regular brand panel on the login tab" failed once in
-  the full run and passes alone (11/11): load-related flake, file not touched by this work.
+- `AuthenticationPage.test.js` › "keeps the regular brand panel on the login tab" failed once in the
+  full run and passes alone (11/11): load-related flake, file not touched by this work.
 
 - State names `offer-pending` / `offer-accepted` collide with default-negotiation's states in the
   state-based notification query (`user.duck.js` → `getStatesNeeding*Attention`), which would badge
   the wrong party. Renamed to `buyer-offer-pending` / `offer-agreed`.
+- Open: Inbox (`InboxPage.duck.js`, via `getSupportedProcessesInfo`) and `delete-account.js` now
+  query `processNames` including `offer-purchase` even with the flag off. If the Marketplace API
+  rejected an unknown process name, Inbox would break on an environment without the process (Live
+  before the push). Check on staging _before_ pushing the process: open the Inbox logged in.
