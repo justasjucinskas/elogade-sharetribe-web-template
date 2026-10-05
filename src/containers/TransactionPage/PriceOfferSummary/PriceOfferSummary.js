@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
 import {
@@ -44,6 +44,12 @@ const deadlineFormat = {
  */
 const PriceOfferSummary = props => {
   const { className, transaction, transactionRole, processState, intl } = props;
+  // Deadlines are shown in the viewer's time zone: render them only in the browser, so that
+  // server-rendered markup (server time zone) can't differ from the hydrated one.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const { states } = getProcess(OFFER_PURCHASE_PROCESS_NAME);
   const isCustomer = transactionRole === 'customer';
 
@@ -70,7 +76,7 @@ const PriceOfferSummary = props => {
     transaction,
     isAgreed ? AGREED_OFFER_PAYMENT_HOURS : OFFER_RESPONSE_HOURS
   );
-  const formattedDeadline = deadline ? intl.formatDate(deadline, deadlineFormat) : null;
+  const formattedDeadline = mounted && deadline ? intl.formatDate(deadline, deadlineFormat) : null;
 
   // Whose move is it: the buyer's offer waits for the seller, the counter offer for the buyer.
   const isOwnOffer =

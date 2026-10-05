@@ -16,6 +16,7 @@ import {
   isDownloadProcess as isDownloadProcessFn,
   isInquiryProcess as isInquiryProcessFn,
   isNegotiationProcess as isNegotiationProcessFn,
+  isOfferPurchaseProcess as isOfferPurchaseProcessFn,
 } from '../../../transactions/transaction';
 
 import css from './TransactionFields.module.css';
@@ -236,7 +237,9 @@ const TransactionFields = props => {
   } = props;
 
   const isBookingProcess = isBookingProcessFn(processName);
-  const isPurchaseProcess = isPurchaseProcessFn(processName);
+  // Price offers (offer-purchase) are paid like a purchase: same checkout message.
+  const isPurchaseProcess =
+    isPurchaseProcessFn(processName) || isOfferPurchaseProcessFn(processName);
   const isDownloadProcess = isDownloadProcessFn(processName);
   const isInquiryProcess = isInquiryProcessFn(processName);
   const isNegotiationProcess = isNegotiationProcessFn(processName);
