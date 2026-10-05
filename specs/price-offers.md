@@ -207,10 +207,15 @@ never push there. Live was checked on 2026-10-05: same listing types as staging
   that process, only staging; no other CLI writes (`search set`, `stripe update-version`, other
   processes' aliases).
 - CLI: `flex-cli` (installed with yarn at `~/.yarn/bin/flex-cli`, on PATH via `~/.zshrc`), logged
-  in. Marketplace IDs: staging = `TODO`, Live = `TODO` — get them from the user if still TODO (the
-  part after `/m/` in the Console URL); confirm each with `flex-cli process list -m <id>`
+  in. Marketplace IDs: staging = `TODO`, Live = `checkme` — get them from the user if still TODO
+  (the part after `/m/` in the Console URL); confirm each with `flex-cli process list -m <id>`
   (read-only). The Live marketplace ID must belong to the environment of client id `34ce3207…`, not
   `960f1e…`.
+  - Checked 2026-10-05 (read-only `flex-cli events --resource`): a www.elogade.com listing is in
+    `checkme`, so **`checkme` is Live**. `checkme-test` and `checkme-dev` are its idle Test/Dev
+    environments (no events in 90 days). Staging (`76bc4e…`) is **not** among them: a staging
+    listing created 2026-09-07 has no events there. The CLI's API key can write to `checkme` (Live)
+    but gets "Access denied" for the `elogade*` IDs tried.
 - (Resolved 2026-10-05: user confirmed staging uses Stripe **test** keys — test-card payments on
   staging are fine.)
 - Any Console change (none needed).
