@@ -98,8 +98,10 @@ Working file for building `specs/email-languages.md`. Tick an item only when its
   buyers read „…reach out to {marketplaceName} support.“). Console's English for
   `PurchaseOrderMarkedAsDelivered.ContentShipped`/`ContentDelivered` and `PurchaseOrderReceipt.Body`
   mentions `{marketplaceName}`, but those `t` calls don't pass it. lt/pl say „our support team“
-  instead. Fix for English: add `marketplaceName=marketplace.name` to those three calls (changes
-  English output, so not done here).
+  instead. **Fixed 2026-10-06 at the user's request:** the three calls now pass
+  `marketplaceName=marketplace.name` (both processes). English output of the receipt and
+  marked-as-delivered emails changes from „{marketplaceName} support“ to „Elogade support“ once the
+  processes are pushed; until then Live keeps the bug.
 - **Live English bug: doubled full stop.** The template adds "." after
   `PurchaseMarkOrderReceivedReminder.ContentParagraph2`, `PurchaseOrderDisputed.ContentParagraph1`/
   `2`, `PurchaseOrderOperatorMarkedAsDelivered.ContentDelivered`,
