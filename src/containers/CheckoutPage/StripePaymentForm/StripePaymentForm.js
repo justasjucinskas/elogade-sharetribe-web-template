@@ -362,7 +362,12 @@ class StripePaymentForm extends Component {
     const elements = this.stripe.elements(stripeElementsOptions);
 
     if (!this.card) {
-      this.card = elements.create('card', { style: cardStyles });
+      this.card = elements.create('card', {
+        style: cardStyles,
+        // The billing address below already asks for the postal code and it's sent to Stripe with
+        // the billing details, so Stripe's own postal code (ZIP) box in the card field is hidden.
+        hidePostalCode: true,
+      });
       this.card.mount(element || this.cardContainer);
       this.card.addEventListener('change', this.handleCardValueChange);
       // EventListener is the only way to simulate breakpoints with Stripe.
@@ -418,11 +423,6 @@ class StripePaymentForm extends Component {
   handleCardValueChange(event) {
     const { intl } = this.props;
     const { error, complete } = event;
-
-    const postalCode = event.value.postalCode;
-    if (this.finalFormAPI) {
-      this.finalFormAPI.change('postal', postalCode);
-    }
 
     this.setState(prevState => {
       return {
