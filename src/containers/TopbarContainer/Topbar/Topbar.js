@@ -156,6 +156,7 @@ const TopbarComponent = props => {
     location,
     onManageDisableScrolling,
     onResendVerificationEmail,
+    onSelectLocale,
     sendVerificationEmailInProgress,
     sendVerificationEmailError,
     showGenericError,
@@ -260,6 +261,7 @@ const TopbarComponent = props => {
       isAuthenticated={isAuthenticated}
       currentUser={currentUser}
       onLogout={handleLogout}
+      onSelectLocale={onSelectLocale}
       notificationCount={notificationCount}
       unreadMessageCount={unreadMessageCount}
       currentPage={resolvedCurrentPage}
@@ -400,6 +402,7 @@ const TopbarComponent = props => {
           notificationCount={notificationCount}
           unreadMessageCount={unreadMessageCount}
           onLogout={handleLogout}
+          onSelectLocale={onSelectLocale}
           onSearchSubmit={handleSubmit}
           config={config}
           customLinks={customLinks}
@@ -486,6 +489,7 @@ const TopbarComponent = props => {
  * @param {Function} props.onLogout
  * @param {Function} props.onManageDisableScrolling
  * @param {Function} props.onResendVerificationEmail
+ * @param {Function} [props.onSelectLocale] stores a newly chosen UI locale on the current user
  * @param {Object} props.sendVerificationEmailInProgress
  * @param {Object} props.sendVerificationEmailError
  * @param {boolean} props.showGenericError

@@ -9,6 +9,9 @@ coverage
 # production
 build
 
+# generated email templates and previews (scripts/build-email-templates.js)
+/ext/generated/
+
 # misc
 .DS_Store
 .env

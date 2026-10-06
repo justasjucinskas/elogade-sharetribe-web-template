@@ -246,6 +246,7 @@ const BlankPage = props => {
  * @param {Function} props.submitLogin - The login submit function
  * @param {Function} props.submitSignup - The signup submit function
  * @param {Function} props.submitSingupWithIdp - The signup with IdP submit function
+ * @param {string} [props.locale] - The current UI locale, stored on the new user's publicData
  * @param {'login' | 'signup'| 'confirm'} props.tab - The tab to render
  * @param {boolean} props.sendVerificationEmailInProgress - Whether the verification email is in progress
  * @param {propTypes.error} props.sendVerificationEmailError - The verification email error
@@ -295,6 +296,7 @@ export const AuthenticationPageComponent = props => {
     submitLogin,
     submitSignup,
     submitSingupWithIdp,
+    locale,
     tab = 'signup',
     sendVerificationEmailInProgress,
     sendVerificationEmailError,
@@ -474,6 +476,7 @@ export const AuthenticationPageComponent = props => {
                             submitSignup,
                             userFields,
                             userTypes,
+                            locale,
                           })}
                           inProgress={authInProgress}
                           termsAndConditions={termsAndConditions}
@@ -520,6 +523,7 @@ export const AuthenticationPageComponent = props => {
                         submitSingupWithIdp,
                         userFields,
                         userTypes,
+                        locale,
                       })}
                       termsAndConditions={termsAndConditions}
                       authInfo={authInfo}
@@ -598,6 +602,7 @@ const AuthenticationPage = props => {
   const loginError = useSelector(state => state.auth?.loginError);
   const signupError = useSelector(state => state.auth?.signupError);
   const confirmError = useSelector(state => state.auth?.confirmError);
+  const locale = useSelector(state => state.locale?.current);
   const scrollingDisabled = useSelector(state => isScrollingDisabled(state));
 
   const sendVerificationEmailInProgress = useSelector(
@@ -640,6 +645,7 @@ const AuthenticationPage = props => {
       submitLogin={submitLogin}
       submitSignup={submitSignup}
       submitSingupWithIdp={submitSingupWithIdp}
+      locale={locale}
       sendVerificationEmailInProgress={sendVerificationEmailInProgress}
       sendVerificationEmailError={sendVerificationEmailError}
       onResendVerificationEmail={onResendVerificationEmail}

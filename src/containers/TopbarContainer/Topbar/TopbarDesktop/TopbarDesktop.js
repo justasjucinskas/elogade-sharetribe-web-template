@@ -171,6 +171,7 @@ const ProfileMenu = ({
  * @param {number} props.notificationCount
  * @param {number} props.unreadMessageCount number of unread messages across conversations
  * @param {Function} props.onLogout
+ * @param {Function} [props.onSelectLocale] passed to LanguageSwitcher
  * @param {Function} props.onSearchSubmit
  * @param {Object?} props.initialSearchFormValues
  * @param {Object} props.intl
@@ -193,6 +194,7 @@ const TopbarDesktop = props => {
     intl,
     isAuthenticated,
     onLogout,
+    onSelectLocale,
     onSearchSubmit,
     initialSearchFormValues = {},
     showSearchForm,
@@ -290,7 +292,7 @@ const TopbarDesktop = props => {
       {profileMenuMaybe}
       {loginLinkMaybe}
       {signupLinkMaybe}
-      <LanguageSwitcher />
+      <LanguageSwitcher onSelectLocale={onSelectLocale} />
     </nav>
   );
 };

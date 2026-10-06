@@ -5,6 +5,7 @@ import * as log from '../util/log';
 import { LISTING_STATE_DRAFT } from '../util/types';
 import { isForbiddenError, storableError } from '../util/errors';
 import { isUserAuthorized } from '../util/userHelpers';
+import { isSupportedLocale } from '../config/configLocale';
 import {
   getStatesNeedingProviderAttention,
   getStatesNeedingCustomerAttention,
@@ -27,6 +28,16 @@ const mergeCurrentUser = (oldCurrentUser, newCurrentUser) => {
     : oldCurrentUser === null
     ? newCurrentUser
     : { id, type, attributes, ...oldRelationships, ...relationships };
+};
+
+// Language of the user's emails, see updateCurrentUserLocale.
+const storedLocale = currentUser => currentUser?.attributes?.profile?.publicData?.locale;
+
+// True only when publicData was fetched and has no locale: a sparse-fields fetch without
+// publicData must not look like a missing locale.
+const isLocaleMissing = currentUser => {
+  const publicData = currentUser?.attributes?.profile?.publicData;
+  return !!publicData && typeof publicData === 'object' && !publicData.locale;
 };
 
 // ================ Async Thunks ================ //
@@ -534,7 +545,16 @@ export const fetchCurrentUserThunk = createAsyncThunk(
  * @param {boolean} [options.enforce]             Enforce the call even if the currentUser entity is freshly fetched.
  */
 export const fetchCurrentUser = options => (dispatch, getState, sdk) => {
-  return dispatch(fetchCurrentUserThunk(options)).unwrap();
+  return dispatch(fetchCurrentUserThunk(options))
+    .unwrap()
+    .then(currentUser => {
+      // One-time backfill for users who signed up before the locale was stored: take the
+      // language of the current URL. Client side only, so that a server render never writes.
+      if (typeof window !== 'undefined' && isLocaleMissing(currentUser)) {
+        dispatch(updateCurrentUserLocale(getState().locale?.current));
+      }
+      return currentUser;
+    });
 };
 
 /////////////////////////////////////////////
@@ -560,6 +580,48 @@ export const sendVerificationEmailThunk = createAsyncThunk(
 // Backward compatible wrapper for the thunk
 export const sendVerificationEmail = () => (dispatch, getState, sdk) => {
   return dispatch(sendVerificationEmailThunk()).unwrap();
+};
+
+//////////////////////////////////////////////////////////////////
+// Store the UI locale on currentUser (language of their emails) //
+//////////////////////////////////////////////////////////////////
+
+// The transaction email templates read publicData.locale to pick the recipient's language
+// (specs/email-languages.md). Resolves to the stored locale, or null when nothing was written.
+const updateCurrentUserLocalePayloadCreator = (locale, { extra: sdk }) =>
+  sdk.currentUser.updateProfile({ publicData: { locale } }).then(() => locale);
+
+export const updateCurrentUserLocaleThunk = createAsyncThunk(
+  'user/updateCurrentUserLocale',
+  updateCurrentUserLocalePayloadCreator,
+  {
+    // Skip unsupported values, logged-out users, an unchanged value, and operators who are
+    // logged in as the user (their browsing language is not the user's).
+    condition: (locale, { getState }) => {
+      const { user, auth } = getState();
+      return (
+        isSupportedLocale(locale) &&
+        !!user?.currentUser &&
+        !auth?.isLoggedInAs &&
+        storedLocale(user.currentUser) !== locale
+      );
+    },
+  }
+);
+
+/**
+ * Store `locale` as the current user's publicData.locale. Never rejects: a failed write only means
+ * the emails keep the previous (or the Lithuanian fallback) language.
+ *
+ * @param {string} locale one of SUPPORTED_LOCALES
+ */
+export const updateCurrentUserLocale = locale => (dispatch, getState, sdk) => {
+  return dispatch(updateCurrentUserLocaleThunk(locale)).then(action => {
+    if (action.error && !action.meta?.condition) {
+      log.error(action.error, 'update-current-user-locale-failed', { locale });
+    }
+    return action.payload || null;
+  });
 };
 
 // Keep the in-store currentUser's privateData.messagesRead in sync after a
@@ -616,6 +678,13 @@ const userSlice = createSlice({
   },
   extraReducers: builder => {
     builder
+      // updateCurrentUserLocale
+      .addCase(updateCurrentUserLocaleThunk.fulfilled, (state, action) => {
+        const profile = state.currentUser?.attributes?.profile;
+        if (profile) {
+          profile.publicData = { ...profile.publicData, locale: action.payload };
+        }
+      })
       // fetchCurrentUser
       .addCase(fetchCurrentUserThunk.pending, state => {
         state.currentUserShowError = null;

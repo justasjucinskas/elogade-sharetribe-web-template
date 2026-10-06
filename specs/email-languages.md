@@ -1,6 +1,30 @@
 # Email languages (en / lt / pl per recipient)
 
-Status: spec, not built. Written 2026-10-06. Build it in a fresh session, in its own worktree.
+Status: **built 2026-10-06, not yet on staging or Live** (branch
+`claude/email-languages-spec-0a4368`). Progress and evidence: `specs/email-languages-checklist.md`.
+Written 2026-10-06.
+
+## As built — where it differs from the design below
+
+- **`t` with a prefixed key, not `format-text`.** `format-text` prints `<salelink>…</salelink>`
+  literally instead of a link. The lt/pl branches are `{{t "lt.<Key>" "<lt text>" args…}}`: that key
+  is not in Console's `email-texts.json`, so `t` uses the repo text and renders links as usual.
+  Bonus: adding `lt.<Key>` to Console later overrides the repo text (the "edit without rebuilding"
+  path under Limits).
+- **Recipient from `recipient.public-data.locale`, not a role per template.** Five templates go to
+  both roles (review published/unpublished, offer closed/expired, accepted offer expired), so the
+  role in `process.edn` can't pick one locale. Sharetribe's email context has `recipient` with
+  `public-data`.
+- **Output in `ext/generated/` (git-ignored), not `build/`.** `yarn build` empties `build/`.
+- **English source for the translations is what Live sends** (Console `email-texts.json` on
+  `checkme`, 521 texts), not the template defaults: 38 keys differ (operator edits such as the
+  electronics tips). Offer keys are not in Console, so their template defaults are the source.
+- **Open questions, answered:** `set-locale` works inside a branch; `{{else eq …}}` chains render;
+  in-flight transactions stay on their process version (Sharetribe docs), so they keep English
+  emails until they finish; built-in emails (verify email, password reset) also get
+  `recipient.public-data` but are Console-only templates — out of scope; `getExtendedDataMaybe`
+  returns `{}` when the form has no extra values, so the locale is added after it
+  (`addLocaleToExtendedData`), with user-field values winning.
 
 ## Goal
 

@@ -347,7 +347,10 @@ describe('Duck', () => {
     };
 
     const sdk = {
-      currentUser: { show: sdkFn(fakeResponse(currentUser)) },
+      currentUser: {
+        show: sdkFn(fakeResponse(currentUser)),
+        updateProfile: sdkFn(fakeResponse(currentUser)),
+      },
       users: { show: sdkFn(fakeResponse(user)) },
       reviews: { query: sdkFn(fakeResponse(reviews)) },
       listings: { query: sdkFn(fakeResponse([listing])) },
@@ -371,8 +374,11 @@ describe('Duck', () => {
     // loadData() function is called. If you make customizations to the loadData() logic,
     // update the dispatched actions list in this test accordingly!
     return loadData({ id: userId }, null, config)(dispatch, getState, sdk).then(data => {
+      // fetchCurrentUser and its one-time locale backfill run in the background.
       const relevantActions = actions.filter(
-        action => !action.type.startsWith('user/fetchCurrentUser/')
+        action =>
+          !action.type.startsWith('user/fetchCurrentUser/') &&
+          !action.type.startsWith('user/updateCurrentUserLocale/')
       );
 
       // Check that setInitialState is first
@@ -432,7 +438,10 @@ describe('Duck', () => {
     };
 
     const sdk = {
-      currentUser: { show: sdkFn(fakeResponse(currentUser)) },
+      currentUser: {
+        show: sdkFn(fakeResponse(currentUser)),
+        updateProfile: sdkFn(fakeResponse(currentUser)),
+      },
       users: { show: errorSdkFn(forbiddenError) },
       listings: { query: errorSdkFn(forbiddenError) },
       reviews: { query: errorSdkFn(forbiddenError) },
@@ -453,8 +462,11 @@ describe('Duck', () => {
     // loadData() function is called. If you make customizations to the loadData() logic,
     // update the dispatched actions list in this test accordingly!
     return loadData({ id: 'otherUserId' }, null, config)(dispatch, getState, sdk).then(data => {
+      // fetchCurrentUser and its one-time locale backfill run in the background.
       const relevantActions = actions.filter(
-        action => !action.type.startsWith('user/fetchCurrentUser/')
+        action =>
+          !action.type.startsWith('user/fetchCurrentUser/') &&
+          !action.type.startsWith('user/updateCurrentUserLocale/')
       );
 
       // Check that setInitialState is first
@@ -515,7 +527,10 @@ describe('Duck', () => {
     };
 
     const sdk = {
-      currentUser: { show: sdkFn(fakeResponse(currentUser)) },
+      currentUser: {
+        show: sdkFn(fakeResponse(currentUser)),
+        updateProfile: sdkFn(fakeResponse(currentUser)),
+      },
       ownListings: { query: sdkFn(fakeResponse([listing])) },
       authInfo: sdkFn({}),
     };
@@ -533,8 +548,11 @@ describe('Duck', () => {
     // loadData() function is called. If you make customizations to the loadData() logic,
     // update the dispatched actions list in this test accordingly!
     return loadData({ id: userId }, null, config)(dispatch, getState, sdk).then(data => {
+      // fetchCurrentUser and its one-time locale backfill run in the background.
       const relevantActions = actions.filter(
-        action => !action.type.startsWith('user/fetchCurrentUser/')
+        action =>
+          !action.type.startsWith('user/fetchCurrentUser/') &&
+          !action.type.startsWith('user/updateCurrentUserLocale/')
       );
 
       // Check that setInitialState is first

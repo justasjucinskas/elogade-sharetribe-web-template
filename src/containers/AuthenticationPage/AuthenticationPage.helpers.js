@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 
+import { isSupportedLocale } from '../../config/configLocale';
 import { isEmpty } from '../../util/common';
 import { pickUserFieldsData, addScopePrefix } from '../../util/userHelpers';
 import { pickReferralData } from '../../util/webStorageHelpers';
@@ -72,15 +73,35 @@ export const getExtendedDataMaybe = (submitValues, userType, userFields, extraDa
 };
 
 /**
+ * Adds the UI locale to the new user's publicData, so that transaction emails are sent in that
+ * language (see specs/email-languages.md). Unsupported values are left out. User-field values
+ * win over it, as they are spread after it.
+ *
+ * @param {Object} extendedData result of getExtendedDataMaybe (may be empty)
+ * @param {string} locale current UI locale, e.g. 'lt'
+ * @returns {Object}
+ */
+export const addLocaleToExtendedData = (extendedData, locale) =>
+  isSupportedLocale(locale)
+    ? { ...extendedData, publicData: { locale, ...extendedData.publicData } }
+    : extendedData;
+
+/**
  * Creates a submit handler for the signup form.
  * I.e. the handler dispatches the signup thunk action.
  *
  * @param {Object} params
  * @param {Function} params.submitSignup
  * @param {Array} params.userFields
+ * @param {string} [params.locale] current UI locale, stored as publicData.locale
  * @returns {(values: Object) => void}
  */
-export const getHandleSubmitSignup = ({ submitSignup, userFields, userTypes }) => values => {
+export const getHandleSubmitSignup = ({
+  submitSignup,
+  userFields,
+  userTypes,
+  locale,
+}) => values => {
   const { userType, email, password, fname, lname, displayName, ...rest } = values;
   const displayNameMaybe = displayName ? { displayName: displayName.trim() } : {};
 
@@ -94,9 +115,12 @@ export const getHandleSubmitSignup = ({ submitSignup, userFields, userTypes }) =
     firstName: fname.trim(),
     lastName: lname.trim(),
     ...displayNameMaybe,
-    ...getExtendedDataMaybe(rest, userType, userFields, {
-      privateData: extraPrivateData,
-    }),
+    ...addLocaleToExtendedData(
+      getExtendedDataMaybe(rest, userType, userFields, {
+        privateData: extraPrivateData,
+      }),
+      locale
+    ),
   };
 
   submitSignup(submitParams);
@@ -110,6 +134,7 @@ export const getHandleSubmitSignup = ({ submitSignup, userFields, userTypes }) =
  * @param {Object} params.authInfo
  * @param {Function} params.submitSingupWithIdp
  * @param {Array} params.userFields
+ * @param {string} [params.locale] current UI locale, stored as publicData.locale
  * @returns {(values: Object) => void}
  */
 export const getHandleSubmitConfirm = ({
@@ -117,6 +142,7 @@ export const getHandleSubmitConfirm = ({
   submitSingupWithIdp,
   userFields,
   userTypes,
+  locale,
 }) => values => {
   const { email, firstName, lastName } = authInfo;
 
@@ -144,9 +170,12 @@ export const getHandleSubmitConfirm = ({
   const extraPrivateData = pickReferralData(userTypeConfig);
 
   // Pass other values as extended data according to user field configuration
-  const extendedDataMaybe = getExtendedDataMaybe(rest, userType, userFields, {
-    privateData: extraPrivateData,
-  });
+  const extendedDataMaybe = addLocaleToExtendedData(
+    getExtendedDataMaybe(rest, userType, userFields, {
+      privateData: extraPrivateData,
+    }),
+    locale
+  );
 
   submitSingupWithIdp({
     ...authParams,

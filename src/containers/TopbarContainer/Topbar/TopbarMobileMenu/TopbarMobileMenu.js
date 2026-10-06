@@ -79,6 +79,7 @@ const CustomLinkComponent = ({ linkConfig, currentPage }) => {
  * @param {number} props.unreadMessageCount number of unread messages across conversations
  * @param {Array<Object>} props.customLinks Contains object like { group, text, type, href, route }
  * @param {Function} props.onLogout
+ * @param {Function} [props.onSelectLocale] passed to LanguageSwitcher
  * @returns {JSX.Element} search icon
  */
 const TopbarMobileMenu = props => {
@@ -91,6 +92,7 @@ const TopbarMobileMenu = props => {
     unreadMessageCount = 0,
     customLinks,
     onLogout,
+    onSelectLocale,
     showCreateListingsLink,
   } = props;
 
@@ -146,7 +148,7 @@ const TopbarMobileMenu = props => {
 
           <ul className={css.customLinksWrapper}>{extraLinks}</ul>
 
-          <LanguageSwitcher variant="mobile" />
+          <LanguageSwitcher variant="mobile" onSelectLocale={onSelectLocale} />
 
           <div className={css.spacer} />
         </div>
@@ -219,7 +221,7 @@ const TopbarMobileMenu = props => {
         </ul>
         <ul className={css.customLinksWrapper}>{extraLinks}</ul>
 
-        <LanguageSwitcher variant="mobile" />
+        <LanguageSwitcher variant="mobile" onSelectLocale={onSelectLocale} />
 
         <div className={css.spacer} />
       </div>

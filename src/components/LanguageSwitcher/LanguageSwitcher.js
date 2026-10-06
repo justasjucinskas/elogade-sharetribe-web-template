@@ -50,6 +50,31 @@ const navigateToLocale = locale => {
   window.location.assign(target);
 };
 
+// How long a language switch waits for onSelectLocale before reloading anyway.
+const PERSIST_TIMEOUT_MS = 3000;
+
+/**
+ * Switches the UI language: remembers it in the cookie, lets `onSelectLocale` store it on the
+ * logged-in user (the language of their emails), then reloads in the new locale. A failed call,
+ * or one slower than `timeoutMs`, does not block the reload.
+ *
+ * @param {string} locale new locale
+ * @param {Object} [options]
+ * @param {(locale: string) => Promise|void} [options.onSelectLocale]
+ * @param {(locale: string) => void} [options.navigate] defaults to a full page navigation
+ * @param {number} [options.timeoutMs]
+ * @returns {Promise<void>} resolves after navigate was called
+ */
+export const switchLocale = (locale, options = {}) => {
+  const { onSelectLocale, navigate = navigateToLocale, timeoutMs = PERSIST_TIMEOUT_MS } = options;
+  writeLocaleCookie(locale);
+  const persist = Promise.resolve()
+    .then(() => onSelectLocale?.(locale))
+    .catch(() => null);
+  const timeout = new Promise(resolve => setTimeout(resolve, timeoutMs));
+  return Promise.race([persist, timeout]).then(() => navigate(locale));
+};
+
 // Minimal globe glyph; inherits the surrounding text color via currentColor.
 const IconGlobe = ({ className }) => (
   <svg
@@ -87,21 +112,25 @@ const IconGlobe = ({ className }) => (
  *
  * Both layouts scale to any number of SUPPORTED_LOCALES.
  *
+ * When `onSelectLocale` is given, it is called with the new locale before the reload, so that a
+ * logged-in user's choice is stored as the language of their emails (specs/email-languages.md).
+ * See switchLocale.
+ *
  * @component
  * @param {Object} props
  * @param {string} [props.className]
  * @param {string} [props.rootClassName]
  * @param {'desktop'|'mobile'} [props.variant='desktop']
+ * @param {(locale: string) => Promise|void} [props.onSelectLocale]
  */
 const LanguageSwitcher = props => {
-  const { className, rootClassName, variant = 'desktop' } = props;
+  const { className, rootClassName, variant = 'desktop', onSelectLocale } = props;
   const intl = useIntl();
   const currentLocale = INTL_CODE_TO_LOCALE[intl.locale] || DEFAULT_LOCALE;
 
   const selectLocale = newLocale => () => {
     if (newLocale === currentLocale) return;
-    writeLocaleCookie(newLocale);
-    navigateToLocale(newLocale);
+    switchLocale(newLocale, { onSelectLocale });
   };
 
   const ariaLabel = intl.formatMessage({ id: 'LanguageSwitcher.ariaLabel' });

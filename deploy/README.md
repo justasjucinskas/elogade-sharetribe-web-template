@@ -58,6 +58,28 @@ To deploy by hand instead:
 docker compose pull && docker compose up -d
 ```
 
+## Transaction emails (en / lt / pl per recipient)
+Email templates are not part of the Docker image: they live in the Sharetribe transaction process
+and go out with `flex-cli`. Each email is sent in the recipient's language, stored as
+`publicData.locale` (set at signup, on the first visit of older users, and by the language
+switcher). Users without one get Lithuanian. Details: `specs/email-languages.md`.
+
+- English stays in `ext/transaction-processes/<process>/templates/` (and Console's Email texts for
+  hosted overrides). Lithuanian and Polish live in `ext/email-texts/{lt,pl}.json`, keyed like the
+  `{{t "Key" …}}` calls. `yarn test` fails when a template key has no translation or a
+  translation's `{placeholders}` differ from the English.
+- **Never push `ext/transaction-processes/` directly**: push the generated folder.
+
+```sh
+node scripts/build-email-templates.js             # → ext/generated/transaction-processes/<process>/
+FLEX_CLI=$(which flex-cli) node scripts/render-email-previews.js   # every template × en/lt/pl, read-only
+flex-cli process push --process offer-purchase --path ext/generated/transaction-processes/offer-purchase -m checkme-test
+flex-cli process update-alias --process offer-purchase --alias release-1 --version <new> -m checkme-test
+```
+
+Then the same on `checkme` (Live) once staging looks right. Rollback: `update-alias` back to the
+previous version. Transactions already in progress stay on their process version.
+
 ## Notes / gotchas
 - **`REACT_APP_*` are build-time.** They're inlined into the browser bundle by CI.
   Changing one means a **rebuild**, not just an env-file edit. The subset the server
