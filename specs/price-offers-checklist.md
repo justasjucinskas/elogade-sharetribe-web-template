@@ -70,3 +70,9 @@ Working file for building `specs/price-offers.md`. Tick an item only when its ch
   names and merging can't break Live's Inbox before the Live push.
 - Sellers need payout details (Stripe Connect, test data on staging) for any payment, incl. paying
   an agreed offer; making/accepting an offer doesn't touch Stripe.
+- Staging deployment `staging.elogade.com` (2026-10-06, `deploy/staging/`): second container on the
+  Hetzner VM against `checkme-test`, Stripe test key baked in. Sharetribe's hosted site for
+  `checkme-test` runs the standard UI, so offers are only visible on staging.elogade.com.
+- Stripe's own ZIP box in the card field duplicated the billing postal code (and overwrote it):
+  hidden in checkout and payment methods (`08867b5d7`). User confirmed on 2026-10-06 that the box is
+  gone and checkout works.
