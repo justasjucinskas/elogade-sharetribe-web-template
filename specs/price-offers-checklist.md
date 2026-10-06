@@ -38,17 +38,20 @@ Working file for building `specs/price-offers.md`. Tick an item only when its ch
 
 ## Checks
 
-- [ ] `yarn test` (client) and `yarn run test-server` pass
-- [ ] `yarn build` passes
-- [ ] `yarn run format-ci` clean
+- [x] `yarn test` (client) and `yarn run test-server` pass
+- [x] `yarn build` passes
+- [x] `yarn run format-ci` clean
 - [x] Staging: process pushed + alias (`checkme-test`, offer-purchase v1, `release-1`, 2026-10-05)
-- [ ] Staging scenario: offer → accept → pay → ship → received → reviews
+- [ ] Staging scenario: offer → accept → pay → ship → received → reviews — user ran offer → accept →
+      pay once on staging (Martynas's AirTags listing, 2026-10-06); later steps not reported
 - [ ] Staging scenario: offer → counter → counter → accept → pay
 - [ ] Staging scenario: offer below 50 % blocked in UI and API
 - [ ] Staging scenario: two accepted offers, first pays, second sees "sold"
 - [ ] Staging scenario: listing-price buy while offer accepted → offer buyer can't pay
 - [ ] Staging scenario: "Buy" unchanged end-to-end
-- [ ] Timers checked with shortened periods, then restored
+- [ ] Timers checked with shortened periods, then restored — **skipped by the user** (2026-10-06): a
+      5-minute version (v2) was pushed to `checkme-test`, no offer was made on it, alias restored to
+      v1. Expiry is covered by unit tests and `flex-cli` validation only.
 - [ ] Self-review of the diff (fresh-context review 2026-10-05: 1 blocker — checkout message not
       shown on offer-purchase — fixed in 68d6d172c with a test; re-review after staging changes)
 
@@ -76,3 +79,9 @@ Working file for building `specs/price-offers.md`. Tick an item only when its ch
 - Stripe's own ZIP box in the card field duplicated the billing postal code (and overwrote it):
   hidden in checkout and payment methods (`08867b5d7`). User confirmed on 2026-10-06 that the box is
   gone and checkout works.
+- **Live 2026-10-06** (user chose to skip the remaining staging scenarios and the timer test):
+  `offer-purchase` v1 + `release-1` created on `checkme`, GitHub variable
+  `REACT_APP_PRICE_OFFERS_ENABLED=true`, `main` pushed (`bac5a7ea2`, checks before push: format
+  clean, client 1282/1282, server 264/264, build OK), Watchtower redeployed `elogade-web`; "Make an
+  offer" visible on www.elogade.com, no console or server-log errors. Rollback: set the variable to
+  `false` and re-run the deploy workflow.

@@ -1,6 +1,8 @@
 # Price offers ("Siūlyti kainą")
 
-Status: spec, not built. Written 2026-10-05.
+Status: built and live on www.elogade.com since 2026-10-06 (`offer-purchase` v1 on `checkme`,
+`REACT_APP_PRICE_OFFERS_ENABLED=true`). Written 2026-10-05. Build notes and what was verified:
+`specs/price-offers-checklist.md`.
 
 ## Goal
 
