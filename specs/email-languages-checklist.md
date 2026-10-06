@@ -85,8 +85,12 @@ Working file for building `specs/email-languages.md`. Tick an item only when its
 
 ## Staging (needs the user)
 
-- [ ] Push `offer-purchase` to `checkme-test` + alias (pre-approved)
-- [ ] Push `default-purchase` to `checkme-test` (**ask first**)
+- [x] Push `offer-purchase` to `checkme-test` + alias: v3, `release-1` → 3 (2026-10-06 17:28;
+      rollback: alias → 1). Pulled back: 70 template files identical to the generated ones
+- [x] Push `default-purchase` to `checkme-test` (user approved 2026-10-06): v2, `release-1` → 2
+      (rollback: alias → 1). Pulled back: 50 template files identical
+- [x] Staging app redeployed from this branch (user approved 2026-10-06): container healthy,
+      `staging.elogade.com/lt` 200, bundle contains `user/updateCurrentUserLocale`; Live untouched
 - [ ] Scenarios with en/lt/pl test users (purchase, offer → counter → accept, no-locale user,
       English unchanged)
 - [ ] Real email confirms `recipient.public-data.locale` is filled when Sharetribe sends (the
