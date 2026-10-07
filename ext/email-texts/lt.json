@@ -211,5 +211,11 @@
   "OfferPurchaseOfferWithdrawn.Title": "{customerDisplayName} atšaukė savo pasiūlymą dėl „{listingTitle}“",
   "OfferPurchaseOfferWithdrawn.Content": "Derybos baigtos. Prekę „{listingTitle}“ vis dar gali įsigyti kiti pirkėjai.",
   "OfferPurchaseOfferWithdrawn.Cta": "Peržiūrėti pasiūlymą",
-  "OfferPurchaseOfferWithdrawn.Subject": "{customerDisplayName} atšaukė savo pasiūlymą dėl „{listingTitle}“"
+  "OfferPurchaseOfferWithdrawn.Subject": "{customerDisplayName} atšaukė savo pasiūlymą dėl „{listingTitle}“",
+  "ResetPassword.ChangePasswordLink": "Pakeisti slaptažodį",
+  "ResetPassword.IgnorePasswordChangeParagraph": "Jei nenorite keisti slaptažodžio arba šios užklausos neteikėte, tiesiog ignoruokite ir ištrinkite šį laišką.",
+  "ResetPassword.LinkExpiryText": "Nuoroda galios 1 valandą.",
+  "ResetPassword.Subject": "{marketplaceName}: slaptažodžio atstatymo instrukcijos",
+  "ResetPassword.Title": "Gavome prašymą pakeisti jūsų slaptažodį",
+  "ResetPassword.ChangePasswordParagraph": "Sveiki, {firstName}! Neseniai buvo paprašyta pakeisti jūsų {marketplaceName} paskyros slaptažodį. Jei tai buvote jūs, slaptažodį galite pakeisti paspaudę žemiau esantį mygtuką."
 }

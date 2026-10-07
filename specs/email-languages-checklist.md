@@ -96,6 +96,16 @@ Working file for building `specs/email-languages.md`. Tick an item only when its
 - [ ] Real email confirms `recipient.public-data.locale` is filled when Sharetribe sends (the
       preview only proves it with our own context)
 
+## Built-in emails (Console-only)
+
+- [x] Reset password: Console source copied (user paste, matched the editor's checksum), en/lt/pl
+      generated, 4 renders ok (English identical), saved on `checkme-test` 2026-10-07; Console
+      preview shows Lithuanian for its sample user. Live untouched
+- [ ] Real reset email received in the account's language (user test)
+- [ ] The other 9 (verify email, verify changed email, new message, user joined, user approved,
+      password changed, email changed, listing approved, user permissions changed): translations in
+      `ext/built-in-emails/pending-texts/`, Console source still to copy
+
 ## Found along the way
 
 - **Live English bug: `{marketplaceName}` not passed** (confirmed by rendering against `checkme`:

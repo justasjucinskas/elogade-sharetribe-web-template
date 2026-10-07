@@ -211,5 +211,11 @@
   "OfferPurchaseOfferWithdrawn.Title": "Kupujący {customerDisplayName} wycofuje ofertę na „{listingTitle}”",
   "OfferPurchaseOfferWithdrawn.Content": "Negocjacje zakończyły się. Przedmiot „{listingTitle}” jest nadal dostępny dla innych kupujących.",
   "OfferPurchaseOfferWithdrawn.Cta": "Zobacz ofertę",
-  "OfferPurchaseOfferWithdrawn.Subject": "Oferta wycofana: „{listingTitle}” (kupujący: {customerDisplayName})"
+  "OfferPurchaseOfferWithdrawn.Subject": "Oferta wycofana: „{listingTitle}” (kupujący: {customerDisplayName})",
+  "ResetPassword.ChangePasswordLink": "Zmień hasło",
+  "ResetPassword.IgnorePasswordChangeParagraph": "Jeśli nie chcesz zmieniać hasła albo ta prośba nie pochodzi od Ciebie, po prostu zignoruj i usuń tę wiadomość.",
+  "ResetPassword.LinkExpiryText": "Link wygaśnie za godzinę.",
+  "ResetPassword.Subject": "Instrukcje resetowania hasła w serwisie {marketplaceName}",
+  "ResetPassword.Title": "Otrzymaliśmy prośbę o zmianę Twojego hasła",
+  "ResetPassword.ChangePasswordParagraph": "Cześć {firstName}! Otrzymaliśmy niedawno prośbę o zmianę hasła do Twojego konta w serwisie {marketplaceName}. Jeśli to Ty, możesz zmienić hasło, klikając przycisk poniżej."
 }

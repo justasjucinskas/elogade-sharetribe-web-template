@@ -31,6 +31,14 @@ const BUILD_DIR = path.join(GENERATED_DIR, 'transaction-processes');
 // Processes this marketplace uses. The other default-* processes are left alone.
 const PROCESSES = ['default-purchase', 'offer-purchase'];
 
+// Built-in emails (password reset, email verification, welcome, new message, …) are edited in
+// Console only. Copies of their Console source live here as <dir>/templates/<name>/<name>-…, in
+// the same layout as a process, and the generated versions are pasted back into Console.
+const BUILT_IN = 'built-in-emails';
+const BUILT_IN_DIR = path.join(ROOT, 'ext', BUILT_IN);
+const SOURCES = [...PROCESSES, BUILT_IN];
+const sourceDir = name => (name === BUILT_IN ? BUILT_IN_DIR : path.join(PROCESSES_DIR, name));
+
 // Languages with a translation file. English is the templates themselves.
 const TRANSLATED_LOCALES = ['lt', 'pl'];
 const FALLBACK_LOCALE = 'lt';
@@ -170,7 +178,7 @@ const localeBranches = ({ en, lt, pl }) =>
  * @param {{ isHtml: boolean, name: string }} options
  * @returns {string}
  */
-const transformTemplate = (source, texts, { isHtml, name }) => {
+const transformTemplate = (source, texts, { isHtml, name, strict = true }) => {
   const calls = findTCalls(source);
   let out = '';
   let last = 0;
@@ -188,7 +196,30 @@ const transformTemplate = (source, texts, { isHtml, name }) => {
   });
   out += source.slice(last);
 
-  if (isHtml) {
+  const nonEnglishLocale = localeBranches({
+    en: '',
+    lt: `{{set-locale "${ICU_LOCALES.lt}"}}`,
+    pl: `{{set-locale "${ICU_LOCALES.pl}"}}`,
+  });
+  // Console's built-in templates are not under our control: replace what is there instead of
+  // insisting on the transaction templates' exact lines.
+  if (isHtml && !strict) {
+    out = out.replace(
+      ORIGINAL_HTML_LANG,
+      `<html lang="${localeBranches({ en: 'en', lt: 'lt', pl: 'pl' })}">`
+    );
+    const setLocale = out.match(/\{\{set-locale [^}]*\}\}/);
+    out = setLocale
+      ? out.replace(
+          setLocale[0],
+          localeBranches({
+            en: setLocale[0],
+            lt: `{{set-locale "${ICU_LOCALES.lt}"}}`,
+            pl: `{{set-locale "${ICU_LOCALES.pl}"}}`,
+          })
+        )
+      : nonEnglishLocale + out;
+  } else if (isHtml) {
     const expectOnce = (needle, replacement) => {
       const count = out.split(needle).length - 1;
       if (count !== 1) {
@@ -211,12 +242,7 @@ const transformTemplate = (source, texts, { isHtml, name }) => {
   } else if (!out.includes('{{set-locale')) {
     // Subjects set no locale today. Plural/number rules in lt/pl texts need theirs; English is
     // left as it is.
-    out =
-      localeBranches({
-        en: '',
-        lt: `{{set-locale "${ICU_LOCALES.lt}"}}`,
-        pl: `{{set-locale "${ICU_LOCALES.pl}"}}`,
-      }) + out;
+    out = nonEnglishLocale + out;
   }
   return out;
 };
@@ -248,15 +274,16 @@ const readTemplates = processDir => {
 };
 
 /**
- * Every `t` key used by the given processes, with its English default and the files using it.
+ * Every `t` key used by the given processes (and the built-in emails), with its English default and the files using it.
  *
  * @param {string[]} [processes]
  * @returns {Map<string, { defaults: Set<string>, files: Set<string>, followedBy: Set<string> }>}
  */
-const collectKeys = (processes = PROCESSES) => {
+const collectKeys = (processes = SOURCES) => {
   const keys = new Map();
   processes.forEach(processName => {
-    readTemplates(path.join(PROCESSES_DIR, processName)).forEach(({ template, file, source }) => {
+    if (!fs.existsSync(path.join(sourceDir(processName), 'templates'))) return;
+    readTemplates(sourceDir(processName)).forEach(({ template, file, source }) => {
       findTCalls(source).forEach(({ key, defaultText, end }) => {
         const entry = keys.get(key) || {
           defaults: new Set(),
@@ -360,6 +387,10 @@ module.exports = {
   GENERATED_DIR,
   BUILD_DIR,
   PROCESSES,
+  BUILT_IN,
+  BUILT_IN_DIR,
+  SOURCES,
+  sourceDir,
   TRANSLATED_LOCALES,
   FALLBACK_LOCALE,
   LOCALE_EXPR,

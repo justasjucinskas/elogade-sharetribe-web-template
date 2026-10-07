@@ -19,7 +19,14 @@ const os = require('os');
 const path = require('path');
 const http = require('http');
 const { spawn, execSync } = require('child_process');
-const { BUILD_DIR, GENERATED_DIR, PROCESSES, PROCESSES_DIR } = require('./email-templates-lib');
+const {
+  BUILD_DIR,
+  BUILT_IN,
+  BUILT_IN_DIR,
+  GENERATED_DIR,
+  PROCESSES_DIR,
+  SOURCES,
+} = require('./email-templates-lib');
 
 const PREVIEW_PORT = 3535;
 const LOCALES = ['en', 'lt', 'pl'];
@@ -32,7 +39,9 @@ const marketplace = marketplaceIndex >= 0 ? args[marketplaceIndex + 1] : 'checkm
 const processes = args.filter(
   (a, i) => marketplaceIndex < 0 || (i !== marketplaceIndex && i !== marketplaceIndex + 1)
 );
-const selectedProcesses = processes.length > 0 ? processes : PROCESSES;
+const selectedProcesses = (processes.length > 0 ? processes : SOURCES).filter(
+  name => name !== BUILT_IN || fs.existsSync(path.join(BUILT_IN_DIR, 'templates'))
+);
 
 // ---------- context ----------
 
@@ -142,6 +151,24 @@ const buildContext = ({ role, locale, deliveryMethod }) => {
         },
       ],
     },
+  };
+};
+
+// Built-in emails (password reset, verify email, …) get the keys of every built-in context.
+const buildBuiltInContext = ({ locale }) => {
+  const context = buildContext({ role: 'customer', locale, deliveryMethod: 'shipping' });
+  return {
+    ...context,
+    'password-reset': { token: 'b1c2d3e4f5', 'email-address': 'jonas@example.com' },
+    'email-verification': { token: 'a1b2c3d4e5' },
+    listing: context.transaction.listing,
+    message: { id: '68e3c0a1-9999-4aaa-8bbb-cccccccccccc', content: 'Labas! Ar dar parduodate?' },
+    sender: context['other-party'],
+    'changed-permissions': [
+      { permission: 'read', value: 'permission/allow' },
+      { permission: 'postListings', value: 'permission/deny' },
+      { permission: 'initiateTransactions', value: 'permission/allow' },
+    ],
   };
 };
 
@@ -289,23 +316,32 @@ const main = async () => {
 
   try {
     for (const processName of selectedProcesses) {
-      const builtDir = path.join(BUILD_DIR, processName, 'templates');
-      const originalDir = path.join(PROCESSES_DIR, processName, 'templates');
+      const isBuiltIn = processName === BUILT_IN;
+      const builtDir = isBuiltIn
+        ? path.join(GENERATED_DIR, BUILT_IN)
+        : path.join(BUILD_DIR, processName, 'templates');
+      const originalDir = isBuiltIn
+        ? path.join(BUILT_IN_DIR, 'templates')
+        : path.join(PROCESSES_DIR, processName, 'templates');
+      const contextFor = isBuiltIn ? buildBuiltInContext : buildContext;
       if (!fs.existsSync(builtDir)) {
         throw new Error(`${builtDir} missing: run node scripts/build-email-templates.js first`);
       }
       const outDir = path.join(OUT_DIR, processName);
       fs.mkdirSync(outDir, { recursive: true });
-      const roles = recipientRoles(processName);
       const templates = fs.readdirSync(builtDir).sort();
+      const roles = isBuiltIn
+        ? Object.fromEntries(templates.map(t => [t, ['customer']]))
+        : recipientRoles(processName);
+      const deliveryMethods = isBuiltIn ? ['shipping'] : DELIVERY_METHODS;
 
       for (const template of templates) {
         for (const role of roles[template] || []) {
-          for (const deliveryMethod of DELIVERY_METHODS) {
+          for (const deliveryMethod of deliveryMethods) {
             const results = {};
             // `null` = a user with no stored locale: must get Lithuanian.
             for (const locale of [...LOCALES, null]) {
-              const context = buildContext({ role, locale, deliveryMethod });
+              const context = contextFor({ role, locale, deliveryMethod });
               const rendered = await render(server, workDir, builtDir, template, context);
               const shown = locale || 'none';
               const problems = problemsIn(rendered, locale || 'lt');
@@ -327,7 +363,7 @@ const main = async () => {
               workDir,
               originalDir,
               template,
-              buildContext({ role, locale: 'en', deliveryMethod })
+              contextFor({ role, locale: 'en', deliveryMethod })
             );
             const normalize = h => h.replace(/<html lang="[^"]*">/, '<html>');
             if (
