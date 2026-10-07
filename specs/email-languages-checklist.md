@@ -102,9 +102,12 @@ Working file for building `specs/email-languages.md`. Tick an item only when its
       generated, 4 renders ok (English identical), saved on `checkme-test` 2026-10-07; Console
       preview shows Lithuanian for its sample user. Live untouched
 - [ ] Real reset email received in the account's language (user test)
-- [ ] The other 9 (verify email, verify changed email, new message, user joined, user approved,
-      password changed, email changed, listing approved, user permissions changed): translations in
-      `ext/built-in-emails/pending-texts/`, Console source still to copy
+- [x] 7 more saved on `checkme-test` 2026-10-07: verify email address, user joined, user approved,
+      password changed, email changed, listing approved, new message (user pasted the Console
+      source; every file matched the editor's checksum; 36 renders ok incl. new message to both
+      roles; after saving, each Console editor reloaded and matched the generated file)
+- [ ] Verify changed email address, user permissions changed: Console source not copied yet
+- [ ] Live (`checkme`): none of the built-in emails changed; needs the text review first
 
 ## Found along the way
 

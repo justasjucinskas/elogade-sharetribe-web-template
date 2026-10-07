@@ -1,0 +1,1 @@
+{{set-translations (asset "content/email-texts.json")}}{{t "VerifyEmail.Subject" "Email verification instructions for {marketplaceName}" marketplaceName=marketplace.name}}

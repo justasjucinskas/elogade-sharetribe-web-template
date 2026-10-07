@@ -1,0 +1,1 @@
+{{set-translations (asset "content/email-texts.json")}}{{t "NewMessage.Subject" "{senderName} has sent you a new message" senderName=message.sender.display-name}}

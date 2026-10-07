@@ -155,14 +155,21 @@ const buildContext = ({ role, locale, deliveryMethod }) => {
 };
 
 // Built-in emails (password reset, verify email, …) get the keys of every built-in context.
-const buildBuiltInContext = ({ locale }) => {
-  const context = buildContext({ role: 'customer', locale, deliveryMethod: 'shipping' });
+const buildBuiltInContext = ({ role = 'customer', locale }) => {
+  const context = buildContext({ role, locale, deliveryMethod: 'shipping' });
   return {
     ...context,
     'password-reset': { token: 'b1c2d3e4f5', 'email-address': 'jonas@example.com' },
     'email-verification': { token: 'a1b2c3d4e5' },
     listing: context.transaction.listing,
-    message: { id: '68e3c0a1-9999-4aaa-8bbb-cccccccccccc', content: 'Labas! Ar dar parduodate?' },
+    message: {
+      id: '68e3c0a1-9999-4aaa-8bbb-cccccccccccc',
+      content: 'Labas! Ar dar parduodate?',
+      sender: context['other-party'],
+      'public-file-attachments': [
+        { id: '68e3c0a1-7777-4aaa-8bbb-cccccccccccc', name: 'photo.jpg' },
+      ],
+    },
     sender: context['other-party'],
     'changed-permissions': [
       { permission: 'read', value: 'permission/allow' },
@@ -331,7 +338,9 @@ const main = async () => {
       fs.mkdirSync(outDir, { recursive: true });
       const templates = fs.readdirSync(builtDir).sort();
       const roles = isBuiltIn
-        ? Object.fromEntries(templates.map(t => [t, ['customer']]))
+        ? Object.fromEntries(
+            templates.map(t => [t, t === 'new-message' ? ['customer', 'provider'] : ['customer']])
+          )
         : recipientRoles(processName);
       const deliveryMethods = isBuiltIn ? ['shipping'] : DELIVERY_METHODS;
 

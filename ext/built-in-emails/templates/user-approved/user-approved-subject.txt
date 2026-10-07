@@ -1,0 +1,1 @@
+{{set-translations (asset "content/email-texts.json")}}{{t "UserApproved.Subject" "Your {marketplaceName} account has been approved" marketplaceName=marketplace.name}}

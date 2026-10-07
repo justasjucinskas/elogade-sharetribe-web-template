@@ -1,0 +1,1 @@
+{{set-translations (asset "content/email-texts.json")}}{{t "ListingApproved.Subject" "Your listing {listingTitle} has been approved" listingTitle=listing.title}}
