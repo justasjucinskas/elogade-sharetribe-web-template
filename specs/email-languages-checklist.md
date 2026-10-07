@@ -123,7 +123,10 @@ Working file for building `specs/email-languages.md`. Tick an item only when its
       differ from the repo only by the `marketplaceName` fix. After: pulled v2 back, 0 of 120 files
       differ. Rollback: `update-alias --version 1` for each. In-flight transactions stay on v1
       (English)
-- [ ] Built-in emails in Live Console (copy each from Live again, generate, save)
+- [x] Built-in emails in Live Console, 2026-10-07: all 10 Live templates were byte-identical to the
+      `checkme-test` originals in `ext/built-in-emails/` (checksum in the Live editor before any
+      change), so no paste was needed; generated version applied in the page, checksums matched the
+      local build, saved; every template reloaded afterwards and matched
 
 ## Found along the way
 
