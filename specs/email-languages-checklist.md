@@ -113,6 +113,18 @@ Working file for building `specs/email-languages.md`. Tick an item only when its
       built-in emails done on `checkme-test`
 - [ ] Live (`checkme`): none of the built-in emails changed; needs the text review first
 
+## Live (`checkme`)
+
+- [x] App code that stores `publicData.locale` deployed (push to `main` 2026-10-07, run 37674144276,
+      Live bundle contains `user/updateCurrentUserLocale`)
+- [x] Processes pushed 2026-10-07 at the user's go-ahead (lt/pl texts not yet natively reviewed):
+      `offer-purchase` v2 and `default-purchase` v2, `release-1` → 2. Before: generated templates
+      identical to the staging-tested versions; `process.edn` same as Live v1; Live v1 templates
+      differ from the repo only by the `marketplaceName` fix. After: pulled v2 back, 0 of 120 files
+      differ. Rollback: `update-alias --version 1` for each. In-flight transactions stay on v1
+      (English)
+- [ ] Built-in emails in Live Console (copy each from Live again, generate, save)
+
 ## Found along the way
 
 - **Live English bug: `{marketplaceName}` not passed** (confirmed by rendering against `checkme`:
