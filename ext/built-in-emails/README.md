@@ -9,18 +9,18 @@ edited in Sharetribe Console (Build → Advanced → Email notifications); there
   paste those two files into the Console editor and save. Same en/lt/pl switch on
   `recipient.public-data.locale` as the transaction emails; texts in `ext/email-texts/{lt,pl}.json`.
 
-| Template                     | `checkme-test`                             | `checkme` (Live) |
-| ---------------------------- | ------------------------------------------ | ---------------- |
-| reset-password               | generated, saved 2026-10-07                | English          |
-| verify-email-address         | generated, saved 2026-10-07                | English          |
-| user-joined                  | generated, saved 2026-10-07                | English          |
-| user-approved                | generated, saved 2026-10-07                | English          |
-| password-changed             | generated, saved 2026-10-07                | English          |
-| email-changed                | generated, saved 2026-10-07                | English          |
-| listing-approved             | generated, saved 2026-10-07                | English          |
-| new-message                  | generated, saved 2026-10-07                | English          |
-| verify-changed-email-address | not copied yet (texts in `pending-texts/`) | English          |
-| user-permissions-changed     | not copied yet (texts in `pending-texts/`) | English          |
+| Template                     | `checkme-test`              | `checkme` (Live) |
+| ---------------------------- | --------------------------- | ---------------- |
+| reset-password               | generated, saved 2026-10-07 | English          |
+| verify-email-address         | generated, saved 2026-10-07 | English          |
+| user-joined                  | generated, saved 2026-10-07 | English          |
+| user-approved                | generated, saved 2026-10-07 | English          |
+| password-changed             | generated, saved 2026-10-07 | English          |
+| email-changed                | generated, saved 2026-10-07 | English          |
+| listing-approved             | generated, saved 2026-10-07 | English          |
+| new-message                  | generated, saved 2026-10-07 | English          |
+| verify-changed-email-address | generated, saved 2026-10-07 | English          |
+| user-permissions-changed     | generated, saved 2026-10-07 | English          |
 
 Console addresses: `…/advanced/email-notifications/<name>` (the folder names here). Each save was
 checked by reloading the Console editor and comparing its content with the generated file.
