@@ -93,15 +93,17 @@ Working file for building `specs/email-languages.md`. Tick an item only when its
       `staging.elogade.com/lt` 200, bundle contains `user/updateCurrentUserLocale`; Live untouched
 - [ ] Scenarios with en/lt/pl test users (purchase, offer → counter → accept, no-locale user,
       English unchanged)
-- [ ] Real email confirms `recipient.public-data.locale` is filled when Sharetribe sends (the
-      preview only proves it with our own context)
+- [x] Real email confirms `recipient.public-data.locale` is filled when Sharetribe sends
+      (2026-10-07, user's staging account: reset email arrived in Lithuanian, then — after visiting
+      `/pl`, which stored `pl` — in Polish with the Polish subject; HTML `lang` matched)
 
 ## Built-in emails (Console-only)
 
 - [x] Reset password: Console source copied (user paste, matched the editor's checksum), en/lt/pl
       generated, 4 renders ok (English identical), saved on `checkme-test` 2026-10-07; Console
       preview shows Lithuanian for its sample user. Live untouched
-- [ ] Real reset email received in the account's language (user test)
+- [x] Real reset email received in the account's language (user test 2026-10-07: lt, then pl; links
+      and token intact, inbox not spam)
 - [x] 7 more saved on `checkme-test` 2026-10-07: verify email address, user joined, user approved,
       password changed, email changed, listing approved, new message (user pasted the Console
       source; every file matched the editor's checksum; 36 renders ok incl. new message to both
