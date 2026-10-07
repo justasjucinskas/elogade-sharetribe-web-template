@@ -1,0 +1,1 @@
+{{set-translations (asset "content/email-texts.json")}}{{t "UserPermissionsChanged.Subject" "Your user rights on {marketplaceName} have changed" marketplaceName=marketplace.name}}

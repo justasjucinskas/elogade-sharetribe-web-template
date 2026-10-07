@@ -106,7 +106,9 @@ Working file for building `specs/email-languages.md`. Tick an item only when its
       password changed, email changed, listing approved, new message (user pasted the Console
       source; every file matched the editor's checksum; 36 renders ok incl. new message to both
       roles; after saving, each Console editor reloaded and matched the generated file)
-- [ ] Verify changed email address, user permissions changed: Console source not copied yet
+- [x] Verify changed email address, user permissions changed: saved on `checkme-test` 2026-10-07
+      (pastes matched the editor; 44 built-in renders ok; reload after save matched). All 10
+      built-in emails done on `checkme-test`
 - [ ] Live (`checkme`): none of the built-in emails changed; needs the text review first
 
 ## Found along the way

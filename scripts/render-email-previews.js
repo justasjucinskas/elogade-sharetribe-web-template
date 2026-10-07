@@ -171,11 +171,8 @@ const buildBuiltInContext = ({ role = 'customer', locale }) => {
       ],
     },
     sender: context['other-party'],
-    'changed-permissions': [
-      { permission: 'read', value: 'permission/allow' },
-      { permission: 'postListings', value: 'permission/deny' },
-      { permission: 'initiateTransactions', value: 'permission/allow' },
-    ],
+    // Console's sample: one key per changed permission, "allow" or "deny".
+    'changed-permissions': { read: 'allow', postListings: 'deny', initiateTransactions: 'allow' },
   };
 };
 
