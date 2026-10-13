@@ -5,7 +5,7 @@
 }
 
 .viewOfferLink {
-  composes: buttonSecondary from global;
+  composes: buttonDefault from global;
   width: 100%;
 
   &:hover {

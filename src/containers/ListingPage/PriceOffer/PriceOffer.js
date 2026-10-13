@@ -20,7 +20,7 @@ import {
 import { ERROR_CODE_TRANSACTION_LISTING_INSUFFICIENT_STOCK } from '../../../util/types';
 import { canMakePriceOffer, getOfferLimits } from '../../../util/priceOffers';
 
-import { NamedLink, SecondaryButton } from '../../../components';
+import { Button, NamedLink } from '../../../components';
 
 import MakeCounterOfferModal from '../../TransactionPage/MakeCounterOfferModal/MakeCounterOfferModal';
 
@@ -141,13 +141,13 @@ export const usePriceOffer = props => {
         <FormattedMessage id="PriceOffer.viewYourOffer" />
       </NamedLink>
     ) : (
-      <SecondaryButton
+      <Button
         id={`${placement}_${MAKE_OFFER_BUTTON_ID}`}
         className={css.makeOfferButton}
         onClick={onOpenMakeOffer}
       >
         <FormattedMessage id="PriceOffer.makeOfferButton" />
-      </SecondaryButton>
+      </Button>
     );
 
   const price = listing.attributes.price;
