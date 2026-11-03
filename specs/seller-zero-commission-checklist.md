@@ -58,7 +58,7 @@ passed, and add anything new you find.
 - [ ] LT screenshots of every surface + checkout note — signed-out surfaces, listing breakdown
       note and §5 done; signed-in surfaces pending
 - [x] Diff review: nothing blocking (fresh-context subagent)
-- [ ] PR opened, not merged
+- [x] PR opened, not merged: https://github.com/justasjucinskas/elogade-sharetribe-web-template/pull/10
 
 ## Found while building
 
