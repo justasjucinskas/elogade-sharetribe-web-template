@@ -8,7 +8,7 @@ import { useConfiguration } from '../../context/configurationContext';
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
 import { propTypes } from '../../util/types';
 import { ensureCurrentUser } from '../../util/data';
-import { formatPromoLastDay, getActivePromo, getPromoDaysLeft } from '../../util/promo';
+import { getActivePromo } from '../../util/promo';
 import {
   isSignupEmailTakenError,
   isTooManyEmailVerificationRequestsError,
@@ -70,26 +70,21 @@ const CheckIcon = () => (
  * Sign-up variant of the brand panel while a promotion runs (config/configPromo.js). Ads
  * land visitors on the sign-up page, so the panel repeats the offer they clicked on.
  */
-const PromoBrandPanel = ({ intl, promo, marketplaceName }) => {
+const PromoBrandPanel = ({ intl, marketplaceName }) => {
   const msg = (id, values) => intl.formatMessage({ id: `AuthenticationPage.${id}` }, values);
-  const date = formatPromoLastDay(intl, promo, 'long');
-  const shortDate = formatPromoLastDay(intl, promo, 'short');
-  const rateValue = msg('promoRateValue');
 
   return (
     <div className={classNames(css.brandPanel, css.brandPanelPromo)}>
-      <span className={css.promoBadge}>{msg('promoBadge', { date: shortDate })}</span>
+      <span className={css.promoBadge}>{msg('promoBadge')}</span>
       <h2 className={css.brandTitle}>
         {msg('promoTitleLead')}{' '}
         <span className={css.brandTitleAccent}>{msg('promoTitleAccent')}</span>
       </h2>
-      <p className={css.brandSubtitle}>{msg('promoSubtitle', { date, marketplaceName })}</p>
+      <p className={css.brandSubtitle}>{msg('promoSubtitle', { marketplaceName })}</p>
       <ul className={css.promoRates}>
         <li className={css.promoRate}>
-          {msg('promoRateBuyers')} <strong className={css.promoRateValue}>{rateValue}</strong>
-        </li>
-        <li className={css.promoRate}>
-          {msg('promoRateSellers')} <strong className={css.promoRateValue}>{rateValue}</strong>
+          {msg('promoRateSellers')}{' '}
+          <strong className={css.promoRateValue}>{msg('promoRateValue')}</strong>
         </li>
       </ul>
       <ul className={css.brandTrust}>
@@ -102,10 +97,6 @@ const PromoBrandPanel = ({ intl, promo, marketplaceName }) => {
           </li>
         ))}
       </ul>
-      {/* The day count can differ between SSR and hydration right at midnight. */}
-      <p className={css.promoCountdown} suppressHydrationWarning>
-        {msg('promoDaysLeft', { days: getPromoDaysLeft(promo) })}
-      </p>
     </div>
   );
 };
@@ -117,7 +108,7 @@ const PromoBrandPanel = ({ intl, promo, marketplaceName }) => {
  */
 const BrandPanel = ({ isLogin, intl, promo, marketplaceName }) => {
   if (promo && !isLogin) {
-    return <PromoBrandPanel intl={intl} promo={promo} marketplaceName={marketplaceName} />;
+    return <PromoBrandPanel intl={intl} marketplaceName={marketplaceName} />;
   }
 
   const msg = id => intl.formatMessage({ id: `AuthenticationPage.${id}` });

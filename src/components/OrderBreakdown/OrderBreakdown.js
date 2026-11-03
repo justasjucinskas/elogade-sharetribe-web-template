@@ -18,6 +18,8 @@ import {
   propTypes,
 } from '../../util/types';
 
+import { NamedLink } from '../../components';
+
 import LineItemBookingPeriod from './LineItemBookingPeriod';
 import LineItemBasePriceMaybe from './LineItemBasePriceMaybe';
 import LineItemSubTotalMaybe from './LineItemSubTotalMaybe';
@@ -65,6 +67,13 @@ export const OrderBreakdownComponent = props => {
     const hasProviderCommission = isProvider && item.code === LINE_ITEM_PROVIDER_COMMISSION;
     return (hasCustomerCommission || hasProviderCommission) && !item.reversal;
   });
+
+  // The buyer's fee includes buyer protection, explained in Marketplace Policies section 1.
+  const buyerProtectionLink = chunks => (
+    <NamedLink name="MarketplacePoliciesPage" to={{ hash: '#section-1' }}>
+      {chunks}
+    </NamedLink>
+  );
 
   const classes = classNames(rootClassName || css.root, className);
 
@@ -157,7 +166,14 @@ export const OrderBreakdownComponent = props => {
 
       {hasCommissionLineItem ? (
         <span className={css.feeInfo}>
-          <FormattedMessage id="OrderBreakdown.commissionFeeNote" />
+          {isCustomer ? (
+            <FormattedMessage
+              id="OrderBreakdown.buyerProtectionNote"
+              values={{ link: buyerProtectionLink }}
+            />
+          ) : (
+            <FormattedMessage id="OrderBreakdown.commissionFeeNote" />
+          )}
         </span>
       ) : null}
     </div>

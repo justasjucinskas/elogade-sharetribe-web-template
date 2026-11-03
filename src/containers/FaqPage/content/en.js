@@ -280,7 +280,7 @@ ELOGADE reserves the right to take appropriate action according to platform poli
       {
         id: 'stripe-fees',
         question: 'Are Stripe processing fees included in the payout estimate?',
-        answer: `Displayed payout estimates may not include Stripe processing fees. Final seller payouts are calculated after ELOGADE service fees and applicable Stripe payment processing fees are deducted from the transaction amount.`,
+        answer: `Displayed payout estimates may not include Stripe processing fees. Final seller payouts are calculated after applicable Stripe payment processing fees are deducted from the transaction amount.`,
       },
       {
         id: 'dispute-opened',

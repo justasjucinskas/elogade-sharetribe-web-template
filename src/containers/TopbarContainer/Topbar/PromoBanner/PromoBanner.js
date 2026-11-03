@@ -3,7 +3,7 @@ import classNames from 'classnames';
 
 import { useConfiguration } from '../../../../context/configurationContext';
 import { FormattedMessage, useIntl } from '../../../../util/reactIntl';
-import { formatPromoLastDay, getActivePromo } from '../../../../util/promo';
+import { getActivePromo } from '../../../../util/promo';
 
 import { NamedLink } from '../../../../components';
 
@@ -87,8 +87,6 @@ const PromoBanner = props => {
     }
   };
 
-  const date = formatPromoLastDay(intl, promo, 'long');
-  const shortDate = formatPromoLastDay(intl, promo, 'short');
   const marketplaceName = config.marketplaceName;
 
   const arrow = (
@@ -124,13 +122,13 @@ const PromoBanner = props => {
       <p className={css.content}>
         <span className={css.wide}>
           {isAuthenticated ? (
-            <FormattedMessage id="PromoBanner.textMember" values={{ date, marketplaceName }} />
+            <FormattedMessage id="PromoBanner.textMember" values={{ marketplaceName }} />
           ) : (
-            <FormattedMessage id="PromoBanner.text" values={{ date, b: bold }} />
+            <FormattedMessage id="PromoBanner.text" values={{ b: bold }} />
           )}
         </span>
         <span className={css.narrow}>
-          <FormattedMessage id="PromoBanner.textShort" values={{ date: shortDate, b: bold }} />
+          <FormattedMessage id="PromoBanner.textShort" values={{ b: bold }} />
         </span>
         {link}
       </p>

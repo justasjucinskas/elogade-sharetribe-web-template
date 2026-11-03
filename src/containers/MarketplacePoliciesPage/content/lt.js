@@ -7,7 +7,7 @@
 // The body is Markdown, rendered through PageBuilder's sanitized markdown
 // processor. String.raw keeps any "\" hard line breaks intact.
 
-const lastUpdated = '2026-09-28';
+const lastUpdated = '2026-11-03';
 
 const body = String.raw`
 Jei reikia pagalbos, susisiekite su mumis adresu [support@elogade.com](mailto:support@elogade.com).
@@ -257,20 +257,16 @@ Naudotojai gali valdyti arba išjungti slapukus per savo naršyklės nustatymus.
 
 ELOGADE taiko skaidrią paslaugų mokesčių sistemą, kad galėtų išlaikyti bei tobulinti platformą, užtikrinti saugius mokėjimus ir teikti naudotojų apsaugą.
 
-**Akcija:** iki 2026 m. spalio 31 d. (imtinai) ELOGADE netaiko paslaugų mokesčio nei pardavėjams, nei pirkėjams (0 %). Nuo 2026 m. lapkričio 1 d. vėl taikomi 5.1 ir 5.2 punktuose nurodyti mokesčiai. Akcija netaikoma Stripe mokėjimų apdorojimo mokesčiams. Užsakymui taikomas mokestis, parodytas prieš patvirtinant mokėjimą.
-
 ### 5.1 - Pardavėjo komisinis mokestis
 
-* ELOGADE ima 2% paslaugos mokestį nuo kiekvieno sėkmingo pardavimo.
-* Šis komisinis mokestis išskaičiuojamas automatiškai, kai sandoris yra užbaigiamas.
-* Be to, mokėjimus apdoroja „Stripe“, kuri taiko savo apdorojimo mokestį (paprastai apie 1,4% + 0,25 € už transakciją, tačiau jis gali skirtis priklausomai nuo mokėjimo būdo, šalies ir „Stripe“ kainodaros atnaujinimų).
-* Galutinė pardavėjo išmoka apskaičiuojama automatiškai iš bendros sumos išskaičiavus ELOGADE (2%) ir „Stripe“ apdorojimo mokesčius.
-* Jei prekė neparduodama, joks ELOGADE paslaugos mokestis nėra taikomas.
+* ELOGADE netaiko pardavėjams paslaugos mokesčio (0%).
+* Mokėjimus apdoroja „Stripe“, kuri taiko savo apdorojimo mokestį (paprastai apie 1,4% + 0,25 € už transakciją, tačiau jis gali skirtis priklausomai nuo mokėjimo būdo, šalies ir „Stripe“ kainodaros atnaujinimų).
+* Galutinė pardavėjo išmoka apskaičiuojama automatiškai iš bendros sumos išskaičiavus „Stripe“ apdorojimo mokesčius.
 
 ### 5.2 - Pirkėjo mokesčiai
 
-* ELOGADE taiko pirkėjams 3% paslaugos mokestį užsakymo pateikimo metu (atsiskaitant).
-* Šis mokestis padeda palaikyti platformos veiklą, užtikrinti saugius mokėjimus ir pirkėjų apsaugą.
+* ELOGADE taiko pirkėjams 3% paslaugos mokestį užsakymo pateikimo metu (atsiskaitant), bet ne mažiau kaip 0,99 € už užsakymą.
+* Į šį mokestį įskaičiuota [pirkėjų apsauga](#section-1).
 * Pirkėjai taip pat gali matyti papildomas išlaidas, pavyzdžiui, siuntimo kainą, priklausomai nuo skelbimo.
 * Visi taikomi mokesčiai yra aiškiai parodomi prieš patvirtinant mokėjimą.
 

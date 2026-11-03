@@ -77,6 +77,12 @@ describe('PromoBanner', () => {
     expect(renderBanner({ currentPage: 'CheckoutPage' }).container).toBeEmptyDOMElement();
   });
 
+  it('shows a promotion without an end date', () => {
+    promo.endsAt = null;
+    renderBanner();
+    expect(screen.getByText('PromoBanner.text')).toBeInTheDocument();
+  });
+
   it('renders nothing once the promotion has ended', () => {
     promo.endsAt = '2000-01-01T00:00:00Z';
     const { container } = renderBanner();

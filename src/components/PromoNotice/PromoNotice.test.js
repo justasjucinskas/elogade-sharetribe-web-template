@@ -17,16 +17,16 @@ describe('PromoNotice', () => {
     promo.endsAt = '2999-01-01T00:00:00Z';
   });
 
-  it('shows the seller copy by default', () => {
+  it('shows the seller copy', () => {
     render(<PromoNotice />);
     expect(screen.getByText('PromoNotice.sellerTitle')).toBeInTheDocument();
     expect(screen.getByText('PromoNotice.sellerText')).toBeInTheDocument();
   });
 
-  it('shows the buyer copy for the buyer variant', () => {
-    render(<PromoNotice variant="buyer" />);
-    expect(screen.getByText('PromoNotice.buyerTitle')).toBeInTheDocument();
-    expect(screen.queryByText('PromoNotice.sellerTitle')).not.toBeInTheDocument();
+  it('shows without an end date', () => {
+    promo.endsAt = null;
+    render(<PromoNotice />);
+    expect(screen.getByText('PromoNotice.sellerTitle')).toBeInTheDocument();
   });
 
   it('renders nothing once the promotion has ended', () => {

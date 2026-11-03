@@ -280,7 +280,7 @@ ELOGADE zastrzega sobie prawo do podjęcia odpowiednich działań zgodnie z regu
       {
         id: 'stripe-fees',
         question: 'Czy opłaty operacyjne Stripe są uwzględnione w szacowanej wypłacie?',
-        answer: `Wyświetlana szacowana kwota wypłaty może nie uwzględniać opłat operacyjnych Stripe. Ostateczna kwota dla sprzedawcy jest obliczana po odliczeniu opłat serwisowych ELOGADE oraz stosownych opłat Stripe od kwoty transakcji.`,
+        answer: `Wyświetlana szacowana kwota wypłaty może nie uwzględniać opłat operacyjnych Stripe. Ostateczna kwota dla sprzedawcy jest obliczana po odliczeniu stosownych opłat Stripe od kwoty transakcji.`,
       },
       {
         id: 'dispute-opened',

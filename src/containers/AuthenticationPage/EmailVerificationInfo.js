@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { FormattedMessage, useIntl } from '../../util/reactIntl';
-import { formatPromoLastDay } from '../../util/promo';
+import { FormattedMessage } from '../../util/reactIntl';
 
 import { Heading, NamedLink, IconEmailSent, InlineTextButton, IconClose } from '../../components';
 
@@ -9,36 +8,27 @@ import css from './AuthenticationPage.module.css';
 
 // "What next" step after sign-up while a promotion runs: a visitor who arrived from an
 // ad is most motivated right now, so point them at their first listing.
-const PromoNextStep = ({ promo, marketplaceName }) => {
-  const intl = useIntl();
-  const date = formatPromoLastDay(intl, promo, 'long');
-  const shortDate = formatPromoLastDay(intl, promo, 'short');
-
-  return (
-    <div className={css.promoNextStep}>
-      <p className={css.promoNextKicker}>
-        <FormattedMessage id="AuthenticationPage.promoNextKicker" values={{ date: shortDate }} />
-      </p>
-      <h2 className={css.promoNextTitle}>
-        <FormattedMessage id="AuthenticationPage.promoNextTitle" />
-      </h2>
-      <p className={css.promoNextText}>
-        <FormattedMessage
-          id="AuthenticationPage.promoNextText"
-          values={{ date, marketplaceName }}
-        />
-      </p>
-      <div className={css.promoNextActions}>
-        <NamedLink name="NewListingPage" className={css.promoNextPrimary}>
-          <FormattedMessage id="AuthenticationPage.promoNextListLink" />
-        </NamedLink>
-        <NamedLink name="SearchPage" className={css.promoNextSecondary}>
-          <FormattedMessage id="AuthenticationPage.promoNextBrowseLink" />
-        </NamedLink>
-      </div>
+const PromoNextStep = ({ marketplaceName }) => (
+  <div className={css.promoNextStep}>
+    <p className={css.promoNextKicker}>
+      <FormattedMessage id="AuthenticationPage.promoNextKicker" />
+    </p>
+    <h2 className={css.promoNextTitle}>
+      <FormattedMessage id="AuthenticationPage.promoNextTitle" />
+    </h2>
+    <p className={css.promoNextText}>
+      <FormattedMessage id="AuthenticationPage.promoNextText" values={{ marketplaceName }} />
+    </p>
+    <div className={css.promoNextActions}>
+      <NamedLink name="NewListingPage" className={css.promoNextPrimary}>
+        <FormattedMessage id="AuthenticationPage.promoNextListLink" />
+      </NamedLink>
+      <NamedLink name="SearchPage" className={css.promoNextSecondary}>
+        <FormattedMessage id="AuthenticationPage.promoNextBrowseLink" />
+      </NamedLink>
     </div>
-  );
-};
+  </div>
+);
 
 const EmailVerificationInfo = props => {
   const {
@@ -93,7 +83,7 @@ const EmailVerificationInfo = props => {
         </p>
       </div>
 
-      {promo ? <PromoNextStep promo={promo} marketplaceName={marketplaceName} /> : null}
+      {promo ? <PromoNextStep marketplaceName={marketplaceName} /> : null}
     </div>
   );
 };

@@ -246,8 +246,8 @@
   }
 }
 
-/* Buyer / seller rate chips — kept on small screens too (unlike the trust points),
-   since they carry the offer itself. */
+/* Seller rate chip — kept on small screens too (unlike the trust points),
+   since it carries the offer itself. */
 .promoRates {
   display: flex;
   flex-wrap: wrap;
@@ -280,23 +280,6 @@
 .promoRateValue {
   font-weight: 700;
   color: var(--authCyan);
-}
-
-.promoCountdown {
-  display: none;
-
-  @media (--viewportLarge) {
-    display: block;
-    margin: 32px 0 0;
-    padding: 0;
-    font-family: var(--authMono);
-    font-size: 12px;
-    line-height: 16px;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.5);
-  }
 }
 
 /* ================= Form panel & card ================= */
@@ -685,7 +668,6 @@
 .revealReady .brandSubtitle,
 .revealReady .promoRates,
 .revealReady .brandTrustItem,
-.revealReady .promoCountdown,
 .revealReady .card {
   opacity: 0;
   transform: translateY(24px);
@@ -696,7 +678,6 @@
 .isRevealed .brandSubtitle,
 .isRevealed .promoRates,
 .isRevealed .brandTrustItem,
-.isRevealed .promoCountdown,
 .isRevealed .card {
   opacity: 1;
   transform: translateY(0);
@@ -720,9 +701,6 @@
 }
 .isRevealed .promoRates {
   transition-delay: 0.22s;
-}
-.isRevealed .promoCountdown {
-  transition-delay: 0.5s;
 }
 .isRevealed .card {
   transition-delay: 0.22s;

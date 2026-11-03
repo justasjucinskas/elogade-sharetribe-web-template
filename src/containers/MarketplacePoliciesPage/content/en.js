@@ -7,7 +7,7 @@
 // The body is Markdown, rendered through PageBuilder's sanitized markdown
 // processor. String.raw keeps any "\" hard line breaks intact.
 
-const lastUpdated = '2026-09-28';
+const lastUpdated = '2026-11-03';
 
 const body = String.raw`
 For support, contact us at [support@elogade.com](mailto:support@elogade.com).
@@ -257,20 +257,16 @@ Users can control or disable cookies through their browser settings. Some platfo
 
 ELOGADE applies a transparent service fee to maintain and improve the platform, ensure secure payments, and provide user protection.
 
-**Promotion:** until 31 October 2026 (inclusive), ELOGADE charges no service fee to sellers or buyers (0%). The fees described in 5.1 and 5.2 apply again from 1 November 2026. The promotion does not cover Stripe's payment processing fees. The fee that applies to an order is the one shown before payment is confirmed.
-
 ### 5.1 - Seller Commission
 
-* ELOGADE charges a 2% service fee on each successful sale.
-* This commission is deducted automatically when the transaction is completed.
-* In addition, payments are processed by Stripe, which applies its own processing fee (typically around 1.4% + €0.25 per transaction, but may vary depending on the payment method, country, and Stripe pricing updates).
-* Seller’s final payout is calculated automatically after ELOGADE (2%) and Stripe processing fees are deducted from the total payment.
-* No ELOGADE service fee is charged if the item does not sell.
+* ELOGADE charges sellers no service fee (0%).
+* Payments are processed by Stripe, which applies its own processing fee (typically around 1.4% + €0.25 per transaction, but may vary depending on the payment method, country, and Stripe pricing updates).
+* Seller’s final payout is calculated automatically after Stripe processing fees are deducted from the total payment.
 
 ### 5.2 - Buyer Fees
 
-* ELOGADE charges buyers a 3% service fee at checkout.
-* This fee helps support platform operations, secure payments, and user protection.
+* ELOGADE charges buyers a 3% service fee at checkout, with a minimum of €0.99 per order.
+* This fee includes [Buyer Protection](#section-1).
 * Buyers may also see additional costs such as shipping, depending on the listing.
 * All applicable fees are displayed clearly before payment confirmation.
 

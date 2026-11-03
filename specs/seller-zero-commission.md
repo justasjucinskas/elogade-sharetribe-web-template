@@ -1,6 +1,6 @@
 # 0% commission for sellers, 3% for buyers
 
-Status: spec written 2026-11-03, not built. Build notes and checks:
+Status: spec written 2026-11-03, built 2026-11-03 (PR open, not merged). Build notes and checks:
 `specs/seller-zero-commission-checklist.md`.
 
 ## Goal
