@@ -2,8 +2,8 @@ import React from 'react';
 import classNames from 'classnames';
 
 import { useConfiguration } from '../../context/configurationContext';
-import { FormattedMessage, useIntl } from '../../util/reactIntl';
-import { formatPromoLastDay, getActivePromo } from '../../util/promo';
+import { FormattedMessage } from '../../util/reactIntl';
+import { getActivePromo } from '../../util/promo';
 
 import css from './PromoNotice.module.css';
 
@@ -29,19 +29,17 @@ const IconTag = () => (
 );
 
 /**
- * Inline notice about the running promotion (see config/configPromo.js), shown where money
- * is decided: the listing pricing step (seller) and the checkout breakdown (buyer).
- * Renders nothing when no promotion is running.
+ * Inline notice about the running promotion (see config/configPromo.js) on the listing
+ * pricing step, where the seller decides the price. Renders nothing when no promotion is
+ * running.
  *
  * @component
  * @param {Object} props
  * @param {string?} props.className add more style rules in addition to component's own css.root
- * @param {('seller'|'buyer')} props.variant which side of the transaction reads it
  * @returns {JSX.Element?} notice or null
  */
 const PromoNotice = props => {
-  const { className, variant = 'seller' } = props;
-  const intl = useIntl();
+  const { className } = props;
   const config = useConfiguration();
 
   const promo = getActivePromo();
@@ -49,23 +47,16 @@ const PromoNotice = props => {
     return null;
   }
 
-  const date = formatPromoLastDay(intl, promo, 'long');
-  const marketplaceName = config.marketplaceName;
-  const isSeller = variant === 'seller';
-
   return (
     <div className={classNames(css.root, className)}>
       <p className={css.title}>
         <IconTag />
-        <FormattedMessage
-          id={isSeller ? 'PromoNotice.sellerTitle' : 'PromoNotice.buyerTitle'}
-          values={{ date }}
-        />
+        <FormattedMessage id="PromoNotice.sellerTitle" />
       </p>
       <p className={css.text}>
         <FormattedMessage
-          id={isSeller ? 'PromoNotice.sellerText' : 'PromoNotice.buyerText'}
-          values={{ date, marketplaceName }}
+          id="PromoNotice.sellerText"
+          values={{ marketplaceName: config.marketplaceName }}
         />
       </p>
     </div>

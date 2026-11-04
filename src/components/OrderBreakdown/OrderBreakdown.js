@@ -3,9 +3,14 @@
  * I.e. dates and other details related to payment decision in receipt format.
  */
 import React from 'react';
+import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 
+import { DEFAULT_LOCALE } from '../../config/configLocale';
+import { useRouteConfiguration } from '../../context/routeConfigurationContext';
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
+import { prependLocale } from '../../util/locale';
+import { pathByRouteName } from '../../util/routes';
 import {
   DATE_TYPE_DATE,
   DATE_TYPE_DATETIME,
@@ -17,6 +22,8 @@ import {
   LISTING_UNIT_TYPES,
   propTypes,
 } from '../../util/types';
+
+import { ExternalLink } from '../../components';
 
 import LineItemBookingPeriod from './LineItemBookingPeriod';
 import LineItemBasePriceMaybe from './LineItemBasePriceMaybe';
@@ -65,6 +72,18 @@ export const OrderBreakdownComponent = props => {
     const hasProviderCommission = isProvider && item.code === LINE_ITEM_PROVIDER_COMMISSION;
     return (hasCustomerCommission || hasProviderCommission) && !item.reversal;
   });
+
+  // The buyer's fee includes buyer protection, explained in Marketplace Policies section 1.
+  // New tab, so a buyer at checkout doesn't lose the payment step. ExternalLink is a plain
+  // <a> outside React Router's locale basename, so the locale is added here.
+  const routeConfiguration = useRouteConfiguration();
+  const currentLocale = useSelector(state => state.locale?.current || DEFAULT_LOCALE);
+  const policiesPath = pathByRouteName('MarketplacePoliciesPage', routeConfiguration);
+  const buyerProtectionLink = chunks => (
+    <ExternalLink href={`${prependLocale(policiesPath, currentLocale)}#section-1`}>
+      {chunks}
+    </ExternalLink>
+  );
 
   const classes = classNames(rootClassName || css.root, className);
 
@@ -157,7 +176,14 @@ export const OrderBreakdownComponent = props => {
 
       {hasCommissionLineItem ? (
         <span className={css.feeInfo}>
-          <FormattedMessage id="OrderBreakdown.commissionFeeNote" />
+          {isCustomer ? (
+            <FormattedMessage
+              id="OrderBreakdown.buyerProtectionNote"
+              values={{ link: buyerProtectionLink }}
+            />
+          ) : (
+            <FormattedMessage id="OrderBreakdown.commissionFeeNote" />
+          )}
         </span>
       ) : null}
     </div>

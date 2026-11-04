@@ -280,7 +280,7 @@ ELOGADE pasilieka teisę imtis atitinkamų veiksmų pagal platformos taisykles.`
       {
         id: 'stripe-fees',
         question: 'Ar į preliminarų išmokos dydį įskaičiuoti „Stripe“ apdorojimo mokesčiai?',
-        answer: `Rodomame preliminariame išmokos dydyje „Stripe“ apdorojimo mokesčiai gali būti neįskaičiuoti. Galutinė pardavėjui išmokama suma apskaičiuojama iš sandorio sumos išskaičiavus ELOGADE paslaugų mokesčius ir taikomus „Stripe“ mokėjimų apdorojimo mokesčius.`,
+        answer: `Rodomame preliminariame išmokos dydyje „Stripe“ apdorojimo mokesčiai gali būti neįskaičiuoti. Galutinė pardavėjui išmokama suma apskaičiuojama iš sandorio sumos išskaičiavus taikomus „Stripe“ mokėjimų apdorojimo mokesčius.`,
       },
       {
         id: 'dispute-opened',

@@ -7,7 +7,7 @@
 // The body is Markdown, rendered through PageBuilder's sanitized markdown
 // processor. String.raw keeps any "\" hard line breaks intact.
 
-const lastUpdated = '2026-09-28';
+const lastUpdated = '2026-11-03';
 
 const body = String.raw`
 W razie potrzeby wsparcia, skontaktuj się z nami pod adresem [support@elogade.com](mailto:support@elogade.com).
@@ -257,20 +257,16 @@ Możesz zarządzać plikami cookie lub wyłączyć je w ustawieniach swojej prze
 
 ELOGADE stosuje przejrzystą opłatę serwisową w celu utrzymania i ulepszania platformy, zapewnienia bezpiecznych płatności i ochrony użytkowników.
 
-**Promocja:** do 31 października 2026 r. (włącznie) ELOGADE nie pobiera opłaty serwisowej ani od sprzedających, ani od kupujących (0%). Od 1 listopada 2026 r. ponownie obowiązują opłaty opisane w punktach 5.1 i 5.2. Promocja nie obejmuje opłat Stripe za przetwarzanie płatności. Do zamówienia stosuje się opłatę wyświetloną przed potwierdzeniem płatności.
-
 ### 5.1 - Prowizja od sprzedaży
 
-* ELOGADE pobiera 2% opłaty serwisowej od każdej udanej sprzedaży.
-* Prowizja ta jest automatycznie pobierana po zakończeniu transakcji.
-* Ponadto płatności są przetwarzane przez Stripe, które pobiera własną opłatę operacyjną (zazwyczaj około 1,4% + €0,25 za transakcję, ale może ona ulec zmianie w zależności od metody płatności, kraju i aktualizacji cennika Stripe).
-* Ostateczna wypłata dla sprzedawcy jest obliczana automatycznie po odliczeniu opłat serwisowych ELOGADE (2%) i opłat operacyjnych Stripe od całkowitej kwoty zapłaty.
-* Opłata serwisowa ELOGADE nie jest pobierana, jeśli przedmiot się nie sprzeda.
+* ELOGADE nie pobiera od sprzedających opłaty serwisowej (0%).
+* Płatności są przetwarzane przez Stripe, które pobiera własną opłatę operacyjną (zazwyczaj około 1,4% + €0,25 za transakcję, ale może ona ulec zmianie w zależności od metody płatności, kraju i aktualizacji cennika Stripe).
+* Ostateczna wypłata dla sprzedawcy jest obliczana automatycznie po odliczeniu opłat operacyjnych Stripe od całkowitej kwoty zapłaty.
 
 ### 5.2 - Opłaty kupującego
 
-* ELOGADE pobiera od kupujących opłatę serwisową w wysokości 3% podczas finalizacji zakupu.
-* Opłata ta pomaga wspierać działanie platformy, bezpieczne płatności i ochronę użytkowników.
+* ELOGADE pobiera od kupujących opłatę serwisową w wysokości 3% podczas finalizacji zakupu, nie mniej niż €0,99 za zamówienie.
+* Opłata ta obejmuje [Ochronę Kupujących](#section-1).
 * Kupujący mogą również zobaczyć dodatkowe koszty, takie jak wysyłka, w zależności od ogłoszenia.
 * Wszystkie obowiązujące opłaty są wyraźnie wyświetlane przed potwierdzeniem płatności.
 

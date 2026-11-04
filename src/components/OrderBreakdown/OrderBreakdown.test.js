@@ -90,6 +90,9 @@ describe('OrderBreakdown', () => {
     expect(total).toBeInTheDocument();
     const totalPayIn = within(total.parentNode.parentNode);
     expect(totalPayIn.getByText('30')).toBeInTheDocument();
+
+    // No commission, no fee note
+    expect(screen.queryByText('OrderBreakdown.buyerProtectionNote')).not.toBeInTheDocument();
   });
 
   it('shows base price, booking dates, customer-commission and total to customer (booking)', () => {
@@ -125,7 +128,12 @@ describe('OrderBreakdown', () => {
         })}
         intl={fakeIntl}
         timeZone="Etc/UTC"
-      />
+      />,
+      {
+        messages: {
+          'OrderBreakdown.buyerProtectionNote': '* Buyer protection <link>How it works</link>',
+        },
+      }
     );
 
     // Booking: start
@@ -159,6 +167,13 @@ describe('OrderBreakdown', () => {
     expect(total).toBeInTheDocument();
     const totalPayIn = within(total.parentNode.parentNode);
     expect(totalPayIn.getByText('22')).toBeInTheDocument();
+
+    // The fee note explains buyer protection and links to the policy
+    const policyLink = screen.getByRole('link', { name: 'How it works' });
+    expect(policyLink).toHaveAttribute('href', '/en/p/market-policies#section-1');
+    expect(policyLink).toHaveAttribute('target', '_blank');
+    expect(policyLink).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(screen.queryByText('OrderBreakdown.commissionFeeNote')).not.toBeInTheDocument();
   });
 
   it('shows base price, provider-commission and total to provider (booking)', () => {
@@ -228,5 +243,9 @@ describe('OrderBreakdown', () => {
     expect(providerTotal).toBeInTheDocument();
     const totalPayIn = within(providerTotal.parentNode.parentNode);
     expect(totalPayIn.getByText('18')).toBeInTheDocument();
+
+    // The provider keeps the generic fee note
+    expect(screen.getByText('OrderBreakdown.commissionFeeNote')).toBeInTheDocument();
+    expect(screen.queryByText('OrderBreakdown.buyerProtectionNote')).not.toBeInTheDocument();
   });
 });

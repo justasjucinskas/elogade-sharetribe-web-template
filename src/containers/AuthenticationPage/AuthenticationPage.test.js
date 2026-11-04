@@ -113,7 +113,7 @@ describe('AuthenticationPage during a promotion', () => {
     }));
     process.env = Object.assign(process.env, { REACT_APP_FACEBOOK_APP_ID: '' });
     process.env = Object.assign(process.env, { REACT_APP_GOOGLE_CLIENT_ID: '' });
-    promo.endsAt = '2999-01-01T00:00:00Z';
+    promo.endsAt = null;
   });
 
   afterEach(() => {
@@ -128,6 +128,7 @@ describe('AuthenticationPage during a promotion', () => {
 
     expect(screen.getByText('AuthenticationPage.promoTitleLead')).toBeInTheDocument();
     expect(screen.getByText('AuthenticationPage.promoSubtitle')).toBeInTheDocument();
+    expect(screen.getByText('AuthenticationPage.promoRateSellers')).toBeInTheDocument();
     expect(screen.queryByText('AuthenticationPage.brandTitleSignupLead')).not.toBeInTheDocument();
   });
 

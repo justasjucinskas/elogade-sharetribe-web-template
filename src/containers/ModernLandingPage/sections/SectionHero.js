@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import { useConfiguration } from '../../../context/configurationContext';
 import { useIntl } from '../../../util/reactIntl';
 import { formatMoney } from '../../../util/currency';
-import { formatPromoLastDay, getActivePromo } from '../../../util/promo';
+import { getActivePromo } from '../../../util/promo';
 import { useReveal } from '../../../hooks/useReveal';
 
 import { NamedLink, ResponsiveImage } from '../../../components';
@@ -142,16 +142,10 @@ const SectionHero = props => {
     <NamedLink name={isAuthenticated ? 'NewListingPage' : 'SignupPage'} className={css.promoPill}>
       <span className={css.promoTag}>{msg('promoTag')}</span>
       <span className={css.promoTextWide}>
-        {intl.formatMessage(
-          { id: 'ModernLandingPage.promoText' },
-          { date: formatPromoLastDay(intl, promo, 'long'), b: bold }
-        )}
+        {intl.formatMessage({ id: 'ModernLandingPage.promoText' }, { b: bold })}
       </span>
       <span className={css.promoTextNarrow}>
-        {intl.formatMessage(
-          { id: 'ModernLandingPage.promoTextShort' },
-          { date: formatPromoLastDay(intl, promo, 'short'), b: bold }
-        )}
+        {intl.formatMessage({ id: 'ModernLandingPage.promoTextShort' }, { b: bold })}
       </span>
       <IconArrow className={css.promoArrow} />
     </NamedLink>
