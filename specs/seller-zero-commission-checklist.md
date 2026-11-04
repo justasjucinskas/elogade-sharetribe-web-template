@@ -56,7 +56,9 @@ passed, and add anything new you find.
 - [x] `yarn run format-ci`
 - [x] `yarn build`
 - [ ] LT screenshots of every surface + checkout note — signed-out surfaces, listing breakdown
-      note and §5 done; signed-in surfaces pending
+      note and §5 done. Signed-in surfaces (top bar signed in, listing price notice, checkout,
+      after-sign-up step) **skipped by Justas on 2026-11-04**: covered by unit tests only, not
+      seen in a browser.
 - [x] Diff review: nothing blocking (fresh-context subagent)
 - [x] PR opened, not merged: https://github.com/justasjucinskas/elogade-sharetribe-web-template/pull/10
 
