@@ -67,7 +67,9 @@ passed, and add anything new you find.
 - `EditListingPricingPanel` and `EditListingPricingAndStockPanel` still pass
   `variant="seller"` to `PromoNotice`, which no longer reads it. Harmless; left alone because
   those files are outside the spec's file list.
-- The buyer-protection link opens in the same tab, so clicking it at checkout leaves the payment
-  step. The spec asked for a `NamedLink`; opening it in a new tab would be a follow-up decision.
+- The buyer-protection link opened in the same tab, so clicking it at checkout left the payment
+  step. Justas approved a new tab (2026-11-04). `NamedLink` drops `target`/`rel`, so it is now
+  an `ExternalLink` (`target="_blank" rel="noopener noreferrer"`) with the locale prepended, the
+  same pattern as `LegalDocument.js`. Checked in LT: `/lt/p/market-policies#section-1`.
 - Pre-existing, not changed: `pl.json` `OrderBreakdown.commissionFeeNote` has no leading "*",
   and the `lt.json` provider fee label has no "*".

@@ -169,10 +169,10 @@ describe('OrderBreakdown', () => {
     expect(totalPayIn.getByText('22')).toBeInTheDocument();
 
     // The fee note explains buyer protection and links to the policy
-    expect(screen.getByRole('link', { name: 'How it works' })).toHaveAttribute(
-      'href',
-      '/p/market-policies#section-1'
-    );
+    const policyLink = screen.getByRole('link', { name: 'How it works' });
+    expect(policyLink).toHaveAttribute('href', '/en/p/market-policies#section-1');
+    expect(policyLink).toHaveAttribute('target', '_blank');
+    expect(policyLink).toHaveAttribute('rel', 'noopener noreferrer');
     expect(screen.queryByText('OrderBreakdown.commissionFeeNote')).not.toBeInTheDocument();
   });
 
