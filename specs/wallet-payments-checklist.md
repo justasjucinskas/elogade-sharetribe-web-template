@@ -23,7 +23,12 @@ Spec: `specs/wallet-payments.md`. Tick an item only when its check passes; note 
 
 ## Staging
 
-- [ ] Deployed with the flag on
+- [x] Deployed with the flag on — 2026-11-08, commit `28d746a68` via
+      `deploy/staging/build-and-deploy.sh` (exit 0, `Loaded image: elogade-web:staging`,
+      container `Up (healthy)`); `https://staging.elogade.com/en` → 200; bundle passes
+      `walletPaymentsEnabled:!0` to the form; CSP header has `*.stripe.network`, `*.google.com`,
+      `pay.google.com`. `REACT_APP_WALLET_PAYMENTS_ENABLED=true` also added to the VM's
+      `staging.env` (backup `staging.env.pre-wallet.bak`). Live container untouched.
 - [ ] Google Pay, pickup order → purchased
 - [ ] Google Pay, shipped order → purchased, address on transaction
 - [ ] Google Pay through a price offer
