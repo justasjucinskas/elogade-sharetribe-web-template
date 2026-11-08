@@ -28,6 +28,7 @@ docker buildx build --platform linux/amd64 --load -t "$IMAGE" \
   --build-arg REACT_APP_ENV=production \
   --build-arg REACT_APP_SHARETRIBE_USING_SSL=true \
   --build-arg REACT_APP_PRICE_OFFERS_ENABLED=true \
+  --build-arg REACT_APP_WALLET_PAYMENTS_ENABLED=true \
   .
 
 docker save "$IMAGE" | gzip -1 | ssh "$SSH_HOST" 'gunzip | docker load'

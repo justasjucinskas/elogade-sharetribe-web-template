@@ -168,41 +168,26 @@ const persistTransaction = (order, pageData, storeData, setPageData, sessionStor
 };
 
 /**
- * Create call sequence for checkout with Stripe PaymentIntents.
+ * Step 1 of both checkout sequences (card and Apple Pay / Google Pay):
+ * initiate the order by requesting payment from Marketplace API.
  *
- * @param {Object} orderParams contains params for the initial order itself
- * @param {Object} extraPaymentParams contains extra params needed by one of the following calls in the checkout sequence
- * @returns Promise that goes through each step in the checkout sequence.
+ * Shared by processCheckoutWithPayment and processCheckoutWithWalletPayment so that the
+ * request-payment transition choice (inquiry, negotiation, price offer) can't drift between them.
+ *
+ * @param {Object} params
+ * @param {Object} params.pageData checkout page data (listing, orderData, transaction)
+ * @param {Object} params.process transaction process (from getProcess)
+ * @param {Function} params.onInitiateOrder
+ * @param {Function} params.setPageData
+ * @param {String} params.sessionStorageKey
+ * @returns {Function} fnParams (orderParams) => Promise resolving to the order (transaction)
  */
-export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
-  const {
-    hasPaymentIntentUserActionsDone,
-    isPaymentFlowUseSavedCard,
-    isPaymentFlowPayAndSaveCard,
-    onConfirmCardPayment,
-    onConfirmPayment,
-    onInitiateOrder,
-    onSavePaymentMethod,
-    pageData,
-    paymentIntent,
-    process,
-    setPageData,
-    sessionStorageKey,
-    stripeCustomer,
-    stripePaymentMethodId,
-  } = extraPaymentParams;
+const createRequestPaymentFn = params => {
+  const { pageData, process, onInitiateOrder, setPageData, sessionStorageKey } = params;
   const storedTx = ensureTransaction(pageData.transaction);
-
-  const ensuredStripeCustomer = ensureStripeCustomer(stripeCustomer);
   const processAlias = pageData?.listing?.attributes?.publicData?.transactionProcessAlias;
 
-  let createdPaymentIntent = null;
-
-  ////////////////////////////////////////////////
-  // Step 1: initiate order                     //
-  // by requesting payment from Marketplace API //
-  ////////////////////////////////////////////////
-  const fnRequestPayment = fnParams => {
+  return fnParams => {
     // fnParams should be { listingId, deliveryMethod?, quantity?, bookingDates?, paymentMethod?.setupPaymentMethodForSaving?, protectedData }
     const hasPaymentIntents = storedTx.attributes.protectedData?.stripePaymentIntents;
 
@@ -235,6 +220,88 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
       return order;
     });
   };
+};
+
+/**
+ * Step 3 of both checkout sequences (card and Apple Pay / Google Pay):
+ * complete the order by confirming payment against Marketplace API.
+ *
+ * @param {Object} params
+ * @param {Object} params.pageData checkout page data (listing, orderData, transaction)
+ * @param {Object} params.process transaction process (from getProcess)
+ * @param {Function} params.onConfirmPayment
+ * @param {Function} params.setPageData
+ * @param {String} params.sessionStorageKey
+ * @returns {Function} fnParams ({ paymentIntent, transactionId }) => Promise resolving to the order
+ */
+const createConfirmPaymentFn = params => {
+  const { pageData, process, onConfirmPayment, setPageData, sessionStorageKey } = params;
+  const storedTx = ensureTransaction(pageData.transaction);
+
+  return fnParams => {
+    // fnParams should contain { paymentIntent, transactionId } returned in step 2
+    const transactionId = fnParams.transactionId;
+    const transitionName = process.transitions.CONFIRM_PAYMENT;
+    const isTransitionedAlready = storedTx?.attributes?.lastTransition === transitionName;
+    const orderPromise = isTransitionedAlready
+      ? Promise.resolve(storedTx)
+      : onConfirmPayment(transactionId, transitionName, {});
+
+    return orderPromise.then(order => {
+      // Store the returned transaction (order)
+      persistTransaction(order, pageData, storeData, setPageData, sessionStorageKey);
+      return order;
+    });
+  };
+};
+
+const getPaymentIntentClientSecret = order => {
+  const hasPaymentIntents = order?.attributes?.protectedData?.stripePaymentIntents;
+  if (!hasPaymentIntents) {
+    throw new Error(
+      `Missing StripePaymentIntents key in transaction's protectedData. Check that your transaction process is configured to use payment intents.`
+    );
+  }
+  return order.attributes.protectedData.stripePaymentIntents.default
+    .stripePaymentIntentClientSecret;
+};
+
+// Here we create promise calls in sequence
+// This is pretty much the same as:
+// fnRequestPayment({...initialParams})
+//   .then(result => fnConfirmCardPayment({...result}))
+//   .then(result => fnConfirmPayment({...result}))
+const applyAsync = (acc, val) => acc.then(val);
+const composeAsync = (...funcs) => x => funcs.reduce(applyAsync, Promise.resolve(x));
+
+/**
+ * Create call sequence for checkout with Stripe PaymentIntents.
+ *
+ * @param {Object} orderParams contains params for the initial order itself
+ * @param {Object} extraPaymentParams contains extra params needed by one of the following calls in the checkout sequence
+ * @returns Promise that goes through each step in the checkout sequence.
+ */
+export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
+  const {
+    hasPaymentIntentUserActionsDone,
+    isPaymentFlowUseSavedCard,
+    isPaymentFlowPayAndSaveCard,
+    onConfirmCardPayment,
+    onSavePaymentMethod,
+    paymentIntent,
+    stripeCustomer,
+    stripePaymentMethodId,
+  } = extraPaymentParams;
+
+  const ensuredStripeCustomer = ensureStripeCustomer(stripeCustomer);
+
+  let createdPaymentIntent = null;
+
+  ////////////////////////////////////////////////
+  // Step 1: initiate order                     //
+  // by requesting payment from Marketplace API //
+  ////////////////////////////////////////////////
+  const fnRequestPayment = createRequestPaymentFn(extraPaymentParams);
 
   //////////////////////////////////
   // Step 2: pay using Stripe SDK //
@@ -242,17 +309,7 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
   const fnConfirmCardPayment = fnParams => {
     // fnParams should be returned transaction entity
     const order = fnParams;
-
-    const hasPaymentIntents = order?.attributes?.protectedData?.stripePaymentIntents;
-    if (!hasPaymentIntents) {
-      throw new Error(
-        `Missing StripePaymentIntents key in transaction's protectedData. Check that your transaction process is configured to use payment intents.`
-      );
-    }
-
-    const { stripePaymentIntentClientSecret } = hasPaymentIntents
-      ? order.attributes.protectedData.stripePaymentIntents.default
-      : null;
+    const stripePaymentIntentClientSecret = getPaymentIntentClientSecret(order);
 
     const { stripe, card, billingDetails, paymentIntent } = extraPaymentParams;
     const stripeElementMaybe = !isPaymentFlowUseSavedCard ? { card } : {};
@@ -285,22 +342,11 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
   // Step 3: complete order                        //
   // by confirming payment against Marketplace API //
   ///////////////////////////////////////////////////
+  const confirmPayment = createConfirmPaymentFn(extraPaymentParams);
   const fnConfirmPayment = fnParams => {
-    // fnParams should contain { paymentIntent, transactionId } returned in step 2
-    // Remember the created PaymentIntent for step 5
+    // Remember the created PaymentIntent for step 4
     createdPaymentIntent = fnParams.paymentIntent;
-    const transactionId = fnParams.transactionId;
-    const transitionName = process.transitions.CONFIRM_PAYMENT;
-    const isTransitionedAlready = storedTx?.attributes?.lastTransition === transitionName;
-    const orderPromise = isTransitionedAlready
-      ? Promise.resolve(storedTx)
-      : onConfirmPayment(transactionId, transitionName, {});
-
-    return orderPromise.then(order => {
-      // Store the returned transaction (order)
-      persistTransaction(order, pageData, storeData, setPageData, sessionStorageKey);
-      return order;
-    });
+    return confirmPayment(fnParams);
   };
 
   //////////////////////////////////////////////////////////
@@ -327,13 +373,6 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
     }
   };
 
-  // Here we create promise calls in sequence
-  // This is pretty much the same as:
-  // fnRequestPayment({...initialParams})
-  //   .then(result => fnConfirmCardPayment({...result}))
-  //   .then(result => fnConfirmPayment({...result}))
-  const applyAsync = (acc, val) => acc.then(val);
-  const composeAsync = (...funcs) => x => funcs.reduce(applyAsync, Promise.resolve(x));
   const handlePaymentIntentCreation = composeAsync(
     fnRequestPayment,
     fnConfirmCardPayment,
@@ -342,6 +381,93 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
   );
 
   return handlePaymentIntentCreation(orderParams);
+};
+
+/**
+ * Create call sequence for checkout with Apple Pay / Google Pay (Stripe Payment Request Button).
+ *
+ * Same steps as processCheckoutWithPayment, except step 2: the payment method comes from the
+ * wallet ("paymentmethod" event). The PaymentIntent is first confirmed with
+ * { handleActions: false } so that the wallet sheet can be closed promptly, and confirmed again
+ * (which shows 3-D Secure) if Stripe says it still requires action.
+ * Wallet cards can't be saved as the default payment method, so there's no save step.
+ *
+ * See specs/wallet-payments.md and
+ * https://www.sharetribe.com/docs/how-to/payments/payment-request-button/
+ *
+ * @param {Object} orderParams contains params for the initial order itself
+ * @param {Object} extraPaymentParams the same params as processCheckoutWithPayment takes, plus
+ * `ev`: the Stripe paymentRequest "paymentmethod" event
+ * @returns Promise resolving to { orderId, paymentMethodSaved: true }
+ */
+export const processCheckoutWithWalletPayment = (orderParams, extraPaymentParams) => {
+  const {
+    ev,
+    hasPaymentIntentUserActionsDone,
+    onConfirmCardPayment,
+    paymentIntent,
+    stripe,
+  } = extraPaymentParams;
+
+  // The wallet sheet stays open (spinning) until ev.complete is called, and it can only be
+  // called once.
+  let isSheetCompleted = false;
+  const completeSheet = status => {
+    if (!isSheetCompleted) {
+      isSheetCompleted = true;
+      ev.complete(status);
+    }
+  };
+
+  // Step 1: initiate order (shared with the card flow)
+  const fnRequestPayment = createRequestPaymentFn(extraPaymentParams);
+
+  // Step 2: confirm the PaymentIntent with the wallet's payment method
+  const fnConfirmWalletPayment = async order => {
+    const stripePaymentIntentClientSecret = getPaymentIntentClientSecret(order);
+    const orderId = order?.id;
+
+    // A previous attempt already completed Stripe's part (e.g. the page was refreshed).
+    if (hasPaymentIntentUserActionsDone) {
+      completeSheet('success');
+      return { transactionId: orderId, paymentIntent };
+    }
+
+    // Attach the wallet's payment method without handling actions, so this returns quickly.
+    const firstResult = await onConfirmCardPayment({
+      stripe,
+      stripePaymentIntentClientSecret,
+      orderId,
+      paymentParams: { payment_method: ev.paymentMethod.id },
+      confirmOptions: { handleActions: false },
+    });
+
+    // Close the wallet sheet before any 3-D Secure step.
+    completeSheet('success');
+
+    if (firstResult?.paymentIntent?.status === 'requires_action') {
+      // Let Stripe.js show the 3-D Secure challenge.
+      return onConfirmCardPayment({ stripe, stripePaymentIntentClientSecret, orderId });
+    }
+    return firstResult;
+  };
+
+  // Step 3: complete order (shared with the card flow)
+  const fnConfirmPayment = createConfirmPaymentFn(extraPaymentParams);
+
+  const handleWalletPaymentIntentCreation = composeAsync(
+    fnRequestPayment,
+    fnConfirmWalletPayment,
+    fnConfirmPayment
+  );
+
+  return handleWalletPaymentIntentCreation(orderParams)
+    .then(order => ({ orderId: order?.id, paymentMethodSaved: true }))
+    .catch(err => {
+      // Tells the browser the payment failed, if the sheet is still open.
+      completeSheet('fail');
+      throw err;
+    });
 };
 
 /**

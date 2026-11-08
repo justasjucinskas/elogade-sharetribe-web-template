@@ -10,6 +10,7 @@ import {
 import { propTypes } from '../../util/types';
 import { ensureTransaction } from '../../util/data';
 import { createSlug } from '../../util/urlHelpers';
+import { WALLET_PAYMENTS_ENABLED } from '../../config/configWalletPayments';
 import {
   isTransactionInitiateListingNotFoundError,
   isTransactionsTransitionInvalidTransition,
@@ -39,6 +40,7 @@ import {
   hasPaymentExpired,
   hasTransactionPassedPendingPayment,
   processCheckoutWithPayment,
+  processCheckoutWithWalletPayment,
   setOrderPageInitialValues,
 } from './CheckoutPageTransactionHelpers.js';
 import { getErrorMessages } from './ErrorMessages';
@@ -252,6 +254,81 @@ export const loadInitialDataForStripePayments = ({
   fetchSpeculatedTransactionIfNeeded(orderParams, pageData, fetchSpeculatedTransaction);
 };
 
+/**
+ * Redirect to the order page when a checkout sequence (card or wallet) succeeds, and recover from
+ * a stale pending-payment transaction when it fails.
+ *
+ * @param {Promise} checkoutPromise resolves to { orderId, paymentMethodSaved }
+ * @param {Object} process transaction process
+ * @param {Object} props CheckoutPageWithPayment props
+ * @param {Function} setSubmitting
+ * @returns {Promise}
+ */
+const finishCheckout = (checkoutPromise, process, props, setSubmitting) => {
+  const {
+    history,
+    routeConfiguration,
+    dispatch,
+    onFetchTransaction,
+    onSubmitCallback,
+    pageData,
+    setPageData,
+    sessionStorageKey,
+    transaction: reduxTransaction,
+  } = props;
+
+  return checkoutPromise
+    .then(response => {
+      const { orderId, paymentMethodSaved } = response;
+      setSubmitting(false);
+
+      const orderDetailsPath = pathByRouteName('OrderDetailsPage', routeConfiguration, {
+        id: orderId.uuid,
+      });
+      const initialValues = {
+        savePaymentMethodFailed: !paymentMethodSaved,
+      };
+
+      setOrderPageInitialValues(initialValues, routeConfiguration, dispatch);
+      onSubmitCallback();
+      history.push(orderDetailsPath);
+    })
+    .catch(err => {
+      console.error(err);
+      setSubmitting(false);
+
+      // After process expiry (or if payment was already confirmed), confirm/initiate can fail with
+      // invalid transition while checkout still holds a stale pending-payment transaction.
+      if (!isTransactionsTransitionInvalidTransition(err)) {
+        return;
+      }
+
+      const txId = pageData?.transaction?.id || reduxTransaction?.id;
+      if (!txId || !onFetchTransaction) {
+        return;
+      }
+
+      onFetchTransaction(txId)
+        .then(tx => {
+          if (process.getState(tx) === process.states.PAYMENT_EXPIRED) {
+            setPageData({ ...pageData, transaction: tx });
+            clearData(sessionStorageKey);
+          } else if (process.hasPassedState(process.states.PENDING_PAYMENT, tx)) {
+            // Confirm already succeeded earlier (e.g. network drop after Marketplace confirm).
+            const orderDetailsPath = pathByRouteName('OrderDetailsPage', routeConfiguration, {
+              id: tx.id.uuid,
+            });
+            setOrderPageInitialValues({}, routeConfiguration, dispatch);
+            onSubmitCallback();
+            history.push(orderDetailsPath);
+          }
+        })
+        .catch(() => {
+          // Keep the generic confirm/initiate error UI from Redux.
+        });
+    });
+};
+
 const handleSubmit = (values, process, props, stripe, submitting, setSubmitting) => {
   if (submitting) {
     return;
@@ -259,24 +336,18 @@ const handleSubmit = (values, process, props, stripe, submitting, setSubmitting)
   setSubmitting(true);
 
   const {
-    history,
     config,
-    routeConfiguration,
     speculatedTransaction,
     currentUser,
     stripeCustomerFetched,
     paymentIntent,
-    dispatch,
     onInitiateOrder,
     onConfirmCardPayment,
     onConfirmPayment,
     onSavePaymentMethod,
-    onFetchTransaction,
-    onSubmitCallback,
     pageData,
     setPageData,
     sessionStorageKey,
-    transaction: reduxTransaction,
     transactionFieldConfigs = [],
   } = props;
   const { card, message, paymentMethod: selectedPaymentMethod, formValues } = values;
@@ -343,56 +414,89 @@ const handleSubmit = (values, process, props, stripe, submitting, setSubmitting)
   );
 
   // There are multiple XHR calls that needs to be made against Stripe API and Sharetribe Marketplace API on checkout with payments
-  processCheckoutWithPayment(orderParams, requestPaymentParams)
-    .then(response => {
-      const { orderId, paymentMethodSaved } = response;
-      setSubmitting(false);
+  finishCheckout(
+    processCheckoutWithPayment(orderParams, requestPaymentParams),
+    process,
+    props,
+    setSubmitting
+  );
+};
 
-      const orderDetailsPath = pathByRouteName('OrderDetailsPage', routeConfiguration, {
-        id: orderId.uuid,
-      });
-      const initialValues = {
-        savePaymentMethodFailed: !paymentMethodSaved,
-      };
+/**
+ * Pay with Apple Pay / Google Pay. Called with the Stripe paymentRequest "paymentmethod" event,
+ * after the buyer has authorised the payment in the wallet sheet.
+ * Mirrors handleSubmit: the same order params (shipping address and transaction fields come from
+ * the form) and the same steps, except that the card is the wallet's.
+ *
+ * @param {Object} ev Stripe "paymentmethod" event
+ * @param {Object} stripe Stripe instance the payment request was created with
+ * @param {Object} formValues current StripePaymentForm values
+ * @param {Object} process transaction process
+ * @param {Object} props CheckoutPageWithPayment props
+ * @param {boolean} submitting
+ * @param {Function} setSubmitting
+ */
+const handleWalletPayment = (ev, stripe, formValues, process, props, submitting, setSubmitting) => {
+  if (submitting) {
+    ev.complete('fail');
+    return;
+  }
+  setSubmitting(true);
 
-      setOrderPageInitialValues(initialValues, routeConfiguration, dispatch);
-      onSubmitCallback();
-      history.push(orderDetailsPath);
-    })
-    .catch(err => {
-      console.error(err);
-      setSubmitting(false);
+  const {
+    config,
+    speculatedTransaction,
+    paymentIntent,
+    onInitiateOrder,
+    onConfirmCardPayment,
+    onConfirmPayment,
+    pageData,
+    setPageData,
+    sessionStorageKey,
+    transactionFieldConfigs = [],
+  } = props;
 
-      // After process expiry (or if payment was already confirmed), confirm/initiate can fail with
-      // invalid transition while checkout still holds a stale pending-payment transaction.
-      if (!isTransactionsTransitionInvalidTransition(err)) {
-        return;
-      }
+  const { initialMessage } = formValues;
+  const message = initialMessage ? initialMessage.trim() : null;
+  const transactionFieldsProtectedData = {
+    ...pickTransactionFieldsData(formValues, 'protected', true, transactionFieldConfigs),
+  };
 
-      const txId = pageData?.transaction?.id || reduxTransaction?.id;
-      if (!txId || !onFetchTransaction) {
-        return;
-      }
+  // If paymentIntent status is not waiting user action,
+  // confirmCardPayment has been called previously.
+  const hasPaymentIntentUserActionsDone =
+    paymentIntent && STRIPE_PI_USER_ACTIONS_DONE_STATUSES.includes(paymentIntent.status);
 
-      onFetchTransaction(txId)
-        .then(tx => {
-          if (process.getState(tx) === process.states.PAYMENT_EXPIRED) {
-            setPageData({ ...pageData, transaction: tx });
-            clearData(sessionStorageKey);
-          } else if (process.hasPassedState(process.states.PENDING_PAYMENT, tx)) {
-            // Confirm already succeeded earlier (e.g. network drop after Marketplace confirm).
-            const orderDetailsPath = pathByRouteName('OrderDetailsPage', routeConfiguration, {
-              id: tx.id.uuid,
-            });
-            setOrderPageInitialValues({}, routeConfiguration, dispatch);
-            onSubmitCallback();
-            history.push(orderDetailsPath);
-          }
-        })
-        .catch(() => {
-          // Keep the generic confirm/initiate error UI from Redux.
-        });
-    });
+  const walletPaymentParams = {
+    ev,
+    pageData,
+    speculatedTransaction,
+    stripe,
+    paymentIntent,
+    hasPaymentIntentUserActionsDone,
+    process,
+    onInitiateOrder,
+    onConfirmCardPayment,
+    onConfirmPayment,
+    sessionStorageKey,
+    setPageData,
+  };
+
+  const orderParams = getOrderParams(
+    pageData,
+    getShippingDetailsMaybe(formValues),
+    {},
+    config,
+    transactionFieldsProtectedData,
+    message
+  );
+
+  finishCheckout(
+    processCheckoutWithWalletPayment(orderParams, walletPaymentParams),
+    process,
+    props,
+    setSubmitting
+  );
 };
 
 const onStripeInitialized = (stripe, process, props) => {
@@ -698,6 +802,20 @@ export const CheckoutPageWithPayment = props => {
                 isFuzzyLocation={config.maps.fuzzy.enabled}
                 transactionFieldConfigs={transactionFieldConfigs}
                 showTransactionFields={showTransactionFields}
+                walletPaymentsEnabled={WALLET_PAYMENTS_ENABLED}
+                payinTotal={tx?.attributes?.payinTotal}
+                stripeCountry={config.stripe.country}
+                onWalletPaymentMethod={(ev, stripeInstance, formValues) =>
+                  handleWalletPayment(
+                    ev,
+                    stripeInstance,
+                    formValues,
+                    process,
+                    props,
+                    submitting,
+                    setSubmitting
+                  )
+                }
               />
             ) : null}
           </section>
