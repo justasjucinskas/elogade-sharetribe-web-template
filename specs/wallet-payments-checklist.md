@@ -33,9 +33,15 @@ Spec: `specs/wallet-payments.md`. Tick an item only when its check passes; note 
 - [ ] Google Pay, shipped order → purchased, address on transaction
 - [ ] Google Pay through a price offer
 - [ ] Click guard with empty address
-- [ ] No-wallet browser: card checkout unchanged
+- [x] No-wallet browser: card checkout unchanged — 2026-11-11, staging checkout (Apple watch band,
+      test buyer, built-in browser without a wallet): wallet container `display: none` with 0
+      children, no "or pay with card", card iframe present. Card order placed through this branch
+      locally (`localhost:3001` → `checkme-test`, Stripe test card 4242, Logitech wireless mouse):
+      "Your payment was successful!", transaction `6af48224-c37f-446a-ab85-c892f282f9df`.
 - [ ] `/lt`, `/pl` text
-- [ ] No CSP reports for Stripe/Google Pay
+- [ ] No CSP reports for Stripe/Google Pay — partly: no CSP messages in the console on the
+      staging checkout and 0 CSP lines in the staging server log, but without a wallet the
+      Google Pay frames never load. Recheck during the wallet test.
 - [ ] Apple Pay on staging Safari (or noted as Live-only)
 - [ ] `onBehalfOf` not needed (else: stopped and asked)
 
@@ -71,3 +77,10 @@ Spec: `specs/wallet-payments.md`. Tick an item only when its check passes; note 
 - **Staging check from review:** the button is mounted into a `display: none` container (shown once
   `canMakePayment` resolves, and only after `loadingData`). Confirm it renders full width on first
   show.
+- **Staging renders logged-in pages as logged out on the server** (2026-11-11): the SSR HTML shows
+  "Sign up" while the browser has the `st-76bc4e4f…-token` cookie, so every full page load logs
+  React hydration errors #418/#423/#425 and re-renders on the client. Not from this PR (it changes
+  no server, auth or topbar code besides `server/csp.js`); Live's logged-out listing page has no
+  such errors, logged-in Live not checked. Follow-up, not a blocker for wallets.
+- **Staging test guide:** `wallet-payments-staging-test.md`. Test buyer created on `checkme-test`
+  via staging sign-up; login saved in the main checkout's `.env` (`STAGING_TEST_BUYER_*`).
