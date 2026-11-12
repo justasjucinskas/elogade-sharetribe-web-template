@@ -95,8 +95,9 @@ const cardStyles = {
 };
 
 // Apple Pay / Google Pay (Stripe Payment Request Button). See specs/wallet-payments.md.
-// The wallet supplies the card and the billing name and address, so these form fields don't need
-// to be filled in for a wallet payment. Everything else (shipping address, transaction fields) does.
+// The wallet supplies the card, the billing name and address, and (on shipped orders) the shipping
+// address, so these form fields don't need to be filled in for a wallet payment. Everything else
+// (transaction fields) does.
 const WALLET_SUPPLIED_FIELDS = [
   'name',
   'addressLine1',
@@ -105,7 +106,17 @@ const WALLET_SUPPLIED_FIELDS = [
   'city',
   'state',
   'country',
+  'recipientName',
+  'recipientPhoneNumber',
+  'recipientAddressLine1',
+  'recipientAddressLine2',
+  'recipientPostal',
+  'recipientCity',
+  'recipientState',
+  'recipientCountry',
 ];
+
+const WALLET_SHIPPING_OPTION_ID = 'delivery';
 
 // Stripe Elements takes a language code ('lt'), react-intl has a full locale ('lt-LT').
 const toStripeLocale = intlLocale => (intlLocale ? intlLocale.split('-')[0] : 'auto');
@@ -130,6 +141,40 @@ export const getFieldsBlockingWalletPayment = formErrors =>
   Object.keys(formErrors || {}).filter(
     name => !!formErrors[name] && !WALLET_SUPPLIED_FIELDS.includes(name)
   );
+
+/**
+ * The shipping address the buyer picked in the wallet sheet, as this form's shipping field values
+ * (recipient*), so that the order gets it the same way as an address typed into the form.
+ *
+ * @param {Object} ev Stripe paymentRequest "paymentmethod" event
+ * @returns {Object|null} recipient* form values, or null if the address lacks a required part
+ */
+export const getShippingFormValuesFromWallet = ev => {
+  const address = ev?.shippingAddress;
+  if (!address) {
+    return null;
+  }
+  const trim = value => (typeof value === 'string' ? value.trim() : '');
+  const [line1 = '', ...restLines] = (address.addressLine || []).map(trim).filter(l => l);
+  const values = {
+    recipientName: trim(address.recipient) || trim(ev.payerName),
+    recipientPhoneNumber: trim(address.phone) || trim(ev.payerPhone) || undefined,
+    recipientAddressLine1: line1,
+    recipientAddressLine2: restLines.join(', ') || undefined,
+    recipientPostal: trim(address.postalCode),
+    recipientCity: trim(address.city),
+    recipientState: trim(address.region) || undefined,
+    recipientCountry: trim(address.country).toUpperCase(),
+  };
+  const required = [
+    'recipientName',
+    'recipientAddressLine1',
+    'recipientPostal',
+    'recipientCity',
+    'recipientCountry',
+  ];
+  return required.every(key => !!values[key]) ? values : null;
+};
 
 const OneTimePaymentWithCardElement = props => {
   const {
@@ -337,6 +382,8 @@ const initialState = {
  * @param {boolean} props.isFuzzyLocation - Whether the location is fuzzy
  * @param {boolean} props.walletPaymentsEnabled - Whether to offer Apple Pay / Google Pay
  * @param {Object} props.payinTotal - The total the customer pays (Money), for the wallet sheet
+ * @param {Object} props.shippingFee - The customer's shipping fee (Money), shown as the wallet
+ * sheet's shipping option on shipped orders
  * @param {string} props.stripeCountry - The country of the platform's Stripe account
  * @param {Function} props.onWalletPaymentMethod - Called with (ev, stripe, formValues) after the
  * customer has authorised a wallet payment
@@ -360,6 +407,7 @@ class StripePaymentForm extends Component {
     this.handleWalletContainerRef = this.handleWalletContainerRef.bind(this);
     this.handleWalletButtonClick = this.handleWalletButtonClick.bind(this);
     this.handleWalletPaymentMethod = this.handleWalletPaymentMethod.bind(this);
+    this.handleWalletShippingAddressChange = this.handleWalletShippingAddressChange.bind(this);
     this.finalFormAPI = null;
     this.cardContainer = null;
     // Apple Pay / Google Pay
@@ -405,12 +453,19 @@ class StripePaymentForm extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { payinTotal } = this.props;
+    const { payinTotal, shippingFee } = this.props;
     if (!this.paymentRequest) {
       // payinTotal arrives with the speculated transaction, possibly after Stripe.js has loaded.
       this.initializeWalletButton();
-    } else if (payinTotal && prevProps.payinTotal?.amount !== payinTotal.amount) {
-      this.paymentRequest.update({ total: this.getWalletTotal() });
+    } else if (
+      payinTotal &&
+      (prevProps.payinTotal?.amount !== payinTotal.amount ||
+        prevProps.shippingFee?.amount !== shippingFee?.amount)
+    ) {
+      this.paymentRequest.update({
+        total: this.getWalletTotal(),
+        ...this.getWalletShippingOptionsMaybe(),
+      });
     }
   }
 
@@ -428,6 +483,7 @@ class StripePaymentForm extends Component {
     }
     if (this.paymentRequest) {
       this.paymentRequest.off('paymentmethod', this.handleWalletPaymentMethod);
+      this.paymentRequest.off('shippingaddresschange', this.handleWalletShippingAddressChange);
       this.paymentRequest = null;
     }
   }
@@ -438,12 +494,39 @@ class StripePaymentForm extends Component {
   }
 
   /**
+   * On shipped orders: one shipping option, priced at the shipping fee that is already part of the
+   * total (shown for information; the sheet's total is payinTotal). Empty on other orders.
+   */
+  getWalletShippingOptionsMaybe() {
+    const { askShippingDetails, shippingFee, intl } = this.props;
+    if (!askShippingDetails) {
+      return {};
+    }
+    return {
+      shippingOptions: [
+        {
+          id: WALLET_SHIPPING_OPTION_ID,
+          label: intl.formatMessage({ id: 'StripePaymentForm.walletShippingOptionLabel' }),
+          detail: '',
+          amount: shippingFee?.amount || 0,
+        },
+      ],
+    };
+  }
+
+  /**
    * Create the Stripe payment request and, if this device has Apple Pay or Google Pay, mount the
    * Payment Request Button. Runs once Stripe.js is loaded, payinTotal is known and the container
    * is rendered (whichever happens last).
    */
   initializeWalletButton() {
-    const { walletPaymentsEnabled, payinTotal, stripeCountry, intl } = this.props;
+    const {
+      walletPaymentsEnabled,
+      payinTotal,
+      stripeCountry,
+      askShippingDetails,
+      intl,
+    } = this.props;
     if (
       !walletPaymentsEnabled ||
       !this.stripe ||
@@ -461,10 +544,21 @@ class StripePaymentForm extends Component {
       total: this.getWalletTotal(),
       requestPayerName: true,
       requestPayerEmail: true,
+      // Shipped orders: the sheet asks for the shipping address and a phone number for the courier.
+      ...(askShippingDetails
+        ? {
+            requestShipping: true,
+            requestPayerPhone: true,
+            ...this.getWalletShippingOptionsMaybe(),
+          }
+        : {}),
       // Only Apple Pay and Google Pay: no Stripe Link, no "card saved in the browser" button.
       disableWallets: ['link', 'browserCard'],
     });
     paymentRequest.on('paymentmethod', this.handleWalletPaymentMethod);
+    if (askShippingDetails) {
+      paymentRequest.on('shippingaddresschange', this.handleWalletShippingAddressChange);
+    }
     this.paymentRequest = paymentRequest;
 
     paymentRequest
@@ -501,8 +595,18 @@ class StripePaymentForm extends Component {
   }
 
   /**
-   * Click guard: the wallet sheet doesn't ask for the shipping address or the transaction fields,
-   * so don't open it until those are filled in on the page. Must run synchronously:
+   * The buyer picked a shipping address in the sheet. Any country is accepted (the page form
+   * offers all of them too) and the shipping fee doesn't depend on the address.
+   *
+   * @param {Object} ev Stripe paymentRequest "shippingaddresschange" event
+   */
+  handleWalletShippingAddressChange(ev) {
+    ev.updateWith({ status: 'success', ...this.getWalletShippingOptionsMaybe() });
+  }
+
+  /**
+   * Click guard: the wallet sheet doesn't ask for the transaction fields, so don't open it until
+   * those are filled in on the page. Must run synchronously:
    * event.preventDefault() keeps the sheet closed.
    *
    * @param {Object} event Stripe paymentRequestButton click event
@@ -543,13 +647,24 @@ class StripePaymentForm extends Component {
    * @param {Object} ev Stripe paymentRequest "paymentmethod" event
    */
   handleWalletPaymentMethod(ev) {
-    const { onWalletPaymentMethod } = this.props;
-    const formValues = this.finalFormAPI ? this.finalFormAPI.getState().values : {};
-    if (onWalletPaymentMethod) {
-      onWalletPaymentMethod(ev, this.stripe, formValues);
-    } else {
+    const { onWalletPaymentMethod, askShippingDetails } = this.props;
+    const pageFormValues = this.finalFormAPI ? this.finalFormAPI.getState().values : {};
+    if (!onWalletPaymentMethod) {
       ev.complete('fail');
+      return;
     }
+    if (!askShippingDetails) {
+      onWalletPaymentMethod(ev, this.stripe, pageFormValues);
+      return;
+    }
+
+    // Shipped order: the address picked in the sheet replaces whatever the page form has.
+    const walletShippingValues = getShippingFormValuesFromWallet(ev);
+    if (!walletShippingValues) {
+      ev.complete('invalid_shipping_address');
+      return;
+    }
+    onWalletPaymentMethod(ev, this.stripe, { ...pageFormValues, ...walletShippingValues });
   }
 
   initializeStripeElement(element) {
@@ -798,8 +913,33 @@ class StripePaymentForm extends Component {
     const showAdditionalInfoHeading =
       showInitialMessageInput || (hasTransactionFieldConfigs && showTransactionFields);
 
+    const walletPayment = walletPaymentsEnabled ? (
+      <div className={showWalletPayment ? css.walletPayment : css.walletPaymentHidden}>
+        <div
+          className={css.walletButton}
+          id={`${formId}-wallet`}
+          ref={this.handleWalletContainerRef}
+        />
+        {showWalletPayment && showWalletGuardMessage ? (
+          <p className={css.walletGuardMessage} role="alert">
+            <FormattedMessage id="StripePaymentForm.walletFillDetailsFirst" />
+          </p>
+        ) : null}
+        {showWalletPayment ? (
+          <div className={css.walletDivider}>
+            <span className={css.walletDividerText}>
+              <FormattedMessage id="StripePaymentForm.orPayWithCard" />
+            </span>
+          </div>
+        ) : null}
+      </div>
+    ) : null;
+
     return hasStripeKey ? (
       <Form className={classes} onSubmit={handleSubmit} enforcePagePreloadFor="OrderDetailsPage">
+        {/* Shipped orders: the wallet supplies the address, so its button goes above the form. */}
+        {askShippingDetails ? walletPayment : null}
+
         <LocationOrShippingDetails
           askShippingDetails={askShippingDetails}
           showPickUpLocation={showPickUpLocation}
@@ -811,27 +951,7 @@ class StripePaymentForm extends Component {
           intl={intl}
         />
 
-        {walletPaymentsEnabled ? (
-          <div className={showWalletPayment ? css.walletPayment : css.walletPaymentHidden}>
-            <div
-              className={css.walletButton}
-              id={`${formId}-wallet`}
-              ref={this.handleWalletContainerRef}
-            />
-            {showWalletPayment && showWalletGuardMessage ? (
-              <p className={css.walletGuardMessage} role="alert">
-                <FormattedMessage id="StripePaymentForm.walletFillDetailsFirst" />
-              </p>
-            ) : null}
-            {showWalletPayment ? (
-              <div className={css.walletDivider}>
-                <span className={css.walletDividerText}>
-                  <FormattedMessage id="StripePaymentForm.orPayWithCard" />
-                </span>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+        {askShippingDetails ? null : walletPayment}
 
         {billingDetailsNeeded && !loadingData ? (
           <React.Fragment>

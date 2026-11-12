@@ -7,7 +7,7 @@ import {
   isValidCurrencyForTransactionProcess,
   pickTransactionFieldsData,
 } from '../../util/fieldHelpers.js';
-import { propTypes } from '../../util/types';
+import { propTypes, LINE_ITEM_SHIPPING_FEE } from '../../util/types';
 import { ensureTransaction } from '../../util/data';
 import { createSlug } from '../../util/urlHelpers';
 import { WALLET_PAYMENTS_ENABLED } from '../../config/configWalletPayments';
@@ -69,6 +69,22 @@ const paymentFlow = (selectedPaymentMethod, saveAfterOnetimePayment) => {
     : saveAfterOnetimePayment
     ? PAY_AND_SAVE_FOR_LATER_USE
     : ONETIME_PAYMENT;
+};
+
+/**
+ * The shipping fee the customer pays on this transaction (Money), or null if there is none.
+ * Shown in the Apple Pay / Google Pay sheet as the shipping option's price.
+ *
+ * @param {Object} tx transaction (existing or speculated)
+ * @returns {Object|null} Money
+ */
+const getCustomerShippingFee = tx => {
+  const lineItems = tx?.attributes?.lineItems || [];
+  const shippingFee = lineItems.find(
+    item =>
+      item.code === LINE_ITEM_SHIPPING_FEE && !item.reversal && item.includeFor.includes('customer')
+  );
+  return shippingFee ? shippingFee.lineTotal : null;
 };
 
 const capitalizeString = s => `${s.charAt(0).toUpperCase()}${s.substr(1)}`;
@@ -804,6 +820,7 @@ export const CheckoutPageWithPayment = props => {
                 showTransactionFields={showTransactionFields}
                 walletPaymentsEnabled={WALLET_PAYMENTS_ENABLED}
                 payinTotal={tx?.attributes?.payinTotal}
+                shippingFee={getCustomerShippingFee(tx)}
                 stripeCountry={config.stripe.country}
                 onWalletPaymentMethod={(ev, stripeInstance, formValues) =>
                   handleWalletPayment(

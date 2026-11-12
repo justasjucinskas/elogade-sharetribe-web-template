@@ -32,7 +32,11 @@ Spec: `specs/wallet-payments.md`. Tick an item only when its check passes; note 
 - [ ] Google Pay, pickup order → purchased
 - [ ] Google Pay, shipped order → purchased, address on transaction
 - [ ] Google Pay through a price offer
-- [ ] Click guard with empty address
+- [x] Click guard with empty address (old behaviour) — 2026-11-12, Justas on staging (Chrome,
+      Google Pay): form empty → no sheet, field errors and "Fill in the delivery details above
+      first." shown (screenshot). Superseded the same day by the wallet address change below.
+- [ ] Wallet shipping address: shipped order with the page form empty → sheet asks for the
+      address; the sheet's address is on the transaction
 - [x] No-wallet browser: card checkout unchanged — 2026-11-11, staging checkout (Apple watch band,
       test buyer, built-in browser without a wallet): wallet container `display: none` with 0
       children, no "or pay with card", card iframe present. Card order placed through this branch
@@ -44,6 +48,24 @@ Spec: `specs/wallet-payments.md`. Tick an item only when its check passes; note 
       Google Pay frames never load. Recheck during the wallet test.
 - [ ] Apple Pay on staging Safari (or noted as Live-only)
 - [ ] `onBehalfOf` not needed (else: stopped and asked)
+
+## Wallet shipping address (added 2026-11-12, Justas: "Add it now")
+
+- [x] Spec updated — `wallet-payments.md` Decisions: "Shipping address: from the wallet".
+- [x] Code + tests — `requestShipping` / `requestPayerPhone` / one shipping option (customer
+      shipping-fee line item) on shipped orders, `shippingaddresschange` accepts any country,
+      `recipient*` fields no longer block the click guard, sheet address mapped onto `recipient*`
+      (overrides the page form), incomplete address → `invalid_shipping_address`, button above the
+      shipping form. `StripePaymentForm.test.js` 14 tests; mutation (shipping field back in the
+      guard + `fail` instead of `invalid_shipping_address`) fails 4. Guard copy reworded to "Fill in
+      the required details below first." (en/lt/pl, unreviewed); new key
+      `StripePaymentForm.walletShippingOptionLabel`.
+- [x] `CI=true yarn test-ci` (server 264, web 1338, exit 0), `yarn format-ci` exit 0, `yarn build`
+      exit 0 — 2026-11-12.
+- [x] Diff reviewed — fresh-context reviewer (read-only): nothing blocking. Not verifiable without
+      a real sheet: Stripe accepting `detail: ''` on the shipping option; any shipping country is
+      accepted (same as the page form's country list).
+- [ ] Deployed to staging
 
 ## Live (ask first)
 
