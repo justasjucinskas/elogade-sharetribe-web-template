@@ -29,6 +29,10 @@ Spec: `specs/wallet-payments.md`. Tick an item only when its check passes; note 
       `walletPaymentsEnabled:!0` to the form; CSP header has `*.stripe.network`, `*.google.com`,
       `pay.google.com`. `REACT_APP_WALLET_PAYMENTS_ENABLED=true` also added to the VM's
       `staging.env` (backup `staging.env.pre-wallet.bak`). Live container untouched.
+- [x] Google Pay payment completes — 2026-11-12, Justas on staging (Chrome, own `checkme-test`
+      account): Stripe's test 3-D Secure page → Complete → "Your payment was successful!".
+      Reported by Justas; not seen by me (the test buyer's inbox has only the card order), and
+      which listing (shipped or pickup) wasn't recorded.
 - [ ] Google Pay, pickup order → purchased
 - [ ] Google Pay, shipped order → purchased, address on transaction
 - [ ] Google Pay through a price offer
