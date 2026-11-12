@@ -83,12 +83,18 @@ const defaultDirectives = sanitizeDirectives({
     'sentry.io',
     '*.sentry.io',
     '*.stripe.com',
+    // Apple Pay / Google Pay (Stripe Payment Request Button)
+    '*.stripe.network',
   ],
   fontSrc: [self, data, 'assets-sharetribecom.sharetribe.com', 'fonts.gstatic.com'],
   formAction: [self],
   frameSrc: [
     self,
     '*.stripe.com',
+    // Apple Pay / Google Pay (Stripe Payment Request Button and the Google Pay sheet)
+    '*.stripe.network',
+    '*.google.com',
+    'pay.google.com',
     '*.youtube-nocookie.com',
     'https://bid.g.doubleclick.net',
     'https://td.doubleclick.net',

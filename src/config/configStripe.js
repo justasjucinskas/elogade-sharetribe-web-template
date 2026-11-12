@@ -7,6 +7,11 @@ To make Stripe connection work, you also need to set Stripe's private key in the
 
 export const publishableKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
 
+// Two-letter country code of the platform's Stripe account. Apple Pay and Google Pay
+// (stripe.paymentRequest) need it. See specs/wallet-payments.md.
+// TODO: 'LT' is assumed; confirm it from the platform's Stripe Dashboard.
+export const country = 'LT';
+
 // A maximum number of days forwards during which a booking can be made.
 // This is limited due to Stripe holding funds up to 90 days from the
 // moment they are charged. However, US accounts can hold funds up to 2 years.

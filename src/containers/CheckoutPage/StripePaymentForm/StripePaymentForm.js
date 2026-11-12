@@ -94,6 +94,43 @@ const cardStyles = {
   },
 };
 
+// Apple Pay / Google Pay (Stripe Payment Request Button). See specs/wallet-payments.md.
+// The wallet supplies the card and the billing name and address, so these form fields don't need
+// to be filled in for a wallet payment. Everything else (shipping address, transaction fields) does.
+const WALLET_SUPPLIED_FIELDS = [
+  'name',
+  'addressLine1',
+  'addressLine2',
+  'postal',
+  'city',
+  'state',
+  'country',
+];
+
+// Stripe Elements takes a language code ('lt'), react-intl has a full locale ('lt-LT').
+const toStripeLocale = intlLocale => (intlLocale ? intlLocale.split('-')[0] : 'auto');
+
+// Payment Request Button matches the height and corner radius of the card field.
+const walletButtonStyle = {
+  paymentRequestButton: {
+    type: 'default',
+    theme: 'dark',
+    height: '48px',
+    borderRadius: '8px',
+  },
+};
+
+/**
+ * Names of the form fields that have a validation error and that a wallet payment doesn't fill.
+ *
+ * @param {Object} formErrors Final Form errors (field name → error)
+ * @returns {Array<string>} field names
+ */
+export const getFieldsBlockingWalletPayment = formErrors =>
+  Object.keys(formErrors || {}).filter(
+    name => !!formErrors[name] && !WALLET_SUPPLIED_FIELDS.includes(name)
+  );
+
 const OneTimePaymentWithCardElement = props => {
   const {
     cardClasses,
@@ -255,6 +292,10 @@ const initialState = {
   // The mode can be 'onetimePayment', 'defaultCard', or 'replaceCard'
   // Check SavedCardDetails component for more information
   paymentMethod: null,
+  // Apple Pay / Google Pay is available on this device (paymentRequest.canMakePayment)
+  walletAvailable: false,
+  // The wallet button was clicked while required fields were missing
+  walletGuardShown: false,
 };
 
 /**
@@ -294,6 +335,11 @@ const initialState = {
  * @param {Object} props.listingLocation.address - The address
  * @param {string} props.processName - The transaction process name
  * @param {boolean} props.isFuzzyLocation - Whether the location is fuzzy
+ * @param {boolean} props.walletPaymentsEnabled - Whether to offer Apple Pay / Google Pay
+ * @param {Object} props.payinTotal - The total the customer pays (Money), for the wallet sheet
+ * @param {string} props.stripeCountry - The country of the platform's Stripe account
+ * @param {Function} props.onWalletPaymentMethod - Called with (ev, stripe, formValues) after the
+ * customer has authorised a wallet payment
  * @param {Object} props.intl - The intl object
  */
 class StripePaymentForm extends Component {
@@ -310,8 +356,16 @@ class StripePaymentForm extends Component {
     this.handleStripeElementRef = this.handleStripeElementRef.bind(this);
     this.changePaymentMethod = this.changePaymentMethod.bind(this);
     this.handleStripeJsLoadedEvent = this.handleStripeJsLoadedEvent.bind(this);
+    this.initializeWalletButton = this.initializeWalletButton.bind(this);
+    this.handleWalletContainerRef = this.handleWalletContainerRef.bind(this);
+    this.handleWalletButtonClick = this.handleWalletButtonClick.bind(this);
+    this.handleWalletPaymentMethod = this.handleWalletPaymentMethod.bind(this);
     this.finalFormAPI = null;
     this.cardContainer = null;
+    // Apple Pay / Google Pay
+    this.walletContainer = null; // DOM node the Payment Request Button is mounted to
+    this.paymentRequest = null; // stripe.paymentRequest() instance
+    this.walletButton = null; // mounted paymentRequestButton Element
   }
 
   handleStripeJsLoadedEvent() {
@@ -337,6 +391,7 @@ class StripePaymentForm extends Component {
     if (!(hasHandledCardPayment || defaultPaymentMethod || loadingData)) {
       this.initializeStripeElement();
     }
+    this.initializeWalletButton();
   }
 
   componentDidMount() {
@@ -349,12 +404,151 @@ class StripePaymentForm extends Component {
     this.handleStripeJsLoadedEvent();
   }
 
+  componentDidUpdate(prevProps) {
+    const { payinTotal } = this.props;
+    if (!this.paymentRequest) {
+      // payinTotal arrives with the speculated transaction, possibly after Stripe.js has loaded.
+      this.initializeWalletButton();
+    } else if (payinTotal && prevProps.payinTotal?.amount !== payinTotal.amount) {
+      this.paymentRequest.update({ total: this.getWalletTotal() });
+    }
+  }
+
   componentWillUnmount() {
     window.removeEventListener(STRIPE_JS_LOADED_EVENT, this.handleStripeJsLoadedEvent);
     if (this.card) {
       this.card.removeEventListener('change', this.handleCardValueChange);
       this.card.unmount();
       this.card = null;
+    }
+    if (this.walletButton) {
+      this.walletButton.off('click', this.handleWalletButtonClick);
+      this.walletButton.unmount();
+      this.walletButton = null;
+    }
+    if (this.paymentRequest) {
+      this.paymentRequest.off('paymentmethod', this.handleWalletPaymentMethod);
+      this.paymentRequest = null;
+    }
+  }
+
+  getWalletTotal() {
+    const { payinTotal, marketplaceName } = this.props;
+    return { label: marketplaceName || 'Total', amount: payinTotal.amount };
+  }
+
+  /**
+   * Create the Stripe payment request and, if this device has Apple Pay or Google Pay, mount the
+   * Payment Request Button. Runs once Stripe.js is loaded, payinTotal is known and the container
+   * is rendered (whichever happens last).
+   */
+  initializeWalletButton() {
+    const { walletPaymentsEnabled, payinTotal, stripeCountry, intl } = this.props;
+    if (
+      !walletPaymentsEnabled ||
+      !this.stripe ||
+      !payinTotal ||
+      !this.walletContainer ||
+      this.paymentRequest
+    ) {
+      return;
+    }
+
+    const paymentRequest = this.stripe.paymentRequest({
+      country: stripeCountry,
+      currency: payinTotal.currency.toLowerCase(),
+      // payinTotal.amount is in minor units (cents), which is what Stripe expects.
+      total: this.getWalletTotal(),
+      requestPayerName: true,
+      requestPayerEmail: true,
+      // Only Apple Pay and Google Pay: no Stripe Link, no "card saved in the browser" button.
+      disableWallets: ['link', 'browserCard'],
+    });
+    paymentRequest.on('paymentmethod', this.handleWalletPaymentMethod);
+    this.paymentRequest = paymentRequest;
+
+    paymentRequest
+      .canMakePayment()
+      .then(result => {
+        // The form may have been unmounted while waiting.
+        if (!result || this.paymentRequest !== paymentRequest || !this.walletContainer) {
+          return;
+        }
+        const elements = this.stripe.elements({
+          ...stripeElementsOptions,
+          locale: toStripeLocale(intl?.locale),
+        });
+        const walletButton = elements.create('paymentRequestButton', {
+          paymentRequest,
+          style: walletButtonStyle,
+        });
+        walletButton.on('click', this.handleWalletButtonClick);
+        walletButton.mount(this.walletContainer);
+        this.walletButton = walletButton;
+        this.setState({ walletAvailable: true });
+      })
+      .catch(e => {
+        // No wallet button then; the card form works as before.
+        console.error(e);
+      });
+  }
+
+  handleWalletContainerRef(el) {
+    this.walletContainer = el;
+    if (el) {
+      this.initializeWalletButton();
+    }
+  }
+
+  /**
+   * Click guard: the wallet sheet doesn't ask for the shipping address or the transaction fields,
+   * so don't open it until those are filled in on the page. Must run synchronously:
+   * event.preventDefault() keeps the sheet closed.
+   *
+   * @param {Object} event Stripe paymentRequestButton click event
+   */
+  handleWalletButtonClick(event) {
+    if (this.props.inProgress || !this.finalFormAPI) {
+      event.preventDefault();
+      return;
+    }
+
+    const formApi = this.finalFormAPI;
+    const blockingFields = getFieldsBlockingWalletPayment(formApi.getState().errors);
+    if (blockingFields.length === 0) {
+      this.setState({ walletGuardShown: false });
+      return;
+    }
+
+    event.preventDefault();
+    // Mark the fields touched so that their errors are shown.
+    formApi.batch(() => {
+      blockingFields.forEach(name => {
+        formApi.focus(name);
+        formApi.blur(name);
+      });
+    });
+    this.setState({ walletGuardShown: true });
+
+    const firstField =
+      typeof document !== 'undefined' ? document.getElementsByName(blockingFields[0])[0] : null;
+    if (firstField && typeof firstField.scrollIntoView === 'function') {
+      firstField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  /**
+   * The customer authorised the payment in the wallet sheet.
+   *
+   * @param {Object} ev Stripe paymentRequest "paymentmethod" event
+   */
+  handleWalletPaymentMethod(ev) {
+    const { onWalletPaymentMethod } = this.props;
+    const formValues = this.finalFormAPI ? this.finalFormAPI.getState().values : {};
+    if (onWalletPaymentMethod) {
+      onWalletPaymentMethod(ev, this.stripe, formValues);
+    } else {
+      ev.complete('fail');
     }
   }
 
@@ -498,6 +692,8 @@ class StripePaymentForm extends Component {
       isFuzzyLocation,
       transactionFieldConfigs = [],
       showTransactionFields,
+      walletPaymentsEnabled,
+      errors,
       values,
     } = formRenderProps;
 
@@ -592,6 +788,13 @@ class StripePaymentForm extends Component {
     const isDownload = isDownloadProcess(processName);
     const isBookingYesNo = isBooking ? 'yes' : 'no';
 
+    // Apple Pay / Google Pay: the container is always rendered when the flag is on, so that the
+    // button can be mounted to it; it's only shown when a wallet is available.
+    const { walletAvailable, walletGuardShown } = this.state;
+    const showWalletPayment = walletAvailable && billingDetailsNeeded && !loadingData;
+    const showWalletGuardMessage =
+      walletGuardShown && getFieldsBlockingWalletPayment(errors).length > 0;
+
     const showAdditionalInfoHeading =
       showInitialMessageInput || (hasTransactionFieldConfigs && showTransactionFields);
 
@@ -607,6 +810,28 @@ class StripePaymentForm extends Component {
           locale={locale}
           intl={intl}
         />
+
+        {walletPaymentsEnabled ? (
+          <div className={showWalletPayment ? css.walletPayment : css.walletPaymentHidden}>
+            <div
+              className={css.walletButton}
+              id={`${formId}-wallet`}
+              ref={this.handleWalletContainerRef}
+            />
+            {showWalletPayment && showWalletGuardMessage ? (
+              <p className={css.walletGuardMessage} role="alert">
+                <FormattedMessage id="StripePaymentForm.walletFillDetailsFirst" />
+              </p>
+            ) : null}
+            {showWalletPayment ? (
+              <div className={css.walletDivider}>
+                <span className={css.walletDividerText}>
+                  <FormattedMessage id="StripePaymentForm.orPayWithCard" />
+                </span>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         {billingDetailsNeeded && !loadingData ? (
           <React.Fragment>

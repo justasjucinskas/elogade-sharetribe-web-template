@@ -157,3 +157,57 @@
 .missingStripeKey {
   color: var(--colorFail);
 }
+
+/* Apple Pay / Google Pay (Payment Request Button) */
+.walletPayment {
+  margin-bottom: 24px;
+
+  @media (--viewportMedium) {
+    margin-bottom: 32px;
+  }
+}
+
+.walletPaymentHidden {
+  display: none;
+}
+
+.walletButton {
+  /* Stripe sizes the button iframe to the full width; its height (48px) is set in JS. */
+  width: 100%;
+  min-height: 48px;
+}
+
+.walletGuardMessage {
+  composes: h5 from global;
+  color: var(--colorFail);
+  margin: 12px 0 0 0;
+  padding: 0;
+}
+
+.walletDivider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+
+  @media (--viewportMedium) {
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--colorGrey100);
+  }
+}
+
+.walletDividerText {
+  composes: h5 from global;
+  color: var(--colorGrey500);
+  white-space: nowrap;
+  margin: 0;
+  padding: 0;
+}
