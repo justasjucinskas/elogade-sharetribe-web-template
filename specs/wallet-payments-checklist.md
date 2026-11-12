@@ -68,6 +68,10 @@ Spec: `specs/wallet-payments.md`. Tick an item only when its check passes; note 
 - [x] Deployed to staging — 2026-11-12, commit `eece70dc1` via `build-and-deploy.sh` (exit 0,
       container `Up (healthy)`), `https://staging.elogade.com/en` → 200, checkout chunk
       `2592.caefc2f6.chunk.js` contains `requestShipping` / `invalid_shipping_address`.
+      That first redeploy was built without `STAGING_STRIPE_PUBLISHABLE_KEY`, so checkout said the
+      Stripe key wasn't configured (Justas, screenshot). Redeployed the same commit with the key:
+      `pk_test_` in `main.ec35089a.js`, BenQ checkout loads the card field and no key error.
+      `build-and-deploy.sh` now stops when the key or `.env` client id is missing (checked both).
 
 ## Live (ask first)
 

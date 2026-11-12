@@ -18,6 +18,20 @@ IMAGE=elogade-web:staging
 
 envval() { grep -E "^$1=" .env | head -1 | cut -d= -f2- ; }
 
+# Without these the build succeeds but checkout says the Stripe key is not configured (or the app
+# can't reach Sharetribe), so stop here instead.
+if [ ! -f .env ] || [ -z "$(envval REACT_APP_SHARETRIBE_SDK_CLIENT_ID)" ]; then
+  echo "Missing .env or REACT_APP_SHARETRIBE_SDK_CLIENT_ID in it (run from the repository root)." >&2
+  exit 1
+fi
+case "${STAGING_STRIPE_PUBLISHABLE_KEY:-}" in
+  pk_test_*) ;;
+  *)
+    echo "Set STAGING_STRIPE_PUBLISHABLE_KEY to the checkme-test Stripe key (pk_test_...)." >&2
+    exit 1
+    ;;
+esac
+
 docker buildx build --platform linux/amd64 --load -t "$IMAGE" \
   --build-arg REACT_APP_SHARETRIBE_SDK_CLIENT_ID="$(envval REACT_APP_SHARETRIBE_SDK_CLIENT_ID)" \
   --build-arg REACT_APP_STRIPE_PUBLISHABLE_KEY="${STAGING_STRIPE_PUBLISHABLE_KEY:-}" \
