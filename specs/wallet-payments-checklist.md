@@ -65,7 +65,9 @@ Spec: `specs/wallet-payments.md`. Tick an item only when its check passes; note 
 - [x] Diff reviewed — fresh-context reviewer (read-only): nothing blocking. Not verifiable without
       a real sheet: Stripe accepting `detail: ''` on the shipping option; any shipping country is
       accepted (same as the page form's country list).
-- [ ] Deployed to staging
+- [x] Deployed to staging — 2026-11-12, commit `eece70dc1` via `build-and-deploy.sh` (exit 0,
+      container `Up (healthy)`), `https://staging.elogade.com/en` → 200, checkout chunk
+      `2592.caefc2f6.chunk.js` contains `requestShipping` / `invalid_shipping_address`.
 
 ## Live (ask first)
 
