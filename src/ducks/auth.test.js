@@ -437,6 +437,7 @@ describe('auth duck', () => {
       const fakeCurrentUser = createCurrentUser({ id: 'test-user' });
       const fakeCurrentUserResponse = { data: { data: fakeCurrentUser, include: [] } };
       const fakeTransactionsResponse = { data: { data: [], include: [] } };
+      const fakeOwnListingsResponse = { data: { data: [], include: [] } };
       const sdk = {
         currentUser: {
           create: jest.fn(() => Promise.resolve({})),
@@ -447,6 +448,7 @@ describe('auth duck', () => {
         },
         login: jest.fn(() => Promise.resolve({})),
         authInfo: jest.fn(() => Promise.resolve({})),
+        ownListings: { query: jest.fn(() => Promise.resolve(fakeOwnListingsResponse)) },
         transactions: { query: jest.fn(() => Promise.resolve(fakeTransactionsResponse)) },
         messages: { query: jest.fn(() => Promise.resolve({ data: { data: [] } })) },
       };
@@ -473,28 +475,29 @@ describe('auth duck', () => {
       };
 
       return signup(params)(dispatch, getState, sdk).then(() => {
-        // signup > login > fetchCurrentUser
+        // signup > login > fetchCurrentUser (+ derived fetches)
         expect(sdk.currentUser.create.mock.calls).toEqual([[params]]);
+        expect(sdk.ownListings.query).toHaveBeenCalled();
 
         // The unread-message check runs in the background alongside login —
         // ignore its actions so the upstream ordering assertions stay intact.
-        // Filter into a new array: `actions` is the one the logger middleware
-        // appends to, so reassigning it would detach later actions from it.
-        const relevantActions = actions.filter(
-          a => !a.type.startsWith('user/fetchCurrentUserUnreadMessages')
-        );
-
-        expect(relevantActions[0].type).toBe('auth/signup/pending');
-        expect(relevantActions[1].type).toBe('auth/login/pending');
-        expect(relevantActions[2].type).toBe('user/fetchCurrentUser/pending');
-        expect(relevantActions[3].type).toBe('user/fetchCurrentUserHasListings/pending');
-        expect(relevantActions[4].type).toBe('user/fetchCurrentUserNotifications/pending');
-        expect(relevantActions[5].type).toBe('auth/authInfo/pending');
-        expect(relevantActions[6].type).toBe('user/fetchCurrentUserHasListings/fulfilled');
-        expect(relevantActions[7].type).toBe('auth/authInfo/fulfilled');
-        expect(relevantActions[8].type).toBe('user/fetchCurrentUser/fulfilled');
-        expect(relevantActions[9].type).toBe('user/fetchCurrentUserNotifications/fulfilled');
-        expect(relevantActions[10].type).toBe('auth/login/fulfilled');
+        const types = actions
+          .map(a => a.type)
+          .filter(type => !type.startsWith('user/fetchCurrentUserUnreadMessages'));
+        // Pending dispatches are synchronous and ordered; fulfillments can interleave.
+        expect(types.slice(0, 6)).toEqual([
+          'auth/signup/pending',
+          'auth/login/pending',
+          'user/fetchCurrentUser/pending',
+          'user/fetchCurrentUserHasListings/pending',
+          'user/fetchCurrentUserNotifications/pending',
+          'auth/authInfo/pending',
+        ]);
+        expect(types).toContain('user/fetchCurrentUserHasListings/fulfilled');
+        expect(types).toContain('user/fetchCurrentUserNotifications/fulfilled');
+        expect(types).toContain('auth/authInfo/fulfilled');
+        expect(types).toContain('user/fetchCurrentUser/fulfilled');
+        expect(types).toContain('auth/login/fulfilled');
       });
     });
     it('should dispatch error', () => {

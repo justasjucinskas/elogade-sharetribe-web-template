@@ -262,6 +262,8 @@ export const ListingPageComponent = props => {
               <SectionGallery
                 listing={currentListing}
                 variantPrefix={config.layout.listingImage.variantPrefix}
+                aspectWidth={config.layout.listingImage.aspectWidth}
+                aspectHeight={config.layout.listingImage.aspectHeight}
               />
             )}
             <div

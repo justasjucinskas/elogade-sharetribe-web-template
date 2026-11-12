@@ -46,13 +46,17 @@ const isLocaleMissing = currentUser => {
 // Fetch ownListings to check if currentUser has published listings //
 //////////////////////////////////////////////////////////////////////
 
+/**
+ * Fetch derived user data: whether the current user has published listings.
+ *
+ * Called from `fetchCurrentUser`'s authorized branch before that thunk
+ * fulfills, so `currentUser` may not be in the store yet. Safe without it:
+ * `ownListings` is scoped to the caller's token.
+ *
+ * @returns {Promise<{ hasListings: boolean }>}
+ */
 const fetchCurrentUserHasListingsPayloadCreator = (_, thunkAPI) => {
-  const { getState, extra: sdk, rejectWithValue } = thunkAPI;
-  const { currentUser } = getState().user;
-
-  if (!currentUser) {
-    return Promise.resolve({ hasListings: false });
-  }
+  const { extra: sdk, rejectWithValue } = thunkAPI;
 
   const params = {
     // Since we are only interested in if the user has published
@@ -91,10 +95,17 @@ export const fetchCurrentUserHasListings = () => (dispatch, getState, sdk) => {
 // Fetch transactions to check if currentUser has orders //
 ///////////////////////////////////////////////////////////
 
-const fetchCurrentUserHasOrdersPayloadCreator = (_, { getState, extra: sdk, rejectWithValue }) => {
-  if (!getState().user.currentUser) {
-    return Promise.resolve({ hasOrders: false });
-  }
+/**
+ * Fetch derived user data: whether the current user has orders.
+ *
+ * Called from `fetchCurrentUser`'s authorized branch before that thunk
+ * fulfills, so `currentUser` may not be in the store yet. Safe without it:
+ * `transactions` is scoped to the caller's token.
+ *
+ * @returns {Promise<{ hasOrders: boolean }>}
+ */
+const fetchCurrentUserHasOrdersPayloadCreator = (_, thunkAPI) => {
+  const { extra: sdk, rejectWithValue } = thunkAPI;
 
   const params = {
     only: 'order',
@@ -668,6 +679,8 @@ const userSlice = createSlice({
       state.currentUserUnreadMessageCountByTx = {};
 
       state.currentUserNotificationCountError = null;
+      state.currentUserHasOrders = null;
+      state.currentUserHasOrdersError = null;
     },
     setCurrentUser: (state, action) => {
       state.currentUser = mergeCurrentUser(state.currentUser, action.payload);

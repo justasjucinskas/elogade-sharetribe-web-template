@@ -14,7 +14,96 @@ way to update this template, but currently, we follow a pattern:
 
 ## Upcoming version 2026-XX-XX
 
-- [fix] Restore comments to transaction process. [#927](https://github.com/sharetribe/web-template/pull/927)
+## [v12.6.0] 2026-10-26
+
+- [add] Limit the number of attached images per listing (through listing type config).
+  [#960](https://github.com/sharetribe/web-template/pull/960)
+- [change] Update Node.js to v24.22.1
+
+  - Next LTS version from v22
+  - Important security fixes on v24.22.1
+
+  [#967](https://github.com/sharetribe/web-template/pull/967)
+
+- [fix] configHelpers: pass all four arguments to mergeSortConfig when there is no hosted search
+  config. Listing fields without saved search settings made every server-side render fail.
+  [#965](https://github.com/sharetribe/web-template/pull/965)
+- [change] Update several dependencies (mostly patches, minors and simple majors).
+  [#963](https://github.com/sharetribe/web-template/pull/963)
+- [fix] Fix a bug with cache eviction on each [[set]] call.
+  [#962](https://github.com/sharetribe/web-template/pull/962)
+- [add] Add currently available translations.
+  [#961](https://github.com/sharetribe/web-template/pull/961)
+- [fix] EditListingPage.test.js: add missing id from listingTypeIds.
+  [#959](https://github.com/sharetribe/web-template/pull/959)
+- [change] ListingPage: fetch max 2 images on SSR. CSR will fetch the rest. This also improves the
+  "sizes" attribute for the carousel slide images.
+  [#955](https://github.com/sharetribe/web-template/pull/955)
+
+  [v12.6.0]: https://github.com/sharetribe/web-template/compare/v12.5.0...v12.6.0
+
+## [v12.5.0] 2026-10-14
+
+- [add] Set availability in 15 min increments and add custom select component
+  [#896](https://github.com/sharetribe/web-template/pull/896)
+- [add] robots.txt: disallow some AI training bots from causing server load and fetching resources.
+  [#953](https://github.com/sharetribe/web-template/pull/953)
+- [fix] Checkout: reject privileged payment transition when the payin total no longer matches the
+  amount shown on checkout (e.g. provider changed the price after the customer opened the page).
+  [#952](https://github.com/sharetribe/web-template/pull/952)
+- [fix] Align hasMandatoryConfigs and printErrorForInvalidHostedAsset so that they track the same
+  required assets. [#951](https://github.com/sharetribe/web-template/pull/951)
+- [add] Add currently available translations.
+  [#950](https://github.com/sharetribe/web-template/pull/950)
+
+  [v12.5.0]: https://github.com/sharetribe/web-template/compare/v12.4.0...v12.5.0
+
+## [v12.4.0] 2026-10-06
+
+- [fix] Add responsive `sizes` for listing images on Checkout, MakeOffer, RequestQuote, and
+  Transaction pages. Omit MobileListingImage from the DOM on desktop layouts.
+  [#948](https://github.com/sharetribe/web-template/pull/948)
+- [change] ListingCard: lazy load images so that they are reacting to scroll interactions instead of
+  loadAfterInitialRendering config. [#947](https://github.com/sharetribe/web-template/pull/947)
+- [change] ListingImageGallery: lazy load thumbnails.
+  [#946](https://github.com/sharetribe/web-template/pull/946)
+- [add] Add currently available translations.
+  [#943](https://github.com/sharetribe/web-template/pull/943)
+- [change] PageBuilder: lazy-load FieldImage and section background images. (IntersectionObserver
+  with a ~1 viewport prefetch margin). First two sections still server-side render with images
+  mounted. [#941](https://github.com/sharetribe/web-template/pull/941)
+- [change] Improve image loading on ListingPage (lazy load carousel images on both variants).
+  [#940](https://github.com/sharetribe/web-template/pull/940)
+- [change] Update browserlist db [#939](https://github.com/sharetribe/web-template/pull/939)
+- [change] Update Sentry (@sentry/browser and @sentry/node) 10.43.0 > 11.0.0. Load the browser SDK
+  asynchronously via a tree-shakeable wrapper so it is not bundled into the main chunk. Pin
+  `@babel/helper-compilation-targets/lru-cache` to 5.1.1 so CI does not resolve a newer lru-cache
+  and fail with `_lruCache is not a constructor` (safe to remove once Babel no longer depends on
+  lru-cache@^5). [#938](https://github.com/sharetribe/web-template/pull/938)
+- [fix] EditListingPricingAndStockPanel: guard against missing listingTypeConfig.
+  [#937](https://github.com/sharetribe/web-template/pull/937)
+- [fix] data.js: limitListingsSections fails and sends Sentry error when a Pages asset has no
+  sections yet. [#936](https://github.com/sharetribe/web-template/pull/936)
+- [fix] sitemap.js: sitemapPages was not detecting empty sitemap correctly.
+  [#935](https://github.com/sharetribe/web-template/pull/935)
+- [fix] ListingPage: fix layout shift caused by carousel images and add fetch priority to the first
+  image. [#934](https://github.com/sharetribe/web-template/pull/934)
+- [fix] CheckoutPage: fix a bug with speculation made against an inquiry process.
+  [#933](https://github.com/sharetribe/web-template/pull/933)
+- [fix] PriorityLinks: measuring link widths while TopbarDesktop is hidden (mobile layout) caused a
+  maximum update depth warning; remasure when the viewport grows to desktop.
+  [#932](https://github.com/sharetribe/web-template/pull/932)
+- [fix] user.duck: The clearCurrentUser thunk resets hasOrders.
+  [#931](https://github.com/sharetribe/web-template/pull/931)
+- [fix] user.duck: after Redux toolkit change, currentUser is not populated yet to store.
+
+  - fetchCurrentUserHasListings: don't read the currentUser out of the store.
+  - fetchCurrentUserHasOrders: don't read the currentUser out of the store.
+
+  [#930](https://github.com/sharetribe/web-template/pull/930)
+
+- [fix] Restore comments to transaction process.
+  [#927](https://github.com/sharetribe/web-template/pull/927)
 - [fix] user.duck / fetchCurrentUser: Don't treat login-as token expiration as a bug. In addition,
   fetchFeaturedListings was also sending unnecessary Sentry errors.
   [#926](https://github.com/sharetribe/web-template/pull/926)
@@ -32,6 +121,8 @@ way to update this template, but currently, we follow a pattern:
 - [fix] Fix to transaction process. [#922](https://github.com/sharetribe/web-template/pull/922)
 - [fix] Fixes to Marketplace and Email texts.
   [#921](https://github.com/sharetribe/web-template/pull/921)
+
+  [v12.4.0]: https://github.com/sharetribe/web-template/compare/v12.3.0...v12.4.0
 
 ## [v12.3.0] 2026-08-31
 

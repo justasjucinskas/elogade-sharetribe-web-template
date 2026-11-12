@@ -4,6 +4,15 @@
 # Every app URL is locale-prefixed (/en/..., /lt/..., /pl/...), hence the leading `/*/`.
 #
 
+# AI training bots
+User-agent: CCBot
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: Google-Extended
+User-agent: Meta-ExternalAgent
+User-agent: Applebot-Extended
+Disallow: /
+
 User-agent: *
 Allow: /sitemap
 Allow: /*/sitemap
